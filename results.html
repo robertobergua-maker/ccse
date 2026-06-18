@@ -3,32 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resultados del Simulacro - CCSE</title>
-    <link rel="stylesheet" href="css/style.css">
+    <title>Resultados del Examen</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background-color: #f5f7fb; color: #333; }
+        header { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background-color: white; border-bottom: 1px solid #e2e8f0; }
+        h1 { margin: 0; font-size: 20px; color: #1a365d; }
+        
+        .btn-inicio { display: inline-flex; align-items: center; gap: 5px; padding: 8px 16px; background-color: #edf2f7; color: #4a5568; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 14px; }
+        .btn-inicio:hover { background-color: #e2e8f0; }
+        
+        .container { max-width: 1100px; margin: 30px auto; padding: 0 20px; }
+        h2 { color: #2c3e50; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 30px; font-size: 18px; }
+        
+        /* Bloque 1: Cuadro resumen */
+        .resumen-container { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; margin-top: 15px; }
+        .card { flex: 1; min-width: 160px; padding: 20px; border-radius: 8px; text-align: center; color: white; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.04); }
+        .respondidas { background-color: #3182ce; }
+        .no-respondidas { background-color: #718096; }
+        .bien { background-color: #38a169; }
+        .mal { background-color: #e53e3e; }
+        .card span { display: block; font-size: 32px; margin-top: 5px; }
+
+        /* Bloque 2: Tabla agrupada */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; box-shadow: 0 4px 6px rgba(0,0,0,0.04); border-radius: 8px; overflow: hidden; }
+        th, td { padding: 14px; border: 1px solid #e2e8f0; text-align: left; }
+        th { background-color: #edf2f7; color: #4a5568; font-weight: 600; }
+        tr:hover { background-color: #f7fafc; }
+        
+        .badge { padding: 5px 10px; border-radius: 4px; color: white; font-size: 12px; font-weight: bold; display: inline-block; }
+        .center-text { text-align: center; }
+    </style>
 </head>
 <body>
+
+    <header>
+        <h1>Análisis de Rendimiento</h1>
+        <a href="dashboard.html" class="btn-inicio">🏠 Volver a Inicio</a>
+    </header>
+
     <div class="container">
-        <header>
-            <h1>Resultados del Examen</h1>
-        </header>
-        <main>
-            <div id="summary-container">
-                <h2>Resumen de Resultados</h2>
-                <p><strong>Puntuación Final:</strong> <span id="score">--</span> / 25</p>
-                <p><strong>Aciertos:</strong> <span id="correct-count">--</span></p>
-                <p><strong>Fallos:</strong> <span id="incorrect-count">--</span></p>
-                <p><strong>No respondidas:</strong> <span id="unanswered-count">--</span></p>
-            </div>
-            <div id="details-container">
-                <h2>Detalle de Preguntas</h2>
-                <div id="questions-list"></div>
-            </div>
-            <div class="navigation-buttons">
-                <a href="exam.html" class="btn">Repetir Examen</a>
-                <a href="index.html" class="btn">Volver al Inicio</a>
-            </div>
-        </main>
+        <h2>Resumen del Último Intento Realizado</h2>
+        <div class="resumen-container">
+            <div class="card respondidas">Respondidas <span id="res-respondadas">0</span></div>
+            <div class="card no-respondidas">No Respondidas <span id="res-no-respondidas">0</span></div>
+            <div class="card bien">Correctas <span id="res-bien">0</span></div>
+            <div class="card mal">Incorrectas <span id="res-mal">0</span></div>
+        </div>
+
+        <h2>Desglose Estadístico Acumulado por Pregunta</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 5%" class="center-text">Nº</th>
+                    <th style="width: 50%">Pregunta Analizada</th>
+                    <th style="width: 13%" class="center-text">Tu Respuesta</th>
+                    <th style="width: 14%">Resultado Intento</th>
+                    <th style="width: 9%; color: #276749;" class="center-text">Aciertos (Total)</th>
+                    <th style="width: 9%; color: #9b2c2c;" class="center-text">Fallos (Total)</th>
+                </tr>
+            </thead>
+            <tbody id="tabla-preguntas-cuerpo">
+                <tr>
+                    <td colspan="6" style="text-align: center; color: #718096; font-style: italic;">Cargando registros estadísticos desde Firestore...</td>
+                </tr>
+            </tbody>
+        </table>
     </div>
-    <script src="js/results.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="results.js"></script>
 </body>
 </html>

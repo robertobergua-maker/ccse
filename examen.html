@@ -3,63 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resultados del Examen</title>
+    <title>Simulacro de Examen</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 30px; background-color: #f5f7fb; color: #333; }
-        h2 { color: #2c3e50; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 30px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background-color: #f5f7fb; color: #333; }
+        header { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background-color: white; border-bottom: 1px solid #e2e8f0; }
+        h1 { margin: 0; font-size: 20px; color: #1a365d; }
         
-        /* Contenedor Bloque 1 */
-        .resumen-container { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
-        .card { flex: 1; min-width: 150px; padding: 20px; border-radius: 8px; text-align: center; color: white; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .respondidas { background-color: #3182ce; }
-        .no-respondidas { background-color: #718096; }
-        .bien { background-color: #38a169; }
-        .mal { background-color: #e53e3e; }
-        .card span { display: block; font-size: 28px; margin-top: 5px; }
-
-        /* Contenedor Bloque 2 */
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-radius: 8px; overflow: hidden; }
-        th, td { padding: 14px; border: 1px solid #e2e8f0; text-align: left; }
-        th { background-color: #edf2f7; color: #4a5568; font-weight: 600; }
-        tr:hover { background-color: #f7fafc; }
+        .nav-actions { display: flex; align-items: center; gap: 15px; }
+        .btn-inicio { display: inline-flex; align-items: center; gap: 5px; padding: 8px 16px; background-color: #edf2f7; color: #4a5568; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 14px; }
+        .btn-inicio:hover { background-color: #e2e8f0; }
         
-        .badge { padding: 5px 10px; border-radius: 4px; color: white; font-size: 12px; font-weight: bold; display: inline-block; }
-        .btn-regresar { display: inline-block; margin-top: 20px; padding: 12px 24px; background-color: #2b6cb0; color: white; text-decoration: none; border-radius: 6px; font-weight: bold; }
-        .btn-regresar:hover { background-color: #2b4c7e; }
+        .container { max-width: 800px; margin: 30px auto; padding: 0 20px; }
+        .info-bar { display: flex; justify-content: space-between; background: #2b6cb0; color: white; padding: 15px 20px; border-radius: 8px; font-weight: bold; margin-bottom: 20px; }
+        
+        .question-block { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.03); }
+        .options { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+        .option { padding: 10px 15px; border: 1px solid #e2e8f0; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+        .option:hover { background-color: #f7fafc; }
+        .option.selected { background-color: #ebf8ff; border-color: #4299e1; font-weight: 600; }
+        
+        .btn-submit { display: block; width: 100%; padding: 15px; background-color: #e53e3e; color: white; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 30px; }
+        .btn-submit:hover { background-color: #c53030; }
     </style>
 </head>
 <body>
 
-    <h2>Resumen del Intento Actual</h2>
-    <div class="resumen-container">
-        <div class="card respondidas">Respondidas <span id="res-respondadas">0</span></div>
-        <div class="card no-respondidas">No Respondidas <span id="res-no-respondidas">0</span></div>
-        <div class="card bien">Correctas <span id="res-bien">0</span></div>
-        <div class="card mal">Incorrectas <span id="res-mal">0</span></div>
+    <header>
+        <h1>Examen en Curso</h1>
+        <div class="nav-actions">
+            <a href="dashboard.html" class="btn-inicio">🏠 Abandonar e Inicio</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="info-bar">
+            <span>Modo: Simulacro Oficial</span>
+            <span>Tiempo restante: <span id="timer">45:00</span></span>
+        </div>
+
+        <div id="exam-container">
+            <p>Cargando cuestionario adaptado...</p>
+        </div>
+
+        <button id="submit-exam-btn" class="btn-submit">Finalizar y Enviar Examen</button>
     </div>
-
-    <h2>Rendimiento e Histórico por Pregunta</h2>
-    <table>
-        <thead>
-            <tr>
-                <th style="width: 5%">Nº</th>
-                <th style="width: 50%">Pregunta</th>
-                <th style="width: 15%">Tu Respuesta</th>
-                <th style="width: 15%">Resultado Actual</th>
-                <th style="width: 7%; color: #276749;">Aciertos Globales</th>
-                <th style="width: 7%; color: #9b2c2c;">Fallos Globales</th>
-            </tr>
-        </thead>
-        <tbody id="tabla-preguntas-cuerpo">
-            </tbody>
-    </table>
-
-    <a href="dashboard.html" class="btn-regresar">Volver al Panel</a>
 
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
     <script src="firebase-config.js"></script>
-    <script src="results.js"></script>
+    <script src="examen.js"></script>
 </body>
 </html>

@@ -1,16 +1,15 @@
 document.addEventListener('DOMContentLoaded', async function() {
-    // Comprobar que firebase esté inicializado correctamente
     if (typeof firebase === 'undefined') {
-        console.error("Firebase SDK no está cargado.");
+        console.error("El SDK de Firebase no se encuentra disponible.");
         return;
     }
     
     const db = firebase.firestore();
     
-    // 1. Obtener la información del intento desde el almacenamiento de sesión
+    // 1. Obtener la información almacenada provisionalmente tras el test
     const examDataRaw = sessionStorage.getItem('examResults');
     if (!examDataRaw) {
-        alert('No se encontraron resultados de exámenes interactivos disponibles.');
+        alert('No se registran datos del examen para analizar.');
         window.location.href = 'dashboard.html';
         return;
     }
@@ -25,7 +24,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     const tablaCuerpo = document.getElementById('tabla-preguntas-cuerpo');
     tablaCuerpo.innerHTML = ''; 
 
-    // 2. Procesar cíclicamente cada pregunta del examen finalizado
+    // 2. Iterar sobre las preguntas para computar contadores y renderizar
     for (let index = 0; index < questions.length; index++) {
         const q = questions[index];
         const userAnswer = userAnswers[index];
@@ -33,7 +32,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         let estadoActualHtml = '';
         let tuRespuestaTexto = userAnswer ? userAnswer.toUpperCase() : 'Ninguna';
 
-        // Clasificación del estado de la respuesta actual
         if (userAnswer === null || userAnswer === undefined) {
             noRespondidas++;
             estadoActualHtml = `<span class="badge no-respondidas">No Respondida</span>`;
@@ -48,12 +46,12 @@ document.addEventListener('DOMContentLoaded', async function() {
             estadoActualHtml = `<span class="badge mal">Incorrecta</span>`;
         }
 
-        // ID de documento unificado idéntico al generado en examen.js
+        // Generación idéntica de ID de documento para sincronizar contadores
         const questionIdDoc = q.id || q.question_text.replace(/[^a-zA-Z0-9]/g, "").substring(0, 30);
         let totalCorrectasHistorico = 0;
         let totalIncorrectasHistorico = 0;
 
-        // 3. Consulta de datos acumulativos en tiempo real desde Cloud Firestore
+        // 3. Consultar contadores globales en Firestore
         try {
             const doc = await db.collection('question_stats').doc(questionIdDoc).get();
             if (doc.exists) {
@@ -62,23 +60,23 @@ document.addEventListener('DOMContentLoaded', async function() {
                 totalIncorrectasHistorico = data.total_incorrect || 0;
             }
         } catch (e) {
-            console.error("Error recuperando histórico de documento de pregunta:", e);
+            console.error("Error leyendo estadísticas del ítem:", e);
         }
 
-        // 4. Inserción de la fila estructurada en el DOM
+        // 4. Añadir la fila estructurada en el HTML de la tabla
         const fila = document.createElement('tr');
         fila.innerHTML = `
-            <td>${index + 1}</td>
+            <td class="center-text">${index + 1}</td>
             <td><strong>${q.question_text}</strong></td>
-            <td style="text-align: center; font-weight: bold;">${tuRespuestaTexto}</td>
+            <td style="font-weight: bold;" class="center-text">${tuRespuestaTexto}</td>
             <td>${estadoActualHtml}</td>
-            <td style="color: #276749; font-weight: bold; text-align: center;">${totalCorrectasHistorico}</td>
-            <td style="color: #9b2c2c; font-weight: bold; text-align: center;">${totalIncorrectasHistorico}</td>
+            <td style="color: #276749; font-weight: bold;" class="center-text">${totalCorrectasHistorico}</td>
+            <td style="color: #9b2c2c; font-weight: bold;" class="center-text">${totalIncorrectasHistorico}</td>
         `;
         tablaCuerpo.appendChild(fila);
     }
 
-    // 5. Actualización final de los contadores en las tarjetas superiores
+    // 5. Rellenar las tarjetas del bloque global de estadísticas superiores
     document.getElementById('res-respondadas').textContent = respondidas;
     document.getElementById('res-no-respondidas').textContent = noRespondidas;
     document.getElementById('res-bien').textContent = bien;
