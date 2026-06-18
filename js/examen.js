@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     const auth = firebase.auth();
-    const db = firebase.firestore(); // Ensure db is initialized
+    const db = firebase.firestore(); 
     let currentUser = null;
 
     let examQuestions = []; 
@@ -92,7 +92,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     async function finishExam() {
-        // First, save the summary to Firestore for the history
         try {
             let correctCount = 0;
             let incorrectCount = 0;
@@ -111,6 +110,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const passed = correctCount >= 15;
 
+            // 1. Guardar resumen del examen realizado
             await db.collection('exams').add({
                 user_id: currentUser.uid,
                 finished_at: firebase.firestore.FieldValue.serverTimestamp(),
@@ -121,17 +121,42 @@ document.addEventListener('DOMContentLoaded', function() {
                 passed: passed,
                 exam_mode: 'simulacro_oficial'
             });
+
+            // 2. NUEVO: Actualizar el histórico agrupado por pregunta mediante un Batch de Firestore
+            const batch = db.batch();
+            examQuestions.forEach((question, index) => {
+                const userAnswer = userAnswers[index];
+                // Generamos un ID de documento limpio basado en el identificador de la pregunta o su texto
+                const questionIdDoc = question.id || question.question_text.replace(/[^a-zA-Z0-9]/g, "").substring(0, 30);
+                const questionRef = db.collection('question_stats').doc(questionIdDoc);
+
+                if (userAnswer !== null && userAnswer !== undefined) {
+                    if (userAnswer === question.correct_answer) {
+                        batch.set(questionRef, {
+                            question_text: question.question_text,
+                            total_correct: firebase.firestore.FieldValue.increment(1)
+                        }, { merge: true });
+                    } else {
+                        batch.set(questionRef, {
+                            question_text: question.question_text,
+                            total_incorrect: firebase.firestore.FieldValue.increment(1)
+                        }, { merge: true });
+                    }
+                }
+            });
+            await batch.commit();
+
         } catch (error) {
-            console.error("Error saving exam history to Firestore:", error);
+            console.error("Error saving exam data to Firestore:", error);
         }
 
-        // Second, save full results to sessionStorage for the immediate results page
+        // 3. Guardar resultados inmediatos en sessionStorage para la página de resultados
         sessionStorage.setItem('examResults', JSON.stringify({
             questions: examQuestions,
             userAnswers: userAnswers
         }));
 
-        // Finally, redirect to the results page
+        // 4. Redirigir a la vista de resultados
         window.location.href = 'results.html';
     }
     

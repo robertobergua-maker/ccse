@@ -1,61 +1,86 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const examResults = JSON.parse(sessionStorage.getItem('examResults'));
-
-    const scoreEl = document.getElementById('score');
-    const correctCountEl = document.getElementById('correct-count');
-    const incorrectCountEl = document.getElementById('incorrect-count');
-    const unansweredCountEl = document.getElementById('unanswered-count');
-    const questionsListEl = document.getElementById('questions-list');
-
-    if (!examResults) {
-        questionsListEl.innerHTML = '<p>No se han encontrado resultados. Por favor, completa un examen primero.</p>';
+document.addEventListener('DOMContentLoaded', async function() {
+    // Comprobar que firebase esté inicializado correctamente
+    if (typeof firebase === 'undefined') {
+        console.error("Firebase SDK no está cargado.");
+        return;
+    }
+    
+    const db = firebase.firestore();
+    
+    // 1. Obtener la información del intento desde el almacenamiento de sesión
+    const examDataRaw = sessionStorage.getItem('examResults');
+    if (!examDataRaw) {
+        alert('No se encontraron resultados de exámenes interactivos disponibles.');
+        window.location.href = 'dashboard.html';
         return;
     }
 
-    let correctCount = 0;
-    let incorrectCount = 0;
-    let unansweredCount = 0;
+    const { questions, userAnswers } = JSON.parse(examDataRaw);
 
-    examResults.questions.forEach((question, index) => {
-        const userAnswer = examResults.userAnswers[index];
-        const isCorrect = userAnswer === question.correct_answer;
-        let status = '';
+    let respondidas = 0;
+    let noRespondidas = 0;
+    let bien = 0;
+    let mal = 0;
 
+    const tablaCuerpo = document.getElementById('tabla-preguntas-cuerpo');
+    tablaCuerpo.innerHTML = ''; 
+
+    // 2. Procesar cíclicamente cada pregunta del examen finalizado
+    for (let index = 0; index < questions.length; index++) {
+        const q = questions[index];
+        const userAnswer = userAnswers[index];
+        
+        let estadoActualHtml = '';
+        let tuRespuestaTexto = userAnswer ? userAnswer.toUpperCase() : 'Ninguna';
+
+        // Clasificación del estado de la respuesta actual
         if (userAnswer === null || userAnswer === undefined) {
-            unansweredCount++;
-            status = 'unanswered';
-        } else if (isCorrect) {
-            correctCount++;
-            status = 'correct';
+            noRespondidas++;
+            estadoActualHtml = `<span class="badge no-respondidas">No Respondida</span>`;
+            tuRespuestaTexto = '—';
+        } else if (userAnswer === q.correct_answer) {
+            respondidas++;
+            bien++;
+            estadoActualHtml = `<span class="badge bien">Correcta</span>`;
         } else {
-            incorrectCount++;
-            status = 'incorrect';
+            respondidas++;
+            mal++;
+            estadoActualHtml = `<span class="badge mal">Incorrecta</span>`;
         }
 
-        const questionEl = document.createElement('div');
-        questionEl.classList.add('question-result', status);
+        // ID de documento unificado idéntico al generado en examen.js
+        const questionIdDoc = q.id || q.question_text.replace(/[^a-zA-Z0-9]/g, "").substring(0, 30);
+        let totalCorrectasHistorico = 0;
+        let totalIncorrectasHistorico = 0;
 
-        let userAnswerText = 'No respondida';
-        if (userAnswer) {
-            const optionKey = 'option_' + userAnswer;
-            userAnswerText = question[optionKey] || (userAnswer.toString() === 'true' ? 'Verdadero' : 'Falso');
+        // 3. Consulta de datos acumulativos en tiempo real desde Cloud Firestore
+        try {
+            const doc = await db.collection('question_stats').doc(questionIdDoc).get();
+            if (doc.exists) {
+                const data = doc.data();
+                totalCorrectasHistorico = data.total_correct || 0;
+                totalIncorrectasHistorico = data.total_incorrect || 0;
+            }
+        } catch (e) {
+            console.error("Error recuperando histórico de documento de pregunta:", e);
         }
 
-        const correctAnswerKey = 'option_' + question.correct_answer;
-        const correctAnswerText = question[correctAnswerKey] || (question.correct_answer.toString() === 'true' ? 'Verdadero' : 'Falso');
-
-        questionEl.innerHTML = `
-            <h4>${index + 1}. ${question.question_text}</h4>
-            <p><strong>Tu respuesta:</strong> ${userAnswerText}</p>
-            <p><strong>Respuesta correcta:</strong> ${correctAnswerText}</p>
-            <p class="explanation"><strong>Explicación:</strong> ${question.explanation_simple}</p>
+        // 4. Inserción de la fila estructurada en el DOM
+        const fila = document.createElement('tr');
+        fila.innerHTML = `
+            <td>${index + 1}</td>
+            <td><strong>${q.question_text}</strong></td>
+            <td style="text-align: center; font-weight: bold;">${tuRespuestaTexto}</td>
+            <td>${estadoActualHtml}</td>
+            <td style="color: #276749; font-weight: bold; text-align: center;">${totalCorrectasHistorico}</td>
+            <td style="color: #9b2c2c; font-weight: bold; text-align: center;">${totalIncorrectasHistorico}</td>
         `;
+        tablaCuerpo.appendChild(fila);
+    }
 
-        questionsListEl.appendChild(questionEl);
-    });
-
-    scoreEl.textContent = correctCount;
-    correctCountEl.textContent = correctCount;
-    incorrectCountEl.textContent = incorrectCount;
-    unansweredCountEl.textContent = unansweredCount;
+    // 5. Actualización final de los contadores en las tarjetas superiores
+    document.getElementById('res-respondadas').textContent = respondidas;
+    document.getElementById('res-no-respondidas').textContent = noRespondidas;
+    document.getElementById('res-bien').textContent = bien;
+    document.getElementById('res-mal').textContent = mal;
 });

@@ -3,26 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Examen CCSE</title>
-    <link rel="stylesheet" href="css/style.css">
+    <title>Resultados del Examen</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 30px; background-color: #f5f7fb; color: #333; }
+        h2 { color: #2c3e50; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 30px; }
+        
+        /* Contenedor Bloque 1 */
+        .resumen-container { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
+        .card { flex: 1; min-width: 150px; padding: 20px; border-radius: 8px; text-align: center; color: white; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .respondidas { background-color: #3182ce; }
+        .no-respondidas { background-color: #718096; }
+        .bien { background-color: #38a169; }
+        .mal { background-color: #e53e3e; }
+        .card span { display: block; font-size: 28px; margin-top: 5px; }
+
+        /* Contenedor Bloque 2 */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-radius: 8px; overflow: hidden; }
+        th, td { padding: 14px; border: 1px solid #e2e8f0; text-align: left; }
+        th { background-color: #edf2f7; color: #4a5568; font-weight: 600; }
+        tr:hover { background-color: #f7fafc; }
+        
+        .badge { padding: 5px 10px; border-radius: 4px; color: white; font-size: 12px; font-weight: bold; display: inline-block; }
+        .btn-regresar { display: inline-block; margin-top: 20px; padding: 12px 24px; background-color: #2b6cb0; color: white; text-decoration: none; border-radius: 6px; font-weight: bold; }
+        .btn-regresar:hover { background-color: #2b4c7e; }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Simulacro de Examen CCSE</h1>
-            <div id="timer">25:00</div>
-        </header>
-        <main id="exam-container">
-            <!-- Las preguntas se cargarán aquí dinámicamente -->
-        </main>
-        <footer>
-            <button id="submit-exam-btn" class="btn btn-primary">Finalizar y Corregir Examen</button>
-        </footer>
+
+    <h2>Resumen del Intento Actual</h2>
+    <div class="resumen-container">
+        <div class="card respondidas">Respondidas <span id="res-respondadas">0</span></div>
+        <div class="card no-respondidas">No Respondidas <span id="res-no-respondidas">0</span></div>
+        <div class="card bien">Correctas <span id="res-bien">0</span></div>
+        <div class="card mal">Incorrectas <span id="res-mal">0</span></div>
     </div>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-    <script src="js/firebase-config.js"></script>
-    <script src="js/examen.js"></script>
+
+    <h2>Rendimiento e Histórico por Pregunta</h2>
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 5%">Nº</th>
+                <th style="width: 50%">Pregunta</th>
+                <th style="width: 15%">Tu Respuesta</th>
+                <th style="width: 15%">Resultado Actual</th>
+                <th style="width: 7%; color: #276749;">Aciertos Globales</th>
+                <th style="width: 7%; color: #9b2c2c;">Fallos Globales</th>
+            </tr>
+        </thead>
+        <tbody id="tabla-preguntas-cuerpo">
+            </tbody>
+    </table>
+
+    <a href="dashboard.html" class="btn-regresar">Volver al Panel</a>
+
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="results.js"></script>
 </body>
 </html>
