@@ -1,12 +1,18 @@
 document.addEventListener('DOMContentLoaded', async function() {
+    // 1. Asegurar e inicializar Firestore correctamente en modo compatibilidad
     if (typeof firebase === 'undefined') {
         console.error("El SDK de Firebase no se encuentra disponible.");
         return;
     }
     
-    const db = firebase.firestore();
+    // Forzamos la obtención de la instancia activa de la base de datos
+    const db = firebase.apps.length ? firebase.firestore() : null;
+    if (!db) {
+        console.error("Firebase no ha sido inicializado correctamente.");
+        return;
+    }
     
-    // 1. Obtener la información almacenada provisionalmente tras el test
+    // 2. Obtener la información almacenada provisionalmente tras el test
     const examDataRaw = sessionStorage.getItem('examResults');
     if (!examDataRaw) {
         alert('No se registran datos del examen para analizar.');
@@ -24,7 +30,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     const tablaCuerpo = document.getElementById('tabla-preguntas-cuerpo');
     tablaCuerpo.innerHTML = ''; 
 
-    // 2. Iterar sobre las preguntas para computar contadores y renderizar
+    // 3. Iterar sobre las preguntas para computar contadores y renderizar
     for (let index = 0; index < questions.length; index++) {
         const q = questions[index];
         const userAnswer = userAnswers[index];
@@ -46,12 +52,12 @@ document.addEventListener('DOMContentLoaded', async function() {
             estadoActualHtml = `<span class="badge mal">Incorrecta</span>`;
         }
 
-        // Generación idéntica de ID de documento para sincronizar contadores
+        // Generación de ID limpia basada en el texto de la pregunta
         const questionIdDoc = q.id || q.question_text.replace(/[^a-zA-Z0-9]/g, "").substring(0, 30);
         let totalCorrectasHistorico = 0;
         let totalIncorrectasHistorico = 0;
 
-        // 3. Consultar contadores globales en Firestore
+        // 4. Consultar contadores globales en Firestore usando promesas seguras
         try {
             const doc = await db.collection('question_stats').doc(questionIdDoc).get();
             if (doc.exists) {
@@ -63,7 +69,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             console.error("Error leyendo estadísticas del ítem:", e);
         }
 
-        // 4. Añadir la fila estructurada en el HTML de la tabla
+        // 5. Añadir la fila estructurada en el HTML de la tabla
         const fila = document.createElement('tr');
         fila.innerHTML = `
             <td class="center-text">${index + 1}</td>
@@ -76,7 +82,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         tablaCuerpo.appendChild(fila);
     }
 
-    // 5. Rellenar las tarjetas del bloque global de estadísticas superiores
+    // 6. Rellenar las tarjetas del bloque global de estadísticas superiores
     document.getElementById('res-respondadas').textContent = respondidas;
     document.getElementById('res-no-respondidas').textContent = noRespondidas;
     document.getElementById('res-bien').textContent = bien;
