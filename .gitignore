@@ -7,3 +7,4 @@ gcp-creds.json
 .venv/
 __pycache__/
 *.pyc
+firebase-debug.log

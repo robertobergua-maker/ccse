@@ -5,40 +5,67 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    function ownsExistingDocument() {
-      return signedIn() && resource.data.user_id == request.auth.uid;
+    function isCurrentUser(userId) {
+      return signedIn() && request.auth.uid == userId;
     }
 
-    function ownsIncomingDocument() {
-      return signedIn() && request.resource.data.user_id == request.auth.uid;
+    function ownsStoredRecord() {
+      return signedIn()
+        && resource != null
+        && resource.data.user_id == request.auth.uid;
+    }
+
+    function ownsNewRecord() {
+      return signedIn()
+        && request.resource.data.user_id == request.auth.uid;
+    }
+
+    function keepsOwner() {
+      return request.resource.data.user_id == resource.data.user_id;
     }
 
     match /users/{userId} {
-      allow read, create, update: if signedIn() && request.auth.uid == userId;
+      // Cada perfil solamente es visible y editable por su propio usuario.
+      allow read: if isCurrentUser(userId);
+      allow create: if isCurrentUser(userId)
+        && request.resource.data.id == userId;
+      allow update: if isCurrentUser(userId)
+        && resource.data.id == userId
+        && request.resource.data.id == userId;
       allow delete: if false;
     }
 
     match /questions/{questionId} {
+      // El banco es común, pero solo está disponible tras iniciar sesión.
       allow read: if signedIn();
       allow write: if false;
     }
 
     match /exams/{examId} {
-      allow read, delete: if ownsExistingDocument();
-      allow create: if ownsIncomingDocument();
-      allow update: if ownsExistingDocument() && ownsIncomingDocument();
+      allow read, delete: if ownsStoredRecord();
+      allow create: if ownsNewRecord();
+      allow update: if ownsStoredRecord() && ownsNewRecord() && keepsOwner();
     }
 
     match /exam_answers/{answerId} {
-      allow read, delete: if ownsExistingDocument();
-      allow create: if ownsIncomingDocument();
-      allow update: if ownsExistingDocument() && ownsIncomingDocument();
+      allow read, delete: if ownsStoredRecord();
+      allow create: if ownsNewRecord();
+      allow update: if ownsStoredRecord() && ownsNewRecord() && keepsOwner();
     }
 
     match /user_question_stats/{statId} {
-      allow read, delete: if ownsExistingDocument();
-      allow create: if ownsIncomingDocument();
-      allow update: if ownsExistingDocument() && ownsIncomingDocument();
+      allow read, delete: if ownsStoredRecord();
+      allow create: if ownsNewRecord()
+        && statId == request.auth.uid + "_" + request.resource.data.question_id;
+      allow update: if ownsStoredRecord()
+        && ownsNewRecord()
+        && keepsOwner()
+        && request.resource.data.question_id == resource.data.question_id
+        && statId == request.auth.uid + "_" + resource.data.question_id;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
