@@ -29,21 +29,22 @@ document.addEventListener('DOMContentLoaded', () => {
             option => option.key === question.correct_answer
         );
         const correctAnswerText = formatOption(correctOption);
+        const explanation = getSimpleExplanation(question, correctOption);
         let stateLabel = 'No respondida';
         let stateClass = 'no-respondidas';
         let simpleExplanation =
-            `No elegiste una respuesta. La respuesta correcta es ${correctAnswerText}.`;
+            `No elegiste una respuesta. ${explanation}`;
 
         if (selectedKey === question.correct_answer) {
             stateLabel = 'Correcta';
             stateClass = 'bien';
             simpleExplanation =
-                `¡Muy bien! Elegiste la respuesta correcta: ${correctAnswerText}.`;
+                `¡Muy bien! ${explanation}`;
         } else if (selectedKey !== null) {
             stateLabel = 'Incorrecta';
             stateClass = 'mal';
             simpleExplanation =
-                `Esta respuesta no es correcta. La respuesta correcta es ${correctAnswerText}.`;
+                `Tu respuesta no es correcta. ${explanation}`;
         }
 
         const state = `
@@ -75,6 +76,88 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function formatOption(option) {
         return option ? `${option.key.toUpperCase()}) ${option.text}` : 'No disponible';
+    }
+
+    function getSimpleExplanation(question, correctOption) {
+        if (question.explanation_simple) {
+            return question.explanation_simple;
+        }
+
+        const answer = cleanSentence(correctOption?.text || 'No disponible');
+        const prompt = cleanSentence(question.question_text)
+            .replace(/^¿/, '')
+            .replace(/\?$/, '')
+            .replace(/…$/, '')
+            .trim();
+
+        if (question.question_type === 'true_false') {
+            if (question.correct_answer === 'a') {
+                return `La frase es verdadera. Puedes recordarla así: ${prompt}.`;
+            }
+            return `La frase es falsa. No debes tomar como correcto lo que dice: “${prompt}”.`;
+        }
+
+        const howNamed = prompt.match(/^Cómo se (llama|llaman) (.+)$/i);
+        if (howNamed) {
+            const verb = howNamed[1].toLowerCase();
+            return `${capitalize(howNamed[2])} se ${verb} ${lowercaseFirst(answer)}.`;
+        }
+
+        const who = prompt.match(/^Quién(?:es)? (.+)$/i);
+        if (who) {
+            return `${answer} ${lowercaseFirst(who[1])}.`;
+        }
+
+        const where = prompt.match(/^Dónde (está|están|vive|viven|se encuentra|se encuentran) (.+)$/i);
+        if (where) {
+            return `${capitalize(where[2])} ${where[1].toLowerCase()} ${lowercaseFirst(answer)}.`;
+        }
+
+        const whatIs = prompt.match(/^Cuál es (.+)$/i);
+        if (whatIs) {
+            return `${capitalize(whatIs[1])} es ${lowercaseFirst(answer)}.`;
+        }
+
+        const howManyExist = prompt.match(/^Cuánt(?:os|as) (.+?) hay (.+)$/i);
+        if (howManyExist) {
+            return `${capitalize(howManyExist[2])} hay ${lowercaseFirst(answer)} ${howManyExist[1].toLowerCase()}.`;
+        }
+
+        const howManyHas = prompt.match(/^Cuánt(?:os|as) (.+?) tiene (.+)$/i);
+        if (howManyHas) {
+            return `${capitalize(howManyHas[2])} tiene ${lowercaseFirst(answer)} ${howManyHas[1].toLowerCase()}.`;
+        }
+
+        const whichOne = prompt.match(
+            /^Cuál de (?:estos|estas|los siguientes|las siguientes) .+? (se .+|es .+|tiene .+|está .+|permite .+)$/i
+        );
+        if (whichOne) {
+            return `${answer} ${lowercaseFirst(whichOne[1])}.`;
+        }
+
+        if (/^Cómo /i.test(prompt)) {
+            return `La forma correcta es ${lowercaseFirst(answer)}.`;
+        }
+
+        if (/…$/.test(question.question_text.trim())) {
+            return `${capitalize(prompt)} ${lowercaseFirst(answer)}.`;
+        }
+
+        return `La respuesta correcta es ${answer}. Esta es la idea que debes recordar para esta pregunta.`;
+    }
+
+    function cleanSentence(value) {
+        return String(value).trim().replace(/[.\s]+$/, '');
+    }
+
+    function capitalize(value) {
+        return value ? value.charAt(0).toUpperCase() + value.slice(1) : value;
+    }
+
+    function lowercaseFirst(value) {
+        if (!value) return value;
+        if (/^[A-ZÁÉÍÓÚÑ]{2,}\b/.test(value)) return value;
+        return value.charAt(0).toLowerCase() + value.slice(1);
     }
 
     function escapeHtml(value) {
