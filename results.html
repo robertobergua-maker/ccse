@@ -25,7 +25,7 @@
         .card span { display: block; font-size: 32px; margin-top: 5px; }
 
         /* Bloque 2: Tabla agrupada */
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; box-shadow: 0 4px 6px rgba(0,0,0,0.04); border-radius: 8px; overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; box-shadow: 0 4px 6px rgba(0,0,0,0.04); border-radius: 8px; overflow: visible; }
         th, td { padding: 14px; border: 1px solid #e2e8f0; text-align: left; }
         th { background-color: #edf2f7; color: #4a5568; font-weight: 600; }
         tr:hover { background-color: #f7fafc; }
@@ -45,9 +45,9 @@
             position: absolute;
             z-index: 20;
             left: 50%;
-            bottom: calc(100% + 10px);
+            top: calc(100% + 10px);
             width: 250px;
-            transform: translateX(-50%) translateY(5px);
+            transform: translateX(-50%) translateY(-5px);
             padding: 10px 12px;
             border-radius: 7px;
             background: #1f2937;
@@ -64,11 +64,11 @@
         .simple-tooltip::after {
             content: "";
             position: absolute;
-            top: 100%;
+            bottom: 100%;
             left: 50%;
             transform: translateX(-50%);
             border: 6px solid transparent;
-            border-top-color: #1f2937;
+            border-bottom-color: #1f2937;
         }
         .result-with-help:hover .simple-tooltip,
         .result-with-help:focus .simple-tooltip,
@@ -113,6 +113,6 @@
         </table>
     </div>
 
-    <script src="js/results.js"></script>
+    <script src="js/results.js?v=20260619-2"></script>
 </body>
 </html>

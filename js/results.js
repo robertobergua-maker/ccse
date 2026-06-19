@@ -47,7 +47,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const state = `
-            <span class="result-with-help" tabindex="0" aria-describedby="help-${index}">
+            <span
+                class="result-with-help"
+                tabindex="0"
+                aria-describedby="help-${index}"
+                title="${escapeHtml(simpleExplanation)}"
+            >
                 <span class="badge ${stateClass}">${stateLabel}</span>
                 <span id="help-${index}" class="simple-tooltip" role="tooltip">
                     ${escapeHtml(simpleExplanation)}
