@@ -28,18 +28,39 @@ document.addEventListener('DOMContentLoaded', () => {
         const correctOption = question.options.find(
             option => option.key === question.correct_answer
         );
-        const state = selectedKey === null
-            ? '<span class="badge no-respondidas">No respondida</span>'
-            : selectedKey === question.correct_answer
-                ? '<span class="badge bien">Correcta</span>'
-                : '<span class="badge mal">Incorrecta</span>';
+        const correctAnswerText = formatOption(correctOption);
+        let stateLabel = 'No respondida';
+        let stateClass = 'no-respondidas';
+        let simpleExplanation =
+            `No elegiste una respuesta. La respuesta correcta es ${correctAnswerText}.`;
+
+        if (selectedKey === question.correct_answer) {
+            stateLabel = 'Correcta';
+            stateClass = 'bien';
+            simpleExplanation =
+                `¡Muy bien! Elegiste la respuesta correcta: ${correctAnswerText}.`;
+        } else if (selectedKey !== null) {
+            stateLabel = 'Incorrecta';
+            stateClass = 'mal';
+            simpleExplanation =
+                `Esta respuesta no es correcta. La respuesta correcta es ${correctAnswerText}.`;
+        }
+
+        const state = `
+            <span class="result-with-help" tabindex="0" aria-describedby="help-${index}">
+                <span class="badge ${stateClass}">${stateLabel}</span>
+                <span id="help-${index}" class="simple-tooltip" role="tooltip">
+                    ${escapeHtml(simpleExplanation)}
+                </span>
+            </span>
+        `;
 
         return `
             <tr>
                 <td class="center-text">${index + 1}</td>
                 <td>
                     <strong>${escapeHtml(question.question_text)}</strong>
-                    <div class="answer-note">Correcta: ${escapeHtml(formatOption(correctOption))}</div>
+                    <div class="answer-note">Correcta: ${escapeHtml(correctAnswerText)}</div>
                 </td>
                 <td>${escapeHtml(selectedOption ? formatOption(selectedOption) : '—')}</td>
                 <td>${state}</td>

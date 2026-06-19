@@ -39,6 +39,44 @@
         .result-title { padding: 16px; border-radius: 8px; border: 0; }
         .result-title.passed { color: #276749; background: #f0fff4; }
         .result-title.failed { color: #9b2c2c; background: #fff5f5; }
+        .result-with-help { display: inline-block; position: relative; outline: none; }
+        .result-with-help .badge { cursor: help; }
+        .simple-tooltip {
+            position: absolute;
+            z-index: 20;
+            left: 50%;
+            bottom: calc(100% + 10px);
+            width: 250px;
+            transform: translateX(-50%) translateY(5px);
+            padding: 10px 12px;
+            border-radius: 7px;
+            background: #1f2937;
+            color: #fff;
+            font-size: 13px;
+            font-weight: normal;
+            line-height: 1.4;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity .15s ease, transform .15s ease;
+        }
+        .simple-tooltip::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: #1f2937;
+        }
+        .result-with-help:hover .simple-tooltip,
+        .result-with-help:focus .simple-tooltip,
+        .result-with-help:focus-within .simple-tooltip {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
     </style>
 </head>
 <body>
