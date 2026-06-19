@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detalle de preguntas - CCSE</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=20260619-2">
 </head>
 <body>
     <div class="container detail-container">
@@ -29,13 +29,13 @@
                 <table class="questions-table">
                     <thead>
                         <tr>
-                            <th>Código</th>
-                            <th>Pregunta</th>
-                            <th>Tarea</th>
-                            <th>Veces respondida</th>
-                            <th>Aciertos</th>
-                            <th>Fallos</th>
-                            <th>Último resultado</th>
+                            <th><button class="sort-button" data-sort="id" type="button">Código <span aria-hidden="true">↕</span></button></th>
+                            <th><button class="sort-button" data-sort="question" type="button">Pregunta <span aria-hidden="true">↕</span></button></th>
+                            <th><button class="sort-button" data-sort="task" type="button">Tarea <span aria-hidden="true">↕</span></button></th>
+                            <th><button class="sort-button active" data-sort="attempts" data-direction="desc" type="button">Veces respondida <span aria-hidden="true">↓</span></button></th>
+                            <th><button class="sort-button" data-sort="correct" type="button">Aciertos <span aria-hidden="true">↕</span></button></th>
+                            <th><button class="sort-button" data-sort="incorrect" type="button">Fallos <span aria-hidden="true">↕</span></button></th>
+                            <th><button class="sort-button" data-sort="result" type="button">Último resultado <span aria-hidden="true">↕</span></button></th>
                         </tr>
                     </thead>
                     <tbody id="questions-body">
@@ -51,6 +51,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <script src="js/firebase-config.js"></script>
     <script src="js/auth.js"></script>
-    <script src="js/preguntas.js"></script>
+    <script src="js/preguntas.js?v=20260619-2"></script>
 </body>
 </html>

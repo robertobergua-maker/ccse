@@ -16,8 +16,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const ui = {
         title: document.getElementById('detail-title'),
         summary: document.getElementById('detail-summary'),
-        body: document.getElementById('questions-body')
+        body: document.getElementById('questions-body'),
+        sortButtons: [...document.querySelectorAll('.sort-button')]
     };
+    let visibleRows = [];
+    let sortState = { key: 'attempts', direction: 'desc' };
 
     ui.title.textContent = labels[activeFilter];
     document.querySelectorAll('.filter-nav a').forEach(link => {
@@ -48,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 statsByQuestion.set(stat.question_id, stat);
             });
 
-            const rows = questions.map(question => {
+            visibleRows = questions.map(question => {
                 const stat = statsByQuestion.get(question.id) || {};
                 return {
                     question,
@@ -59,19 +62,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
             }).filter(matchesFilter);
 
-            rows.sort((left, right) =>
-                right.attempts - left.attempts ||
-                left.question.id.localeCompare(right.question.id, 'es', { numeric: true })
-            );
-
-            renderRows(rows);
+            sortAndRender();
             ui.summary.textContent =
-                `${rows.length} pregunta${rows.length === 1 ? '' : 's'}, ordenadas de mayor a menor frecuencia de respuesta.`;
+                `${visibleRows.length} pregunta${visibleRows.length === 1 ? '' : 's'}. Puedes ordenar la tabla pulsando cualquier columna.`;
         } catch (error) {
             console.error('No se pudo cargar el detalle:', error);
             ui.summary.textContent = 'No se pudo cargar el detalle.';
             ui.body.innerHTML = '<tr><td colspan="7" class="empty-state">Error al cargar los datos.</td></tr>';
         }
+    });
+
+    ui.sortButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const key = button.dataset.sort;
+            if (sortState.key === key) {
+                sortState.direction = sortState.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortState = {
+                    key,
+                    direction: ['attempts', 'correct', 'incorrect', 'task'].includes(key)
+                        ? 'desc'
+                        : 'asc'
+                };
+            }
+            sortAndRender();
+        });
     });
 
     function matchesFilter(row) {
@@ -108,6 +123,63 @@ document.addEventListener('DOMContentLoaded', () => {
                 </tr>
             `;
         }).join('');
+    }
+
+    function sortAndRender() {
+        const direction = sortState.direction === 'asc' ? 1 : -1;
+        const sortedRows = [...visibleRows].sort((left, right) => {
+            const comparison = compareValues(
+                getSortValue(left, sortState.key),
+                getSortValue(right, sortState.key)
+            );
+            return comparison * direction ||
+                left.question.id.localeCompare(right.question.id, 'es', { numeric: true });
+        });
+
+        updateSortButtons();
+        renderRows(sortedRows);
+    }
+
+    function getSortValue(row, key) {
+        if (key === 'id') return row.question.id;
+        if (key === 'question') return row.question.question_text;
+        if (key === 'task') return row.question.task_number;
+        if (key === 'correct') return row.correct;
+        if (key === 'incorrect') return row.incorrect;
+        if (key === 'result') {
+            if (row.lastCorrect === true) return 2;
+            if (row.lastCorrect === false) return 1;
+            return 0;
+        }
+        return row.attempts;
+    }
+
+    function compareValues(left, right) {
+        if (typeof left === 'number' && typeof right === 'number') {
+            return left - right;
+        }
+        return String(left).localeCompare(String(right), 'es', {
+            numeric: true,
+            sensitivity: 'base'
+        });
+    }
+
+    function updateSortButtons() {
+        ui.sortButtons.forEach(button => {
+            const active = button.dataset.sort === sortState.key;
+            button.classList.toggle('active', active);
+            button.dataset.direction = active ? sortState.direction : '';
+            button.setAttribute(
+                'aria-label',
+                `${button.textContent.replace(/[↕↑↓]/g, '').trim()}. ` +
+                (active
+                    ? `Orden ${sortState.direction === 'asc' ? 'ascendente' : 'descendente'}`
+                    : 'Ordenar por esta columna')
+            );
+            button.querySelector('span').textContent = active
+                ? (sortState.direction === 'asc' ? '↑' : '↓')
+                : '↕';
+        });
     }
 
     function escapeHtml(value) {
