@@ -1,4 +1,7 @@
 {
+  "firestore": {
+    "rules": "firestore.rules"
+  },
   "hosting": {
     "public": ".",
     "ignore": [
@@ -8,6 +11,12 @@
       "**/*-service-account.json",
       "**/*.py",
       "tools/**",
+      ".venv/**",
+      "__pycache__/**",
+      ".git/**",
+      ".github/**",
+      ".vscode/**",
+      ".idea/**",
       ".firebaserc",
       ".gitignore",
       "README.md"
