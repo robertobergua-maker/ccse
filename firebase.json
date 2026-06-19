@@ -4,7 +4,10 @@
     "ignore": [
       "firebase.json",
       "firestore.rules",
-      "preguntas.json",
+      "gcp-creds.json",
+      "**/*-service-account.json",
+      "**/*.py",
+      "tools/**",
       ".firebaserc",
       ".gitignore",
       "README.md"

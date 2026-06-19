@@ -32,6 +32,13 @@
         
         .badge { padding: 5px 10px; border-radius: 4px; color: white; font-size: 12px; font-weight: bold; display: inline-block; }
         .center-text { text-align: center; }
+        .badge.no-respondidas { background: #718096; }
+        .badge.bien { background: #38a169; }
+        .badge.mal { background: #e53e3e; }
+        .answer-note { color: #4a5568; font-size: 13px; margin-top: 8px; }
+        .result-title { padding: 16px; border-radius: 8px; border: 0; }
+        .result-title.passed { color: #276749; background: #f0fff4; }
+        .result-title.failed { color: #9b2c2c; background: #fff5f5; }
     </style>
 </head>
 <body>
@@ -42,7 +49,7 @@
     </header>
 
     <div class="container">
-        <h2>Resumen del Último Intento Realizado</h2>
+        <h2 id="result-title" class="result-title">Resultado del examen</h2>
         <div class="resumen-container">
             <div class="card respondidas">Respondidas <span id="res-respondadas">0</span></div>
             <div class="card no-respondidas">No Respondidas <span id="res-no-respondidas">0</span></div>
@@ -50,30 +57,24 @@
             <div class="card mal">Incorrectas <span id="res-mal">0</span></div>
         </div>
 
-        <h2>Desglose Estadístico Acumulado por Pregunta</h2>
+        <h2>Detalle del examen</h2>
         <table>
             <thead>
                 <tr>
                     <th style="width: 5%" class="center-text">Nº</th>
-                    <th style="width: 50%">Pregunta Analizada</th>
-                    <th style="width: 13%" class="center-text">Tu Respuesta</th>
-                    <th style="width: 14%">Resultado Intento</th>
-                    <th style="width: 9%; color: #276749;" class="center-text">Aciertos (Total)</th>
-                    <th style="width: 9%; color: #9b2c2c;" class="center-text">Fallos (Total)</th>
+                    <th style="width: 55%">Pregunta</th>
+                    <th style="width: 25%">Tu respuesta</th>
+                    <th style="width: 15%">Resultado</th>
                 </tr>
             </thead>
             <tbody id="tabla-preguntas-cuerpo">
                 <tr>
-                    <td colspan="6" style="text-align: center; color: #718096; font-style: italic;">Cargando registros estadísticos desde Firestore...</td>
+                    <td colspan="4" style="text-align: center; color: #718096; font-style: italic;">Cargando resultados…</td>
                 </tr>
             </tbody>
         </table>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
-    <script src="firebase-config.js"></script>
-    <script src="results.js"></script>
+    <script src="js/results.js"></script>
 </body>
 </html>

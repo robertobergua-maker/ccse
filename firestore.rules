@@ -1,32 +1,44 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
 
-    // Los usuarios pueden leer y escribir sus propios datos
+    function ownsExistingDocument() {
+      return signedIn() && resource.data.user_id == request.auth.uid;
+    }
+
+    function ownsIncomingDocument() {
+      return signedIn() && request.resource.data.user_id == request.auth.uid;
+    }
+
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, create, update: if signedIn() && request.auth.uid == userId;
+      allow delete: if false;
     }
 
-    // Los usuarios autenticados pueden leer las preguntas
     match /questions/{questionId} {
-      allow get: if request.auth != null;
-      // Para el panel de administrador, se necesitarían reglas más específicas
-      allow list, create, update, delete: if false; // Proteger por ahora
+      allow read: if signedIn();
+      allow write: if false;
     }
 
-    // Los usuarios pueden crear y actualizar sus propios examenes
     match /exams/{examId} {
-        allow read, write: if request.auth != null && request.resource.data.user_id == request.auth.uid;
+      allow read, delete: if ownsExistingDocument();
+      allow create: if ownsIncomingDocument();
+      allow update: if ownsExistingDocument() && ownsIncomingDocument();
     }
 
-    // Los usuarios pueden crear y leer sus propias respuestas
     match /exam_answers/{answerId} {
-      allow read, write: if request.auth != null && request.resource.data.user_id == request.auth.uid;
+      allow read, delete: if ownsExistingDocument();
+      allow create: if ownsIncomingDocument();
+      allow update: if ownsExistingDocument() && ownsIncomingDocument();
     }
 
-     // Estadísticas de usuario
     match /user_question_stats/{statId} {
-        allow read, write: if request.auth != null && request.resource.data.user_id == request.auth.uid;
+      allow read, delete: if ownsExistingDocument();
+      allow create: if ownsIncomingDocument();
+      allow update: if ownsExistingDocument() && ownsIncomingDocument();
     }
   }
 }

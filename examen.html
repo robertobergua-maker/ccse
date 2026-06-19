@@ -17,6 +17,8 @@
         .info-bar { display: flex; justify-content: space-between; background: #2b6cb0; color: white; padding: 15px 20px; border-radius: 8px; font-weight: bold; margin-bottom: 20px; }
         
         .question-block { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.03); }
+        .question-block h2 { font-size: 18px; color: #1a365d; }
+        .question-code { color: #718096; font-size: 13px; margin-left: 8px; }
         .options { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
         .option { padding: 10px 15px; border: 1px solid #e2e8f0; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 10px; }
         .option:hover { background-color: #f7fafc; }
@@ -48,10 +50,11 @@
         <button id="submit-exam-btn" class="btn-submit">Finalizar y Enviar Examen</button>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
-    <script src="firebase-config.js"></script>
-    <script src="examen.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/examen.js"></script>
 </body>
 </html>

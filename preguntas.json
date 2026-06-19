@@ -1,393 +1,7358 @@
-
 [
   {
+    "id": "1001",
+    "code": "1001",
     "task_number": 1,
     "topic": "Gobierno, legislación y participación ciudadana",
-    "question_text": "El jefe del Estado es...",
+    "question_text": "España es…",
     "question_type": "multiple_choice",
-    "option_a": "el presidente del Gobierno.",
-    "option_b": "el rey.",
-    "option_c": "el ministro del Interior.",
-    "correct_answer": "b",
-    "explanation_simple": "En España, el rey es el jefe del Estado, un cargo simbólico y representativo, pero no tiene poder ejecutivo.",
-    "difficulty": "baja",
-    "active": true
-  },
-  {
-    "task_number": 1,
-    "topic": "Gobierno, legislación y participación ciudadana",
-    "question_text": "La elaboración de las leyes corresponde...",
-    "question_type": "multiple_choice",
-    "option_a": "al Gobierno.",
-    "option_b": "a las Cortes Generales.",
-    "option_c": "al Senado.",
-    "correct_answer": "b",
-    "explanation_simple": "Las Cortes Generales, compuestas por el Congreso de los Diputados y el Senado, son las que tienen el poder legislativo, es decir, la capacidad de elaborar y aprobar las leyes.",
-    "difficulty": "media",
-    "active": true
-  },
-  {
-    "task_number": 1,
-    "topic": "Gobierno, legislación y participación ciudadana",
-    "question_text": "La Constitución española fue aprobada en el año...",
-    "question_type": "multiple_choice",
-    "option_a": "1975.",
-    "option_b": "1978.",
-    "option_c": "1982.",
-    "correct_answer": "b",
-    "explanation_simple": "La actual Constitución española, que establece los derechos y deberes de los ciudadanos, fue aprobada en referéndum el 6 de diciembre de 1978.",
-    "difficulty": "alta",
-    "active": true
-  },
-  {
-    "task_number": 1,
-    "topic": "Gobierno, legislación y participación ciudadana",
-    "question_text": "El poder ejecutivo reside en...",
-    "question_type": "multiple_choice",
-    "option_a": "las Cortes Generales.",
-    "option_b": "el Gobierno.",
-    "option_c": "los jueces y magistrados.",
-    "correct_answer": "b",
-    "explanation_simple": "El Gobierno, dirigido por el presidente, es el encargado de dirigir la política interior y exterior del país, es decir, de ejecutar las leyes y administrar el Estado.",
-    "difficulty": "media",
-    "active": true
-  },
-  {
-    "task_number": 1,
-    "topic": "Gobierno, legislación y participación ciudadana",
-    "question_text": "¿Cuál es la norma suprema del ordenamiento jurídico español?",
-    "question_type": "multiple_choice",
-    "option_a": "El Estatuto de Autonomía.",
-    "option_b": "La Ley Orgánica.",
-    "option_c": "La Constitución.",
-    "correct_answer": "c",
-    "explanation_simple": "La Constitución es la ley fundamental del Estado, y ninguna otra ley puede contradecirla. Todas las demás normas deben ajustarse a ella.",
-    "difficulty": "baja",
-    "active": true
-  },
-  {
-    "task_number": 1,
-    "topic": "Gobierno, legislación y participación ciudadana",
-    "question_text": "La bandera de España es roja y amarilla.",
-    "question_type": "true_false",
-    "option_a": "Verdadero",
-    "option_b": "Falso",
-    "option_c": null,
-    "correct_answer": "true",
-    "explanation_simple": "La bandera de España está formada por tres franjas horizontales, roja, amarilla y roja, siendo la amarilla de doble anchura que cada una de las rojas.",
-    "difficulty": "baja",
-    "active": true
-  },
-  {
-    "task_number": 1,
-    "topic": "Gobierno, legislación y participación ciudadana",
-    "question_text": "El himno nacional de España tiene letra oficial.",
-    "question_type": "true_false",
-    "option_a": "Verdadero",
-    "option_b": "Falso",
-    "option_c": null,
-    "correct_answer": "false",
-    "explanation_simple": "El himno nacional de España, conocido como la 'Marcha Real', es uno de los pocos himnos del mundo que no tiene letra oficial.",
-    "difficulty": "media",
-    "active": true
-  },
-  {
-    "task_number": 1,
-    "topic": "Gobierno, legislación y participación ciudadana",
-    "question_text": "El castellano es la única lengua oficial en todo el territorio español.",
-    "question_type": "true_false",
-    "option_a": "Verdadero",
-    "option_b": "Falso",
-    "option_c": null,
-    "correct_answer": "true",
-    "explanation_simple": "El castellano (o español) es la lengua oficial en toda España. Otras lenguas como el catalán, el gallego o el euskera son cooficiales en sus respectivas comunidades autónomas, pero no en todo el territorio.",
-    "difficulty": "media",
-    "active": true
-  },
-  {
-    "task_number": 1,
-    "topic": "Gobierno, legislación y participación ciudadana",
-    "question_text": "El Gobierno está formado por el presidente, los ministros y los secretarios de Estado.",
-    "question_type": "true_false",
-    "option_a": "Verdadero",
-    "option_b": "Falso",
-    "option_c": null,
-    "correct_answer": "true",
-    "explanation_simple": "La estructura básica del Gobierno de España incluye al presidente, los vicepresidentes (si los hay) y los ministros. Los secretarios de Estado son altos cargos de la Administración, pero no forman parte del Consejo de Ministros.",
-    "difficulty": "media",
-    "active": true
-  },
-  {
-    "task_number": 1,
-    "topic": "Gobierno, legislación y participación ciudadana",
-    "question_text": "El mandato del presidente del Gobierno es de 4 años.",
-    "question_type": "true_false",
-    "option_a": "Verdadero",
-    "option_b": "Falso",
-    "option_c": null,
-    "correct_answer": "true",
-    "explanation_simple": "Las elecciones generales se celebran cada cuatro años para elegir a los miembros de las Cortes Generales, de donde emana la elección del presidente del Gobierno.",
-    "difficulty": "baja",
-    "active": true
-  },
-  {
-    "task_number": 2,
-    "topic": "Derechos y deberes fundamentales",
-    "question_text": "La mayoría de edad en España se alcanza a los...",
-    "question_type": "multiple_choice",
-    "option_a": "16 años.",
-    "option_b": "18 años.",
-    "option_c": "21 años.",
-    "correct_answer": "b",
-    "explanation_simple": "Según la Constitución Española, la mayoría de edad se adquiere a los 18 años, momento a partir del cual se puede votar y se adquieren plenos derechos y responsabilidades.",
-    "difficulty": "baja",
-    "active": true
-  },
-  {
-    "task_number": 2,
-    "topic": "Derechos y deberes fundamentales",
-    "question_text": "¿Cuál de los siguientes es un derecho fundamental recogido en la Constitución?",
-    "question_type": "multiple_choice",
-    "option_a": "Derecho a una vivienda digna.",
-    "option_b": "Derecho a la educación.",
-    "option_c": "Derecho al trabajo.",
-    "correct_answer": "b",
-    "explanation_simple": "El derecho a la educación es un derecho fundamental. El derecho a la vivienda y al trabajo son principios rectores de la política social y económica, pero no tienen el mismo nivel de protección que un derecho fundamental.",
-    "difficulty": "alta",
-    "active": true
-  },
-  {
-    "task_number": 2,
-    "topic": "Derechos y deberes fundamentales",
-    "question_text": "El Documento Nacional de Identidad (DNI) es obligatorio a partir de los...",
-    "question_type": "multiple_choice",
-    "option_a": "14 años.",
-    "option_b": "16 años.",
-    "option_c": "18 años.",
+    "options": [
+      {
+        "key": "a",
+        "text": "una monarquía parlamentaria."
+      },
+      {
+        "key": "b",
+        "text": "una república federal."
+      },
+      {
+        "key": "c",
+        "text": "una monarquía federal."
+      }
+    ],
     "correct_answer": "a",
-    "explanation_simple": "Es obligatorio obtener el DNI a los 14 años. Sirve como documento de identificación personal para todos los españoles.",
-    "difficulty": "media",
-    "active": true
+    "active": true,
+    "source": "Manual CCSE 2025"
   },
   {
+    "id": "1002",
+    "code": "1002",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "La ley fundamental de España se llama…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Constitución."
+      },
+      {
+        "key": "b",
+        "text": "Ley básica."
+      },
+      {
+        "key": "c",
+        "text": "Ordenamiento esencial."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1003",
+    "code": "1003",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "Según la Constitución española, la soberanía nacional reside en…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "el pueblo español."
+      },
+      {
+        "key": "b",
+        "text": "el Gobierno del Estado."
+      },
+      {
+        "key": "c",
+        "text": "el Congreso de los Diputados."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1004",
+    "code": "1004",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "El Instituto de las Mujeres es…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "una institución europea."
+      },
+      {
+        "key": "b",
+        "text": "un organismo español."
+      },
+      {
+        "key": "c",
+        "text": "una ONG."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1005",
+    "code": "1005",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Cuántas religiones oficiales hay en España?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Ninguna."
+      },
+      {
+        "key": "b",
+        "text": "Una."
+      },
+      {
+        "key": "c",
+        "text": "Dos."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1006",
+    "code": "1006",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "El castellano o español es lengua oficial…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "en toda España."
+      },
+      {
+        "key": "b",
+        "text": "solo donde no hay otras lenguas."
+      },
+      {
+        "key": "c",
+        "text": "en toda la Península Ibérica."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1007",
+    "code": "1007",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Cuál de estas fuerzas de seguridad es de ámbito autonómico?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Policía local."
+      },
+      {
+        "key": "b",
+        "text": "Guardia Civil."
+      },
+      {
+        "key": "c",
+        "text": "Policía Foral de Navarra."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1008",
+    "code": "1008",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Qué fuerza de seguridad está en toda España?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "La Policía Foral de Navarra."
+      },
+      {
+        "key": "b",
+        "text": "El Cuerpo Nacional de Policía."
+      },
+      {
+        "key": "c",
+        "text": "Los Mossos d’Esquadra."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1009",
+    "code": "1009",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "En la Constitución se establece la separación de poderes: el poder ejecutivo, el legislativo y el…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "judicial."
+      },
+      {
+        "key": "b",
+        "text": "informativo."
+      },
+      {
+        "key": "c",
+        "text": "político."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1010",
+    "code": "1010",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "La bandera de España debe utilizarse…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "solo los días de fiesta oficial."
+      },
+      {
+        "key": "b",
+        "text": "en todos los edificios públicos."
+      },
+      {
+        "key": "c",
+        "text": "solo en actos del Gobierno español."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1011",
+    "code": "1011",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Quién fue el primer rey de España?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Fernando VII."
+      },
+      {
+        "key": "b",
+        "text": "Carlos I."
+      },
+      {
+        "key": "c",
+        "text": "Juan Carlos I."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1012",
+    "code": "1012",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "La gestión de la sanidad es competencia de…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "el Estado."
+      },
+      {
+        "key": "b",
+        "text": "las comunidades autónomas."
+      },
+      {
+        "key": "c",
+        "text": "los ayuntamientos."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1013",
+    "code": "1013",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Quién fue el primer presidente del Gobierno de España en democracia?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Mariano Rajoy."
+      },
+      {
+        "key": "b",
+        "text": "Adolfo Suárez."
+      },
+      {
+        "key": "c",
+        "text": "José Luis Rodríguez Zapatero."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1014",
+    "code": "1014",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Cuál de estos organismos se encarga de interpretar la Constitución?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "El Poder Constitucional."
+      },
+      {
+        "key": "b",
+        "text": "El Tribunal Constitucional."
+      },
+      {
+        "key": "c",
+        "text": "El Consejo General del Poder Judicial."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1015",
+    "code": "1015",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Quién modera el funcionamiento de las instituciones españolas?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "El presidente del Gobierno."
+      },
+      {
+        "key": "b",
+        "text": "El rey."
+      },
+      {
+        "key": "c",
+        "text": "El director de la Real Academia Española."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1016",
+    "code": "1016",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Cómo se llama la cámara de representación territorial en España?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Senado."
+      },
+      {
+        "key": "b",
+        "text": "Diputación permanente."
+      },
+      {
+        "key": "c",
+        "text": "Congreso de los Diputados."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1017",
+    "code": "1017",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Cuántas ciudades autónomas hay en España?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "17."
+      },
+      {
+        "key": "b",
+        "text": "2."
+      },
+      {
+        "key": "c",
+        "text": "50."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1018",
+    "code": "1018",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Cómo se aprobó la Constitución?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Por ley."
+      },
+      {
+        "key": "b",
+        "text": "En referéndum."
+      },
+      {
+        "key": "c",
+        "text": "Lo mandó el rey."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1019",
+    "code": "1019",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Cómo se llama la ley más importante de cada comunidad autónoma?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Estatuto de Autonomía."
+      },
+      {
+        "key": "b",
+        "text": "Normativa autonómica."
+      },
+      {
+        "key": "c",
+        "text": "Ley de la comunidad."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1020",
+    "code": "1020",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "Las instalaciones culturales y deportivas públicas son competencia del…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Ayuntamiento."
+      },
+      {
+        "key": "b",
+        "text": "Ministerio de Educación, Formación Profesional y Deportes."
+      },
+      {
+        "key": "c",
+        "text": "Ministerio de Igualdad."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1021",
+    "code": "1021",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Quién dirige la administración militar de España?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Los ayuntamientos."
+      },
+      {
+        "key": "b",
+        "text": "El Gobierno."
+      },
+      {
+        "key": "c",
+        "text": "Las Cortes Generales."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1022",
+    "code": "1022",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Qué hay en las islas Baleares, en vez de diputaciones?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Cabildos."
+      },
+      {
+        "key": "b",
+        "text": "Consejos insulares."
+      },
+      {
+        "key": "c",
+        "text": "Centros de diputados."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1023",
+    "code": "1023",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Qué ciudad tiene más habitantes?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Sevilla."
+      },
+      {
+        "key": "b",
+        "text": "Barcelona."
+      },
+      {
+        "key": "c",
+        "text": "Zaragoza."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1024",
+    "code": "1024",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "Las Cortes Generales representan…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "al pueblo español."
+      },
+      {
+        "key": "b",
+        "text": "a los partidos políticos."
+      },
+      {
+        "key": "c",
+        "text": "a los ministros."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1025",
+    "code": "1025",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "El Congreso de los Diputados y el Senado constituyen el poder…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "ejecutivo."
+      },
+      {
+        "key": "b",
+        "text": "legislativo."
+      },
+      {
+        "key": "c",
+        "text": "judicial."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1026",
+    "code": "1026",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Qué ley dicta el Gobierno en casos de especial urgencia?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "El decreto ley."
+      },
+      {
+        "key": "b",
+        "text": "La ley ordinaria."
+      },
+      {
+        "key": "c",
+        "text": "la ley orgánica."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1027",
+    "code": "1027",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Cuántas comunidades autónomas hay en España?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "8."
+      },
+      {
+        "key": "b",
+        "text": "17."
+      },
+      {
+        "key": "c",
+        "text": "25."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1028",
+    "code": "1028",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "Los colores de la bandera española son…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "blanco y rojo."
+      },
+      {
+        "key": "b",
+        "text": "rojo y amarillo."
+      },
+      {
+        "key": "c",
+        "text": "amarillo y blanco."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1029",
+    "code": "1029",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Dónde está la sede del Gobierno de España?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "En Madrid."
+      },
+      {
+        "key": "b",
+        "text": "En Barcelona."
+      },
+      {
+        "key": "c",
+        "text": "En Sevilla."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1030",
+    "code": "1030",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "La bandera azul con 12 estrellas amarillas en círculo es la bandera de…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "la Unión Europea."
+      },
+      {
+        "key": "b",
+        "text": "El Parlamento Europeo."
+      },
+      {
+        "key": "c",
+        "text": "la Comisión de Europa."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1031",
+    "code": "1031",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "En las elecciones municipales se vota a…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": ". alcaldes y concejales"
+      },
+      {
+        "key": "b",
+        "text": "ministros y ministras."
+      },
+      {
+        "key": "c",
+        "text": "diputados y senadores."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1032",
+    "code": "1032",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Qué lengua es oficial en el País Vasco?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "El bable."
+      },
+      {
+        "key": "b",
+        "text": "El aragonés."
+      },
+      {
+        "key": "c",
+        "text": "El euskera."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1033",
+    "code": "1033",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "Todos los españoles tienen el deber de conocer la lengua…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "autonómica del Estado."
+      },
+      {
+        "key": "b",
+        "text": "oficial del Estado."
+      },
+      {
+        "key": "c",
+        "text": "local del Estado."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1034",
+    "code": "1034",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "El aranés es una lengua cooficial que se habla en un pequeño territorio de…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Cataluña."
+      },
+      {
+        "key": "b",
+        "text": "la Rioja."
+      },
+      {
+        "key": "c",
+        "text": "Aragón."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1035",
+    "code": "1035",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "Las instituciones de una comunidad autónoma son: la asamblea legislativa, el consejo de gobierno y…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "la diputación."
+      },
+      {
+        "key": "b",
+        "text": "el presidente."
+      },
+      {
+        "key": "c",
+        "text": "el delegado de gobierno."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1036",
+    "code": "1036",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Cuál de estas opciones es una lengua cooficial en alguna comunidad autónoma?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "El gallego."
+      },
+      {
+        "key": "b",
+        "text": "El aragonés."
+      },
+      {
+        "key": "c",
+        "text": "El murciano."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1037",
+    "code": "1037",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Qué institución tiene como fin la promoción de la enseñanza de la lengua española y la difusión de la cultura en español?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "El Instituto Nacional de Administración Pública."
+      },
+      {
+        "key": "b",
+        "text": "El Instituto Nacional de Estadística."
+      },
+      {
+        "key": "c",
+        "text": "El Instituto Cervantes."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1038",
+    "code": "1038",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Cuál de los siguientes organismos trabaja para conseguir la normalización lingüística?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "El Institut Ramon Llull."
+      },
+      {
+        "key": "b",
+        "text": "El Instituto Cervantes."
+      },
+      {
+        "key": "c",
+        "text": "La Real Academia Española."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1039",
+    "code": "1039",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Dónde vive el presidente del Gobierno?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "En el Palacio Real."
+      },
+      {
+        "key": "b",
+        "text": "En el Palacio de la Zarzuela."
+      },
+      {
+        "key": "c",
+        "text": "En el Palacio de la Moncloa."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1040",
+    "code": "1040",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Cuál de los siguientes cuerpos forma parte de las Fuerzas Armadas de España?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "La Policía Foral."
+      },
+      {
+        "key": "b",
+        "text": "La Guardia Civil."
+      },
+      {
+        "key": "c",
+        "text": "El Ejército del Aire."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1041",
+    "code": "1041",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Quiénes forman parte del Gobierno?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Los ministros."
+      },
+      {
+        "key": "b",
+        "text": "Los concejales."
+      },
+      {
+        "key": "c",
+        "text": "Los alcaldes."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1042",
+    "code": "1042",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "España es un…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "estado social y democrático de Derecho."
+      },
+      {
+        "key": "b",
+        "text": "estado libre asociado."
+      },
+      {
+        "key": "c",
+        "text": "estado confederado."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1043",
+    "code": "1043",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Cuál de las siguientes siglas corresponde a un partido político?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "PP."
+      },
+      {
+        "key": "b",
+        "text": "PIB."
+      },
+      {
+        "key": "c",
+        "text": "UE."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1044",
+    "code": "1044",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Qué título tiene la futura reina, hija del rey?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Princesa de Asturias."
+      },
+      {
+        "key": "b",
+        "text": "Princesa de Aragón."
+      },
+      {
+        "key": "c",
+        "text": "Duquesa de Alba."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1045",
+    "code": "1045",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Con qué rey se restaura la democracia en España después del régimen de Franco?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Con Carlos III."
+      },
+      {
+        "key": "b",
+        "text": "Con Alfonso XIII."
+      },
+      {
+        "key": "c",
+        "text": "Con Juan Carlos I."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1046",
+    "code": "1046",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿En qué año se aprobó la Constitución española?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "En 1957."
+      },
+      {
+        "key": "b",
+        "text": "En 1978."
+      },
+      {
+        "key": "c",
+        "text": "En 2001."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1047",
+    "code": "1047",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Cuántas comunidades autónomas tienen su propia bandera?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Ninguna."
+      },
+      {
+        "key": "b",
+        "text": "Todas."
+      },
+      {
+        "key": "c",
+        "text": "Las que tienen una lengua cooficial."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1048",
+    "code": "1048",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Qué organismo oficial atiende las quejas de los ciudadanos por el mal funcionamiento de las administraciones?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "La Oficina de Atención al Consumidor."
+      },
+      {
+        "key": "b",
+        "text": "La Policía Nacional."
+      },
+      {
+        "key": "c",
+        "text": "El Defensor del Pueblo."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1049",
+    "code": "1049",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Cuántas firmas, como mínimo, deben recoger los ciudadanos para poder presentar una proposición de ley?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "250 000."
+      },
+      {
+        "key": "b",
+        "text": "100 000."
+      },
+      {
+        "key": "c",
+        "text": "500 000."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1050",
+    "code": "1050",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿A cuál de estas organizaciones internacionales pertenece España?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Al Mercado Común del Sur (MERCOSUR)."
+      },
+      {
+        "key": "b",
+        "text": "A la Organización de las Naciones Unidas (ONU)."
+      },
+      {
+        "key": "c",
+        "text": "A la Unión Económica Euroasiática (UEE)."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1051",
+    "code": "1051",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "En la organización de la Administración se distinguen tres niveles: central, autonómica y…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "estatal."
+      },
+      {
+        "key": "b",
+        "text": "regional."
+      },
+      {
+        "key": "c",
+        "text": "local."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1052",
+    "code": "1052",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "El poder legislativo corresponde...",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "al presidente y los ministros."
+      },
+      {
+        "key": "b",
+        "text": "a los jueces y magistrados."
+      },
+      {
+        "key": "c",
+        "text": "a los diputados y senadores."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1053",
+    "code": "1053",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Dónde vive el rey?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "En el Palacio de la Moneda."
+      },
+      {
+        "key": "b",
+        "text": "En el Palacio de la Zarzuela."
+      },
+      {
+        "key": "c",
+        "text": "En el Palacio de la Moncloa."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1054",
+    "code": "1054",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "El nombre oficial del parlamento español es…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Cortes Generales."
+      },
+      {
+        "key": "b",
+        "text": "Congreso de los Diputados."
+      },
+      {
+        "key": "c",
+        "text": "Senado."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1055",
+    "code": "1055",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "El Gobierno está formado por el presidente, uno o más vicepresidentes y los…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "concejales."
+      },
+      {
+        "key": "b",
+        "text": "ministros."
+      },
+      {
+        "key": "c",
+        "text": "gobernadores."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1056",
+    "code": "1056",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Quién puede reinar en España?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Solo los hombres."
+      },
+      {
+        "key": "b",
+        "text": "Solo las mujeres."
+      },
+      {
+        "key": "c",
+        "text": "Tanto los hombres como las mujeres."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1057",
+    "code": "1057",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "El Tribunal de Cuentas depende de…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "la Presidencia del Gobierno."
+      },
+      {
+        "key": "b",
+        "text": "las Cortes Generales."
+      },
+      {
+        "key": "c",
+        "text": "el Ministerio de Hacienda."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1058",
+    "code": "1058",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Quién es la tercera autoridad del Estado, después del rey y el presidente del Gobierno?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "El presidente del Senado."
+      },
+      {
+        "key": "b",
+        "text": "El ministro de Economía."
+      },
+      {
+        "key": "c",
+        "text": "El presidente del Congreso de los Diputados."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1059",
+    "code": "1059",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Qué lengua cooficial se habla en las islas Baleares?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Gallego."
+      },
+      {
+        "key": "b",
+        "text": "Catalán."
+      },
+      {
+        "key": "c",
+        "text": "Euskera."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1060",
+    "code": "1060",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "La Constitución defiende valores tales como la libertad, la igualdad, el pluralismo político y…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "la justicia."
+      },
+      {
+        "key": "b",
+        "text": "la solidaridad."
+      },
+      {
+        "key": "c",
+        "text": "la fraternidad."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1061",
+    "code": "1061",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Cuántos kilómetros cuadrados tiene España, más o menos?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "100 000."
+      },
+      {
+        "key": "b",
+        "text": "500 000."
+      },
+      {
+        "key": "c",
+        "text": "1 000 000."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1062",
+    "code": "1062",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Cuántos millones de habitantes tiene España?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "35 millones."
+      },
+      {
+        "key": "b",
+        "text": "48 millones."
+      },
+      {
+        "key": "c",
+        "text": "62 millones."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1063",
+    "code": "1063",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Cuál de estos es un órgano consultivo del Gobierno de España?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "El Parlamento Europeo."
+      },
+      {
+        "key": "b",
+        "text": "El Consejo de Estado."
+      },
+      {
+        "key": "c",
+        "text": "El Tribunal Constitucional."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1064",
+    "code": "1064",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Quién dirige la política interior y exterior de España?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "El rey."
+      },
+      {
+        "key": "b",
+        "text": "El Gobierno."
+      },
+      {
+        "key": "c",
+        "text": "El Congreso de los Diputados."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1065",
+    "code": "1065",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "El Defensor del Pueblo depende de…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "el Consejo de Ministros."
+      },
+      {
+        "key": "b",
+        "text": "el Tribunal de Cuentas."
+      },
+      {
+        "key": "c",
+        "text": "las Cortes Generales."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1066",
+    "code": "1066",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "El Instituto Etxepare tiene como misión la difusión del…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "euskera y la cultura vasca."
+      },
+      {
+        "key": "b",
+        "text": "bable y la cultura cántabra."
+      },
+      {
+        "key": "c",
+        "text": "gallego y la cultura galaica."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1067",
+    "code": "1067",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "La Comunidad Iberoamericana de Naciones está formada por…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "22 países de América y de Europa."
+      },
+      {
+        "key": "b",
+        "text": "América del Sur y España."
+      },
+      {
+        "key": "c",
+        "text": "todos los países donde se habla español."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1068",
+    "code": "1068",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "La Secretaría Xeral de Política Lingüística difunde y promociona la lengua y la cultura…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "catalanas."
+      },
+      {
+        "key": "b",
+        "text": "gallegas."
+      },
+      {
+        "key": "c",
+        "text": "vascas."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1069",
+    "code": "1069",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Cómo se llama el rey de España?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Juan Carlos I."
+      },
+      {
+        "key": "b",
+        "text": "Felipe VI."
+      },
+      {
+        "key": "c",
+        "text": "Alfonso XIII."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1070",
+    "code": "1070",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Cómo se llama el órgano de gobierno de los jueces y magistrados?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Tribunal Supremo."
+      },
+      {
+        "key": "b",
+        "text": "Consejo General del Poder Judicial."
+      },
+      {
+        "key": "c",
+        "text": "Consejo de Estado."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1071",
+    "code": "1071",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Quién aprueba los presupuestos generales del Estado?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Las Cortes Generales."
+      },
+      {
+        "key": "b",
+        "text": "La Junta Electoral Central."
+      },
+      {
+        "key": "c",
+        "text": "El rey."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1072",
+    "code": "1072",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "La Constitución española es…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "la ley fundamental."
+      },
+      {
+        "key": "b",
+        "text": "parte de otra ley."
+      },
+      {
+        "key": "c",
+        "text": "una ley secundaria."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1073",
+    "code": "1073",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "Las Cortes Generales están compuestas por el Senado y…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "el Congreso de los Diputados."
+      },
+      {
+        "key": "b",
+        "text": "el Tribunal Supremo."
+      },
+      {
+        "key": "c",
+        "text": "el Consejo de Estado."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1074",
+    "code": "1074",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Quién elabora las leyes?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "El poder ejecutivo."
+      },
+      {
+        "key": "b",
+        "text": "El poder legislativo."
+      },
+      {
+        "key": "c",
+        "text": "El poder judicial."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1075",
+    "code": "1075",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "La defensa de la integridad territorial de España corresponde a…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "la Policía Nacional y la Guardia Civil."
+      },
+      {
+        "key": "b",
+        "text": "las Fuerzas Armadas."
+      },
+      {
+        "key": "c",
+        "text": "la Policía Nacional y las policías autonómicas."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1076",
+    "code": "1076",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "El Ejército español participa desde 1989 en misiones de paz de la…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Organización de Estados Iberoamericanos (OEI)."
+      },
+      {
+        "key": "b",
+        "text": "Unión Europea Occidental (UEO)."
+      },
+      {
+        "key": "c",
+        "text": "Organización de Naciones Unidas (ONU)."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1077",
+    "code": "1077",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Quién vigila puertos y aeropuertos, fronteras y costas?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "La Guardia Civil."
+      },
+      {
+        "key": "b",
+        "text": "La Policía local."
+      },
+      {
+        "key": "c",
+        "text": "La Policía Nacional."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1078",
+    "code": "1078",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Quién hace el control de pasaportes en las fronteras de España?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "La Guardia Civil."
+      },
+      {
+        "key": "b",
+        "text": "La Policía local."
+      },
+      {
+        "key": "c",
+        "text": "La Policía Nacional."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1079",
+    "code": "1079",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Quién controla la circulación de coches en las ciudades?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "La Guardia Civil."
+      },
+      {
+        "key": "b",
+        "text": "La Policía local."
+      },
+      {
+        "key": "c",
+        "text": "La Policía Nacional."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1080",
+    "code": "1080",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Cómo se llama la policía autonómica de Cataluña?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Guardia Civil."
+      },
+      {
+        "key": "b",
+        "text": "Ertzaintza."
+      },
+      {
+        "key": "c",
+        "text": "Mossos d'Esquadra."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1081",
+    "code": "1081",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Cómo se llama la policía autonómica del País Vasco?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Ertzaintza."
+      },
+      {
+        "key": "b",
+        "text": "Guardia Civil."
+      },
+      {
+        "key": "c",
+        "text": "Mossos d'Esquadra."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1082",
+    "code": "1082",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Desde qué año es rey Felipe VI?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Desde 1975."
+      },
+      {
+        "key": "b",
+        "text": "Desde 2014."
+      },
+      {
+        "key": "c",
+        "text": "Desde 2020."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1083",
+    "code": "1083",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Quién regula el tráfico en los pueblos y ciudades?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "La Guardia Civil."
+      },
+      {
+        "key": "b",
+        "text": "Protección Civil."
+      },
+      {
+        "key": "c",
+        "text": "La Policía Local."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1084",
+    "code": "1084",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Quién puede presentar una queja al Defensor del Pueblo?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Solo los ciudadanos legalmente residentes."
+      },
+      {
+        "key": "b",
+        "text": "Solo los españoles mayores de 18 años."
+      },
+      {
+        "key": "c",
+        "text": "Todos los ciudadanos, españoles o extranjeros."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1085",
+    "code": "1085",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "En España el voto en las elecciones es…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "un derecho."
+      },
+      {
+        "key": "b",
+        "text": "un deber."
+      },
+      {
+        "key": "c",
+        "text": "una obligación."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1086",
+    "code": "1086",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Quién vigila el tráfico en las carreteras?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "La Guardia Civil."
+      },
+      {
+        "key": "b",
+        "text": "La Policía Nacional."
+      },
+      {
+        "key": "c",
+        "text": "El Ejército de Tierra."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1087",
+    "code": "1087",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Qué organismo se encarga de recaudar los impuestos?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "El Tribunal de Cuentas."
+      },
+      {
+        "key": "b",
+        "text": "La Agencia Tributaria."
+      },
+      {
+        "key": "c",
+        "text": "El Consejo Económico y Social."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1088",
+    "code": "1088",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Dónde se publican las leyes nacionales?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "En el boletín del Instituto Nacional de Estadística (INE)."
+      },
+      {
+        "key": "b",
+        "text": "En el Portal de la Administración Electrónica (PAe)."
+      },
+      {
+        "key": "c",
+        "text": "En el Boletín Oficial del Estado (BOE)."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1089",
+    "code": "1089",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Cómo se llaman los órganos de gobierno que solo existen en Canarias?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Cabildos."
+      },
+      {
+        "key": "b",
+        "text": "Consejos Insulares."
+      },
+      {
+        "key": "c",
+        "text": "Diputaciones."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1090",
+    "code": "1090",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Dónde se difunde toda la información sobre novedades e iniciativas de la Administración electrónica?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "En el INE (Instituto Nacional de Estadística)."
+      },
+      {
+        "key": "b",
+        "text": "En el BOE (Boletín Oficial del Estado)."
+      },
+      {
+        "key": "c",
+        "text": "En el PAe (Portal de la Administración Electrónica)."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1091",
+    "code": "1091",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Cuál es el número de teléfono de información de la Administración General del Estado?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "010."
+      },
+      {
+        "key": "b",
+        "text": "060."
+      },
+      {
+        "key": "c",
+        "text": "091."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1092",
+    "code": "1092",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "España está organizada en…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "cantones."
+      },
+      {
+        "key": "b",
+        "text": "comunidades autónomas."
+      },
+      {
+        "key": "c",
+        "text": "estados federales."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1093",
+    "code": "1093",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Cuántos partidos políticos hay en España?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Ninguno."
+      },
+      {
+        "key": "b",
+        "text": "Uno."
+      },
+      {
+        "key": "c",
+        "text": "Muchos."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1094",
+    "code": "1094",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Dónde tiene lugar la investidura del presidente del Gobierno?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "En el Palacio de la Moncloa."
+      },
+      {
+        "key": "b",
+        "text": "En el Congreso de los Diputados."
+      },
+      {
+        "key": "c",
+        "text": "En el Senado."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1095",
+    "code": "1095",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Quién tiene el mando supremo de las Fuerzas Armadas?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "El rey."
+      },
+      {
+        "key": "b",
+        "text": "El presidente del Gobierno."
+      },
+      {
+        "key": "c",
+        "text": "El ministro de Defensa."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1096",
+    "code": "1096",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Quién es el representante del Estado en una comunidad autónoma?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "El presidente de la comunidad autónoma."
+      },
+      {
+        "key": "b",
+        "text": "El delegado del Gobierno."
+      },
+      {
+        "key": "c",
+        "text": "El presidente de la Asamblea autonómica."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1097",
+    "code": "1097",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Cuántas provincias hay en España?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "45."
+      },
+      {
+        "key": "b",
+        "text": "50."
+      },
+      {
+        "key": "c",
+        "text": "55."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1098",
+    "code": "1098",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "La enseñanza de las lenguas cooficiales es competencia…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "del Estado."
+      },
+      {
+        "key": "b",
+        "text": "de la comunidad autónoma."
+      },
+      {
+        "key": "c",
+        "text": "de la provincia."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1099",
+    "code": "1099",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "El poder ejecutivo corresponde…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "al Gobierno del Estado."
+      },
+      {
+        "key": "b",
+        "text": "al Congreso y al Senado."
+      },
+      {
+        "key": "c",
+        "text": "a los jueces y magistrados."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1100",
+    "code": "1100",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Cuántas cámaras hay en el Parlamento español?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Una."
+      },
+      {
+        "key": "b",
+        "text": "Dos."
+      },
+      {
+        "key": "c",
+        "text": "Tres."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1101",
+    "code": "1101",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "El suministro de agua y el alumbrado de las ciudades es competencia de …",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "el ayuntamiento."
+      },
+      {
+        "key": "b",
+        "text": "el Gobierno autonómico."
+      },
+      {
+        "key": "c",
+        "text": "el Ministerio de Obras Públicas y Urbanismo."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1102",
+    "code": "1102",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "En materias como nacionalidad, inmigración, emigración o extranjería solo tiene competencia…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "el Estado."
+      },
+      {
+        "key": "b",
+        "text": "las comunidades autónomas."
+      },
+      {
+        "key": "c",
+        "text": "los ayuntamientos."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1103",
+    "code": "1103",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Cuántas mujeres han sido presidentas de Gobierno en España?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Ninguna."
+      },
+      {
+        "key": "b",
+        "text": "Una."
+      },
+      {
+        "key": "c",
+        "text": "Dos."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1104",
+    "code": "1104",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "Las relaciones internacionales son competencia de…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "el Estado."
+      },
+      {
+        "key": "b",
+        "text": "las comunidades autónomas."
+      },
+      {
+        "key": "c",
+        "text": "los ayuntamientos."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1105",
+    "code": "1105",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "El Ayuntamiento está formado por el alcalde y…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "los concejales."
+      },
+      {
+        "key": "b",
+        "text": "los diputados."
+      },
+      {
+        "key": "c",
+        "text": "los senadores."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1106",
+    "code": "1106",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Quiénes forman el gobierno de las comunidades autónomas?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "El presidente y los ministros."
+      },
+      {
+        "key": "b",
+        "text": "El alcalde y los concejales."
+      },
+      {
+        "key": "c",
+        "text": "El presidente y los consejeros."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1107",
+    "code": "1107",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Cuál es el órgano de gobierno en los municipios?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "El ayuntamiento."
+      },
+      {
+        "key": "b",
+        "text": "La diputación."
+      },
+      {
+        "key": "c",
+        "text": "El cabildo."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1108",
+    "code": "1108",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Cómo se llaman los órganos de gobierno de las provincias españolas?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Cabildos."
+      },
+      {
+        "key": "b",
+        "text": "Consejos Insulares."
+      },
+      {
+        "key": "c",
+        "text": "Diputaciones."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1109",
+    "code": "1109",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Cuál es el órgano superior del poder ejecutivo?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "El Gobierno."
+      },
+      {
+        "key": "b",
+        "text": "Las Fuerzas Armadas."
+      },
+      {
+        "key": "c",
+        "text": "Las Cortes Generales."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1110",
+    "code": "1110",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "El idioma español también se llama…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "aragonés."
+      },
+      {
+        "key": "b",
+        "text": "castellano."
+      },
+      {
+        "key": "c",
+        "text": "leonés."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1111",
+    "code": "1111",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿A quiénes se elige en las elecciones al Parlamento Europeo?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "A los ministros europeos."
+      },
+      {
+        "key": "b",
+        "text": "A los consejeros delegados."
+      },
+      {
+        "key": "c",
+        "text": "A los eurodiputados."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1112",
+    "code": "1112",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "Los españoles pueden votar a partir de los…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "16 años."
+      },
+      {
+        "key": "b",
+        "text": "18 años."
+      },
+      {
+        "key": "c",
+        "text": "21 años."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1113",
+    "code": "1113",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "Algunos ciudadanos extranjeros pueden votar en las elecciones…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "municipales."
+      },
+      {
+        "key": "b",
+        "text": "autonómicas."
+      },
+      {
+        "key": "c",
+        "text": "generales."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1114",
+    "code": "1114",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Quién controla la gestión financiera del Estado?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "El Banco de España."
+      },
+      {
+        "key": "b",
+        "text": "La Agencia Tributaria."
+      },
+      {
+        "key": "c",
+        "text": "El Tribunal de Cuentas."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1115",
+    "code": "1115",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿A quiénes se elige en las elecciones generales?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "A los senadores y diputados."
+      },
+      {
+        "key": "b",
+        "text": "A los eurodiputados."
+      },
+      {
+        "key": "c",
+        "text": "A los concejales."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1116",
+    "code": "1116",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Cuántos miembros tiene el Congreso de los Diputados?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "300."
+      },
+      {
+        "key": "b",
+        "text": "350."
+      },
+      {
+        "key": "c",
+        "text": "400."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1117",
+    "code": "1117",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "Los municipios y provincias forman parte de la Administración…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "autonómica."
+      },
+      {
+        "key": "b",
+        "text": "local."
+      },
+      {
+        "key": "c",
+        "text": "central."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1118",
+    "code": "1118",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "La comunidad autónoma más poblada de España es…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Andalucía."
+      },
+      {
+        "key": "b",
+        "text": "Cataluña."
+      },
+      {
+        "key": "c",
+        "text": "Castilla y León."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1119",
+    "code": "1119",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Cómo se llama la organización que defiende los intereses de los trabajadores?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Asociación."
+      },
+      {
+        "key": "b",
+        "text": "Partido."
+      },
+      {
+        "key": "c",
+        "text": "Sindicato."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "1120",
+    "code": "1120",
+    "task_number": 1,
+    "topic": "Gobierno, legislación y participación ciudadana",
+    "question_text": "¿Cuál de las siguientes personalidades ha sido presidente del Gobierno de España?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "José María Aznar."
+      },
+      {
+        "key": "b",
+        "text": "Manuel Fraga."
+      },
+      {
+        "key": "c",
+        "text": "Dolores Ibárruri."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "2001",
+    "code": "2001",
     "task_number": 2,
     "topic": "Derechos y deberes fundamentales",
-    "question_text": "Los ciudadanos españoles tienen el deber de conocer la lengua oficial del Estado.",
+    "question_text": "La mayoría de edad en España es a los 16 años.",
     "question_type": "true_false",
-    "option_a": "Verdadero",
-    "option_b": "Falso",
-    "option_c": null,
-    "correct_answer": "true",
-    "explanation_simple": "La Constitución establece el deber de conocer el castellano, que es la lengua oficial del Estado, y el derecho a usarlo.",
-    "difficulty": "media",
-    "active": true
+    "options": [
+      {
+        "key": "a",
+        "text": "Verdadero."
+      },
+      {
+        "key": "b",
+        "text": "Falso."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
   },
   {
+    "id": "2002",
+    "code": "2002",
+    "task_number": 2,
+    "topic": "Derechos y deberes fundamentales",
+    "question_text": "Los españoles que obtienen la nacionalidad por residencia deben esperar tres años para poder votar en las elecciones.",
+    "question_type": "true_false",
+    "options": [
+      {
+        "key": "a",
+        "text": "Verdadero."
+      },
+      {
+        "key": "b",
+        "text": "Falso."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "2003",
+    "code": "2003",
+    "task_number": 2,
+    "topic": "Derechos y deberes fundamentales",
+    "question_text": "Los jóvenes tienen derecho a participar libremente en el desarrollo político del país.",
+    "question_type": "true_false",
+    "options": [
+      {
+        "key": "a",
+        "text": "Verdadero."
+      },
+      {
+        "key": "b",
+        "text": "Falso."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "2004",
+    "code": "2004",
+    "task_number": 2,
+    "topic": "Derechos y deberes fundamentales",
+    "question_text": "El funcionamiento de los partidos políticos tiene que ser democrático.",
+    "question_type": "true_false",
+    "options": [
+      {
+        "key": "a",
+        "text": "Verdadero."
+      },
+      {
+        "key": "b",
+        "text": "Falso."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "2005",
+    "code": "2005",
+    "task_number": 2,
+    "topic": "Derechos y deberes fundamentales",
+    "question_text": "Se puede obligar a alguien a decir cuáles son sus ideas políticas o religiosas.",
+    "question_type": "true_false",
+    "options": [
+      {
+        "key": "a",
+        "text": "Verdadero."
+      },
+      {
+        "key": "b",
+        "text": "Falso."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "2006",
+    "code": "2006",
+    "task_number": 2,
+    "topic": "Derechos y deberes fundamentales",
+    "question_text": "Se puede limitar a una persona el derecho a entrar y salir libremente de España por motivos ideológicos.",
+    "question_type": "true_false",
+    "options": [
+      {
+        "key": "a",
+        "text": "Verdadero."
+      },
+      {
+        "key": "b",
+        "text": "Falso."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "2007",
+    "code": "2007",
+    "task_number": 2,
+    "topic": "Derechos y deberes fundamentales",
+    "question_text": "La Educación Primaria (de 6 a 12 años) es gratuita y obligatoria.",
+    "question_type": "true_false",
+    "options": [
+      {
+        "key": "a",
+        "text": "Verdadero."
+      },
+      {
+        "key": "b",
+        "text": "Falso."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "2008",
+    "code": "2008",
+    "task_number": 2,
+    "topic": "Derechos y deberes fundamentales",
+    "question_text": "La Constitución garantiza el derecho de los españoles a una vivienda digna.",
+    "question_type": "true_false",
+    "options": [
+      {
+        "key": "a",
+        "text": "Verdadero."
+      },
+      {
+        "key": "b",
+        "text": "Falso."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "2009",
+    "code": "2009",
+    "task_number": 2,
+    "topic": "Derechos y deberes fundamentales",
+    "question_text": "En España la policía puede entrar en cualquier casa sin resolución judicial en cualquier momento.",
+    "question_type": "true_false",
+    "options": [
+      {
+        "key": "a",
+        "text": "Verdadero."
+      },
+      {
+        "key": "b",
+        "text": "Falso."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "2010",
+    "code": "2010",
+    "task_number": 2,
+    "topic": "Derechos y deberes fundamentales",
+    "question_text": "Se garantiza el secreto de las comunicaciones de los españoles, salvo resolución judicial.",
+    "question_type": "true_false",
+    "options": [
+      {
+        "key": "a",
+        "text": "Verdadero."
+      },
+      {
+        "key": "b",
+        "text": "Falso."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "2011",
+    "code": "2011",
+    "task_number": 2,
+    "topic": "Derechos y deberes fundamentales",
+    "question_text": "Todos los españoles, ya sean mayores o menores de edad, tienen derecho a votar en las elecciones.",
+    "question_type": "true_false",
+    "options": [
+      {
+        "key": "a",
+        "text": "Verdadero."
+      },
+      {
+        "key": "b",
+        "text": "Falso."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "2012",
+    "code": "2012",
+    "task_number": 2,
+    "topic": "Derechos y deberes fundamentales",
+    "question_text": "Los profesores pueden enseñar con libertad, dentro de los límites de la Constitución.",
+    "question_type": "true_false",
+    "options": [
+      {
+        "key": "a",
+        "text": "Verdadero."
+      },
+      {
+        "key": "b",
+        "text": "Falso."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "2013",
+    "code": "2013",
+    "task_number": 2,
+    "topic": "Derechos y deberes fundamentales",
+    "question_text": "La Constitución reconoce únicamente los derechos fundamentales de los españoles.",
+    "question_type": "true_false",
+    "options": [
+      {
+        "key": "a",
+        "text": "Verdadero."
+      },
+      {
+        "key": "b",
+        "text": "Falso."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "2014",
+    "code": "2014",
     "task_number": 2,
     "topic": "Derechos y deberes fundamentales",
     "question_text": "En España existe la pena de muerte.",
     "question_type": "true_false",
-    "option_a": "Verdadero",
-    "option_b": "Falso",
-    "option_c": null,
-    "correct_answer": "false",
-    "explanation_simple": "La pena de muerte está abolida en España. El derecho a la vida es un derecho fundamental protegido por la Constitución.",
-    "difficulty": "baja",
-    "active": true
-  },
-  {
-    "task_number": 3,
-    "topic": "Organización territorial de España",
-    "question_text": "¿Cuántas comunidades autónomas tiene España?",
-    "question_type": "multiple_choice",
-    "option_a": "15.",
-    "option_b": "17.",
-    "option_c": "19.",
+    "options": [
+      {
+        "key": "a",
+        "text": "Verdadero."
+      },
+      {
+        "key": "b",
+        "text": "Falso."
+      }
+    ],
     "correct_answer": "b",
-    "explanation_simple": "España está organizada territorialmente en 17 comunidades autónomas y 2 ciudades autónomas (Ceuta y Melilla).",
-    "difficulty": "baja",
-    "active": true
+    "active": true,
+    "source": "Manual CCSE 2025"
   },
   {
-    "task_number": 3,
-    "topic": "Organización territorial de España",
-    "question_text": "La capital de España es...",
-    "question_type": "multiple_choice",
-    "option_a": "Barcelona.",
-    "option_b": "Madrid.",
-    "option_c": "Sevilla.",
+    "id": "2015",
+    "code": "2015",
+    "task_number": 2,
+    "topic": "Derechos y deberes fundamentales",
+    "question_text": "La ley limita el acceso de terceras personas a datos de carácter personal.",
+    "question_type": "true_false",
+    "options": [
+      {
+        "key": "a",
+        "text": "Verdadero."
+      },
+      {
+        "key": "b",
+        "text": "Falso."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "2016",
+    "code": "2016",
+    "task_number": 2,
+    "topic": "Derechos y deberes fundamentales",
+    "question_text": "La libertad de prensa está limitada por el respeto al honor de las personas.",
+    "question_type": "true_false",
+    "options": [
+      {
+        "key": "a",
+        "text": "Verdadero."
+      },
+      {
+        "key": "b",
+        "text": "Falso."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "2017",
+    "code": "2017",
+    "task_number": 2,
+    "topic": "Derechos y deberes fundamentales",
+    "question_text": "En España las causas de separación y divorcio están reguladas por la ley.",
+    "question_type": "true_false",
+    "options": [
+      {
+        "key": "a",
+        "text": "Verdadero."
+      },
+      {
+        "key": "b",
+        "text": "Falso"
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "2018",
+    "code": "2018",
+    "task_number": 2,
+    "topic": "Derechos y deberes fundamentales",
+    "question_text": "Todos los españoles pagan la misma cantidad de impuestos.",
+    "question_type": "true_false",
+    "options": [
+      {
+        "key": "a",
+        "text": "Verdadero."
+      },
+      {
+        "key": "b",
+        "text": "Falso."
+      }
+    ],
     "correct_answer": "b",
-    "explanation_simple": "Madrid es la capital de España y la sede del Gobierno, las Cortes Generales y la residencia oficial de los reyes.",
-    "difficulty": "baja",
-    "active": true
+    "active": true,
+    "source": "Manual CCSE 2025"
   },
   {
+    "id": "2019",
+    "code": "2019",
+    "task_number": 2,
+    "topic": "Derechos y deberes fundamentales",
+    "question_text": "En España los hombres y las mujeres tienen los mismos derechos.",
+    "question_type": "true_false",
+    "options": [
+      {
+        "key": "a",
+        "text": "Verdadero."
+      },
+      {
+        "key": "b",
+        "text": "Falso."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "2020",
+    "code": "2020",
+    "task_number": 2,
+    "topic": "Derechos y deberes fundamentales",
+    "question_text": "La enseñanza obligatoria consta de dos etapas: Educación Primaria y Educación Secundaria Obligatoria.",
+    "question_type": "true_false",
+    "options": [
+      {
+        "key": "a",
+        "text": "Verdadero"
+      },
+      {
+        "key": "b",
+        "text": "Falso"
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "2021",
+    "code": "2021",
+    "task_number": 2,
+    "topic": "Derechos y deberes fundamentales",
+    "question_text": "En España hay una religión oficial.",
+    "question_type": "true_false",
+    "options": [
+      {
+        "key": "a",
+        "text": "Verdadero."
+      },
+      {
+        "key": "b",
+        "text": "Falso."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "2022",
+    "code": "2022",
+    "task_number": 2,
+    "topic": "Derechos y deberes fundamentales",
+    "question_text": "La atención sanitaria pública es gratuita.",
+    "question_type": "true_false",
+    "options": [
+      {
+        "key": "a",
+        "text": "Verdadero."
+      },
+      {
+        "key": "b",
+        "text": "Falso."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "2023",
+    "code": "2023",
+    "task_number": 2,
+    "topic": "Derechos y deberes fundamentales",
+    "question_text": "Los poderes públicos deben promover la educación física y el deporte.",
+    "question_type": "true_false",
+    "options": [
+      {
+        "key": "a",
+        "text": "Verdadero."
+      },
+      {
+        "key": "b",
+        "text": "Falso."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "2024",
+    "code": "2024",
+    "task_number": 2,
+    "topic": "Derechos y deberes fundamentales",
+    "question_text": "En España está reconocido el derecho de asociación.",
+    "question_type": "true_false",
+    "options": [
+      {
+        "key": "a",
+        "text": "Verdadero."
+      },
+      {
+        "key": "b",
+        "text": "Falso."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "2025",
+    "code": "2025",
+    "task_number": 2,
+    "topic": "Derechos y deberes fundamentales",
+    "question_text": "En caso de huelga, es obligatorio por ley mantener unos servicios mínimos.",
+    "question_type": "true_false",
+    "options": [
+      {
+        "key": "a",
+        "text": "Verdadero."
+      },
+      {
+        "key": "b",
+        "text": "Falso."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "2026",
+    "code": "2026",
+    "task_number": 2,
+    "topic": "Derechos y deberes fundamentales",
+    "question_text": "Los trabajadores tienen derecho a hacer huelga.",
+    "question_type": "true_false",
+    "options": [
+      {
+        "key": "a",
+        "text": "Verdadero."
+      },
+      {
+        "key": "b",
+        "text": "Falso."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "2027",
+    "code": "2027",
+    "task_number": 2,
+    "topic": "Derechos y deberes fundamentales",
+    "question_text": "La libertad ideológica está garantizada solo en parte del territorio nacional.",
+    "question_type": "true_false",
+    "options": [
+      {
+        "key": "a",
+        "text": "Verdadero."
+      },
+      {
+        "key": "b",
+        "text": "Falso."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "2028",
+    "code": "2028",
+    "task_number": 2,
+    "topic": "Derechos y deberes fundamentales",
+    "question_text": "Todos los ciudadanos tienen acceso al sistema de Seguridad Social público, excepto si están desempleados.",
+    "question_type": "true_false",
+    "options": [
+      {
+        "key": "a",
+        "text": "Verdadero."
+      },
+      {
+        "key": "b",
+        "text": "Falso."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "2029",
+    "code": "2029",
+    "task_number": 2,
+    "topic": "Derechos y deberes fundamentales",
+    "question_text": "Todos tienen derecho a disfrutar de un medio ambiente adecuado para el desarrollo de la persona, así como el deber de conservarlo.",
+    "question_type": "true_false",
+    "options": [
+      {
+        "key": "a",
+        "text": "Verdadero."
+      },
+      {
+        "key": "b",
+        "text": "Falso."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "2030",
+    "code": "2030",
+    "task_number": 2,
+    "topic": "Derechos y deberes fundamentales",
+    "question_text": "Todo el mundo tiene derecho a expresar su opinión.",
+    "question_type": "true_false",
+    "options": [
+      {
+        "key": "a",
+        "text": "Verdadero"
+      },
+      {
+        "key": "b",
+        "text": "Falso"
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "2031",
+    "code": "2031",
+    "task_number": 2,
+    "topic": "Derechos y deberes fundamentales",
+    "question_text": "La edad mínima para casarse en España es de 12 años.",
+    "question_type": "true_false",
+    "options": [
+      {
+        "key": "a",
+        "text": "Verdadero."
+      },
+      {
+        "key": "b",
+        "text": "Falso."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "2032",
+    "code": "2032",
+    "task_number": 2,
+    "topic": "Derechos y deberes fundamentales",
+    "question_text": "La Ley prohíbe la discriminación por cualquier circunstancia personal o social.",
+    "question_type": "true_false",
+    "options": [
+      {
+        "key": "a",
+        "text": "Verdadero."
+      },
+      {
+        "key": "b",
+        "text": "Falso."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "2033",
+    "code": "2033",
+    "task_number": 2,
+    "topic": "Derechos y deberes fundamentales",
+    "question_text": "Los poderes públicos garantizan la defensa de los consumidores.",
+    "question_type": "true_false",
+    "options": [
+      {
+        "key": "a",
+        "text": "Verdadero."
+      },
+      {
+        "key": "b",
+        "text": "Falso."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "2034",
+    "code": "2034",
+    "task_number": 2,
+    "topic": "Derechos y deberes fundamentales",
+    "question_text": "Los jueces administran la justicia en España según las indicaciones del Gobierno.",
+    "question_type": "true_false",
+    "options": [
+      {
+        "key": "a",
+        "text": "Verdadero."
+      },
+      {
+        "key": "b",
+        "text": "Falso."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "2035",
+    "code": "2035",
+    "task_number": 2,
+    "topic": "Derechos y deberes fundamentales",
+    "question_text": "Los españoles deben ayudar en los casos de catástrofe o calamidad pública.",
+    "question_type": "true_false",
+    "options": [
+      {
+        "key": "a",
+        "text": "Verdadero."
+      },
+      {
+        "key": "b",
+        "text": "Falso."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "2036",
+    "code": "2036",
+    "task_number": 2,
+    "topic": "Derechos y deberes fundamentales",
+    "question_text": "En España los ciudadanos pueden elegir en qué ciudad quieren vivir.",
+    "question_type": "true_false",
+    "options": [
+      {
+        "key": "a",
+        "text": "Verdadero."
+      },
+      {
+        "key": "b",
+        "text": "Falso."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "3001",
+    "code": "3001",
     "task_number": 3,
-    "topic": "Organización territorial de España",
-    "question_text": "Ceuta y Melilla son...",
+    "topic": "Organización territorial de España. Geografía física y política",
+    "question_text": "¿Dónde están Cáceres y Badajoz?",
     "question_type": "multiple_choice",
-    "option_a": "provincias.",
-    "option_b": "comunidades autónomas.",
-    "option_c": "ciudades autónomas.",
+    "options": [
+      {
+        "key": "a",
+        "text": "En el Principado de Asturias."
+      },
+      {
+        "key": "b",
+        "text": "En Andalucía."
+      },
+      {
+        "key": "c",
+        "text": "En Extremadura."
+      }
+    ],
     "correct_answer": "c",
-    "explanation_simple": "Ceuta y Melilla, situadas en la costa norte de África, tienen un estatus especial como ciudades autónomas, con competencias superiores a las de un municipio pero inferiores a las de una comunidad autónoma.",
-    "difficulty": "media",
-    "active": true
+    "active": true,
+    "source": "Manual CCSE 2025"
   },
   {
+    "id": "3002",
+    "code": "3002",
     "task_number": 3,
-    "topic": "Organización territorial de España",
-    "question_text": "Cada comunidad autónoma tiene su propia capital.",
-    "question_type": "true_false",
-    "option_a": "Verdadero",
-    "option_b": "Falso",
-    "option_c": null,
-    "correct_answer": "true",
-    "explanation_simple": "Sí, cada una de las 17 comunidades autónomas tiene una ciudad designada como su capital, donde se encuentran sus principales instituciones de gobierno.",
-    "difficulty": "baja",
-    "active": true
+    "topic": "Organización territorial de España. Geografía física y política",
+    "question_text": "¿Cuál es la capital del Principado de Asturias?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Avilés."
+      },
+      {
+        "key": "b",
+        "text": "Gijón."
+      },
+      {
+        "key": "c",
+        "text": "Oviedo."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
   },
   {
+    "id": "3003",
+    "code": "3003",
     "task_number": 3,
-    "topic": "Organización territorial de España",
-    "question_text": "Las Islas Canarias forman parte de España.",
-    "question_type": "true_false",
-    "option_a": "Verdadero",
-    "option_b": "Falso",
-    "option_c": null,
-    "correct_answer": "true",
-    "explanation_simple": "Sí, el archipiélago canario, situado en el océano Atlántico, es una de las 17 comunidades autónomas de España.",
-    "difficulty": "baja",
-    "active": true
+    "topic": "Organización territorial de España. Geografía física y política",
+    "question_text": "¿Dónde están las islas Baleares?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "En el mar Cantábrico."
+      },
+      {
+        "key": "b",
+        "text": "En el mar Mediterráneo."
+      },
+      {
+        "key": "c",
+        "text": "En el océano Atlántico."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
   },
   {
+    "id": "3004",
+    "code": "3004",
+    "task_number": 3,
+    "topic": "Organización territorial de España. Geografía física y política",
+    "question_text": "¿Cómo se llama la extensa llanura situada en el centro de la península ibérica?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Marisma."
+      },
+      {
+        "key": "b",
+        "text": "Cordillera."
+      },
+      {
+        "key": "c",
+        "text": "Meseta."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "3005",
+    "code": "3005",
+    "task_number": 3,
+    "topic": "Organización territorial de España. Geografía física y política",
+    "question_text": "¿Cuál es la montaña más alta de la península ibérica?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "El Mulhacén."
+      },
+      {
+        "key": "b",
+        "text": "El Aneto."
+      },
+      {
+        "key": "c",
+        "text": "El Teide."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "3006",
+    "code": "3006",
+    "task_number": 3,
+    "topic": "Organización territorial de España. Geografía física y política",
+    "question_text": "¿En qué comunidad autónoma están Guadalajara y Cuenca?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "En Castilla y León."
+      },
+      {
+        "key": "b",
+        "text": "En Castilla-La Mancha."
+      },
+      {
+        "key": "c",
+        "text": "En Cantabria."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "3007",
+    "code": "3007",
+    "task_number": 3,
+    "topic": "Organización territorial de España. Geografía física y política",
+    "question_text": "¿De qué comunidad autónoma es capital Mérida?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "De Valencia."
+      },
+      {
+        "key": "b",
+        "text": "De Cataluña."
+      },
+      {
+        "key": "c",
+        "text": "De Extremadura."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "3008",
+    "code": "3008",
+    "task_number": 3,
+    "topic": "Organización territorial de España. Geografía física y política",
+    "question_text": "¿Dónde está Almería?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "En Andalucía."
+      },
+      {
+        "key": "b",
+        "text": "En Canarias."
+      },
+      {
+        "key": "c",
+        "text": "En Aragón."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "3009",
+    "code": "3009",
+    "task_number": 3,
+    "topic": "Organización territorial de España. Geografía física y política",
+    "question_text": "La capital de la Comunidad Autónoma de Galicia es…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "A Coruña."
+      },
+      {
+        "key": "b",
+        "text": "Vigo."
+      },
+      {
+        "key": "c",
+        "text": "Santiago de Compostela."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "3010",
+    "code": "3010",
+    "task_number": 3,
+    "topic": "Organización territorial de España. Geografía física y política",
+    "question_text": "¿Cuál de estos climas es propio de España?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Polar."
+      },
+      {
+        "key": "b",
+        "text": "Mediterráneo."
+      },
+      {
+        "key": "c",
+        "text": "Tropical."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "3011",
+    "code": "3011",
+    "task_number": 3,
+    "topic": "Organización territorial de España. Geografía física y política",
+    "question_text": "¿Dónde está el monte Aneto?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "En los Pirineos."
+      },
+      {
+        "key": "b",
+        "text": "En el Sistema Central."
+      },
+      {
+        "key": "c",
+        "text": "En Sierra Nevada."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "3012",
+    "code": "3012",
+    "task_number": 3,
+    "topic": "Organización territorial de España. Geografía física y política",
+    "question_text": "Tarragona está en…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Cataluña."
+      },
+      {
+        "key": "b",
+        "text": "Galicia."
+      },
+      {
+        "key": "c",
+        "text": "Navarra."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "3013",
+    "code": "3013",
+    "task_number": 3,
+    "topic": "Organización territorial de España. Geografía física y política",
+    "question_text": "España se divide en…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "departamentos y regiones."
+      },
+      {
+        "key": "b",
+        "text": "comunidades y ciudades autónomas."
+      },
+      {
+        "key": "c",
+        "text": "regiones autónomas y distritos."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "3014",
+    "code": "3014",
+    "task_number": 3,
+    "topic": "Organización territorial de España. Geografía física y política",
+    "question_text": "¿Cuál de estas comunidades autónomas tiene solo una provincia?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "La Rioja."
+      },
+      {
+        "key": "b",
+        "text": "Aragón."
+      },
+      {
+        "key": "c",
+        "text": "Galicia."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "3015",
+    "code": "3015",
+    "task_number": 3,
+    "topic": "Organización territorial de España. Geografía física y política",
+    "question_text": "En el norte de África están Ceuta y…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Almería."
+      },
+      {
+        "key": "b",
+        "text": "Melilla."
+      },
+      {
+        "key": "c",
+        "text": "Cádiz."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "3016",
+    "code": "3016",
+    "task_number": 3,
+    "topic": "Organización territorial de España. Geografía física y política",
+    "question_text": "¿Cuál de estas comunidades autónomas tiene más de una provincia?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Asturias."
+      },
+      {
+        "key": "b",
+        "text": "Madrid."
+      },
+      {
+        "key": "c",
+        "text": "Castilla-La Mancha."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "3017",
+    "code": "3017",
+    "task_number": 3,
+    "topic": "Organización territorial de España. Geografía física y política",
+    "question_text": "¿Cuál de estos ríos desemboca en el océano Atlántico?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "El Guadalquivir."
+      },
+      {
+        "key": "b",
+        "text": "El Manzanares."
+      },
+      {
+        "key": "c",
+        "text": "El Júcar."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "3018",
+    "code": "3018",
+    "task_number": 3,
+    "topic": "Organización territorial de España. Geografía física y política",
+    "question_text": "¿Cuál de estas provincias forma parte de la Comunidad de Castilla-León?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Burgos."
+      },
+      {
+        "key": "b",
+        "text": "Huesca."
+      },
+      {
+        "key": "c",
+        "text": "Guadalajara."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "3019",
+    "code": "3019",
+    "task_number": 3,
+    "topic": "Organización territorial de España. Geografía física y política",
+    "question_text": "Las temperaturas suaves con abundantes lluvias son propias del clima…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "continental."
+      },
+      {
+        "key": "b",
+        "text": "oceánico."
+      },
+      {
+        "key": "c",
+        "text": "subtropical."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "3020",
+    "code": "3020",
+    "task_number": 3,
+    "topic": "Organización territorial de España. Geografía física y política",
+    "question_text": "Canarias tiene un clima…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "mediterráneo."
+      },
+      {
+        "key": "b",
+        "text": "oceánico."
+      },
+      {
+        "key": "c",
+        "text": "subtropical."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "3021",
+    "code": "3021",
+    "task_number": 3,
+    "topic": "Organización territorial de España. Geografía física y política",
+    "question_text": "El principal río que desemboca en el mar Mediterráneo es el…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Ebro."
+      },
+      {
+        "key": "b",
+        "text": "Duero."
+      },
+      {
+        "key": "c",
+        "text": "Tajo."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "3022",
+    "code": "3022",
+    "task_number": 3,
+    "topic": "Organización territorial de España. Geografía física y política",
+    "question_text": "España está entre los países de Europa más…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "lluviosos."
+      },
+      {
+        "key": "b",
+        "text": "montañosos."
+      },
+      {
+        "key": "c",
+        "text": "fríos."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "3023",
+    "code": "3023",
+    "task_number": 3,
+    "topic": "Organización territorial de España. Geografía física y política",
+    "question_text": "¿En qué provincia está el parque nacional de Monfragüe?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "En Cáceres."
+      },
+      {
+        "key": "b",
+        "text": "En Murcia."
+      },
+      {
+        "key": "c",
+        "text": "En Ciudad Real."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "3024",
+    "code": "3024",
+    "task_number": 3,
+    "topic": "Organización territorial de España. Geografía física y política",
+    "question_text": "Los Picos de Europa están en…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Andalucía."
+      },
+      {
+        "key": "c",
+        "text": "Cataluña."
+      },
+      {
+        "key": "c",
+        "text": "Asturias."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "4001",
+    "code": "4001",
     "task_number": 4,
     "topic": "Cultura e historia de España",
-    "question_text": "El autor de 'El Quijote' es...",
+    "question_text": "Los personajes principales de la novela el Quijote son don Quijote y…",
     "question_type": "multiple_choice",
-    "option_a": "Federico García Lorca.",
-    "option_b": "Miguel de Cervantes.",
-    "option_c": "Camilo José Cela.",
+    "options": [
+      {
+        "key": "a",
+        "text": "Don Juan."
+      },
+      {
+        "key": "b",
+        "text": "Sancho Panza."
+      },
+      {
+        "key": "c",
+        "text": "Doña Inés."
+      }
+    ],
     "correct_answer": "b",
-    "explanation_simple": "Miguel de Cervantes Saavedra es el autor de 'El ingenioso hidalgo don Quijote de la Mancha', considerada la obra cumbre de la literatura española.",
-    "difficulty": "baja",
-    "active": true
+    "active": true,
+    "source": "Manual CCSE 2025"
   },
   {
+    "id": "4002",
+    "code": "4002",
     "task_number": 4,
     "topic": "Cultura e historia de España",
-    "question_text": "La fiesta nacional de España es el...",
+    "question_text": "¿Cuál de las siguientes mujeres es una científica española reconocida mundialmente?",
     "question_type": "multiple_choice",
-    "option_a": "6 de diciembre.",
-    "option_b": "12 de octubre.",
-    "option_c": "1 de mayo.",
-    "correct_answer": "b",
-    "explanation_simple": "El 12 de octubre se celebra la Fiesta Nacional de España, que conmemora la llegada de Cristóbal Colón a América.",
-    "difficulty": "media",
-    "active": true
+    "options": [
+      {
+        "key": "a",
+        "text": "Montserrat Caballé."
+      },
+      {
+        "key": "b",
+        "text": "Ana María Matute."
+      },
+      {
+        "key": "c",
+        "text": "Margarita Salas."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
   },
   {
+    "id": "4003",
+    "code": "4003",
     "task_number": 4,
     "topic": "Cultura e historia de España",
-    "question_text": "El baile típico de Andalucía es...",
+    "question_text": "¿Cómo se llama, en literatura, a los siglos XVI y XVII?",
     "question_type": "multiple_choice",
-    "option_a": "la sardana.",
-    "option_b": "el flamenco.",
-    "option_c": "la jota.",
-    "correct_answer": "b",
-    "explanation_simple": "El flamenco es un arte que combina cante, toque (guitarra) y baile, originario de Andalucía y conocido internacionalmente.",
-    "difficulty": "baja",
-    "active": true
+    "options": [
+      {
+        "key": "a",
+        "text": "Siglos de Oro."
+      },
+      {
+        "key": "b",
+        "text": "Siglos de Plata."
+      },
+      {
+        "key": "c",
+        "text": "Siglos de Platino."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
   },
   {
+    "id": "4004",
+    "code": "4004",
     "task_number": 4,
     "topic": "Cultura e historia de España",
-    "question_text": "La Guerra Civil española terminó en 1939.",
-    "question_type": "true_false",
-    "option_a": "Verdadero",
-    "option_b": "Falso",
-    "option_c": null,
-    "correct_answer": "true",
-    "explanation_simple": "La Guerra Civil española fue un conflicto que tuvo lugar en España entre 1936 y 1939, finalizando con la victoria del bando nacional y el inicio de la dictadura de Francisco Franco.",
-    "difficulty": "media",
-    "active": true
+    "question_text": "María Zambrano, María Teresa León y Rosa Chacel son…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "pintoras."
+      },
+      {
+        "key": "b",
+        "text": "escritoras."
+      },
+      {
+        "key": "c",
+        "text": "deportistas."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
   },
   {
+    "id": "4005",
+    "code": "4005",
     "task_number": 4,
     "topic": "Cultura e historia de España",
-    "question_text": "Francisco de Goya fue un famoso arquitecto español.",
-    "question_type": "true_false",
-    "option_a": "Verdadero",
-    "option_b": "Falso",
-    "option_c": null,
-    "correct_answer": "false",
-    "explanation_simple": "Francisco de Goya fue uno de los pintores más importantes de la historia de España, no un arquitecto. Es conocido por obras como 'La maja desnuda' o 'Los fusilamientos del 3 de mayo'.",
-    "difficulty": "baja",
-    "active": true
-  },
-  {
-    "task_number": 5,
-    "topic": "Sociedad española",
-    "question_text": "El número de teléfono para emergencias sanitarias es el...",
+    "question_text": "¿Qué músico compuso El amor brujo?",
     "question_type": "multiple_choice",
-    "option_a": "091.",
-    "option_b": "061 o 112.",
-    "option_c": "092.",
-    "correct_answer": "b",
-    "explanation_simple": "El 112 es el número único de atención a emergencias en toda la Unión Europea. En muchas comunidades autónomas, el 061 es el número específico para emergencias sanitarias.",
-    "difficulty": "baja",
-    "active": true
+    "options": [
+      {
+        "key": "a",
+        "text": "Manuel de Falla."
+      },
+      {
+        "key": "b",
+        "text": "Isaac Albéniz."
+      },
+      {
+        "key": "c",
+        "text": "Joaquín Rodrigo."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
   },
   {
-    "task_number": 5,
-    "topic": "Sociedad española",
-    "question_text": "En España, la educación obligatoria es hasta los...",
+    "id": "4006",
+    "code": "4006",
+    "task_number": 4,
+    "topic": "Cultura e historia de España",
+    "question_text": "¿Qué dulce es típico de las navidades?",
     "question_type": "multiple_choice",
-    "option_a": "14 años.",
-    "option_b": "16 años.",
-    "option_c": "18 años.",
+    "options": [
+      {
+        "key": "a",
+        "text": "El flan."
+      },
+      {
+        "key": "b",
+        "text": "El turrón."
+      },
+      {
+        "key": "c",
+        "text": "El huevo de Pascua."
+      }
+    ],
     "correct_answer": "b",
-    "explanation_simple": "La enseñanza básica es obligatoria y gratuita en España, y comprende desde los 6 hasta los 16 años de edad.",
-    "difficulty": "baja",
-    "active": true
+    "active": true,
+    "source": "Manual CCSE 2025"
   },
   {
-    "task_number": 5,
-    "topic": "Sociedad española",
-    "question_text": "La jornada laboral máxima a la semana es, con carácter general, de...",
+    "id": "4007",
+    "code": "4007",
+    "task_number": 4,
+    "topic": "Cultura e historia de España",
+    "question_text": "¿Qué instrumento musical es típico del folclore español?",
     "question_type": "multiple_choice",
-    "option_a": "35 horas.",
-    "option_b": "40 horas.",
-    "option_c": "45 horas.",
+    "options": [
+      {
+        "key": "a",
+        "text": "El piano."
+      },
+      {
+        "key": "b",
+        "text": "El violín."
+      },
+      {
+        "key": "c",
+        "text": "La guitarra."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "4008",
+    "code": "4008",
+    "task_number": 4,
+    "topic": "Cultura e historia de España",
+    "question_text": "Isabel Coixet es una…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "cantante pop."
+      },
+      {
+        "key": "b",
+        "text": "bailarina clásica."
+      },
+      {
+        "key": "c",
+        "text": "directora de cine."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "4009",
+    "code": "4009",
+    "task_number": 4,
+    "topic": "Cultura e historia de España",
+    "question_text": "Una de las cantantes españolas más famosas actualmente es...",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Rosalía."
+      },
+      {
+        "key": "b",
+        "text": "Marisol"
+      },
+      {
+        "key": "c",
+        "text": "Lola Flores."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "4010",
+    "code": "4010",
+    "task_number": 4,
+    "topic": "Cultura e historia de España",
+    "question_text": "¿En qué ciudad de España hay una mezquita que es Patrimonio de la Humanidad?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Santiago de Compostela."
+      },
+      {
+        "key": "b",
+        "text": "Madrid."
+      },
+      {
+        "key": "c",
+        "text": "Córdoba."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "4011",
+    "code": "4011",
+    "task_number": 4,
+    "topic": "Cultura e historia de España",
+    "question_text": "¿En qué ciudad de España se encuentra La Alhambra, que es Patrimonio de la Humanidad?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "En Sevilla."
+      },
+      {
+        "key": "b",
+        "text": "En Córdoba."
+      },
+      {
+        "key": "c",
+        "text": "En Granada."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "4012",
+    "code": "4012",
+    "task_number": 4,
+    "topic": "Cultura e historia de España",
+    "question_text": "¿Dónde está La Sagrada Familia, el monumento de Gaudí?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "En Barcelona."
+      },
+      {
+        "key": "b",
+        "text": "En Granada."
+      },
+      {
+        "key": "c",
+        "text": "En Madrid."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "4013",
+    "code": "4013",
+    "task_number": 4,
+    "topic": "Cultura e historia de España",
+    "question_text": "Pablo Picasso fue un famoso…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "pintor."
+      },
+      {
+        "key": "b",
+        "text": "músico."
+      },
+      {
+        "key": "c",
+        "text": "escritor."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "4014",
+    "code": "4014",
+    "task_number": 4,
+    "topic": "Cultura e historia de España",
+    "question_text": "¿Cómo se llama la mayor institución pública dedicada a la investigación en España?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Real Academia Española (RAE)."
+      },
+      {
+        "key": "b",
+        "text": "Consejo Superior de investigaciones Científicas (CSIC)."
+      },
+      {
+        "key": "c",
+        "text": "La sociedad General de Autores (SGAE)."
+      }
+    ],
     "correct_answer": "b",
-    "explanation_simple": "La duración máxima de la jornada laboral ordinaria en España es de 40 horas semanales de trabajo efectivo de promedio en cómputo anual.",
-    "difficulty": "media",
-    "active": true
+    "active": true,
+    "source": "Manual CCSE 2025"
   },
   {
-    "task_number": 5,
-    "topic": "Sociedad española",
-    "question_text": "El permiso de maternidad en España es de 16 semanas.",
-    "question_type": "true_false",
-    "option_a": "Verdadero",
-    "option_b": "Falso",
-    "option_c": null,
-    "correct_answer": "true",
-    "explanation_simple": "Actualmente, el permiso por nacimiento y cuidado del menor para ambos progenitores es de 16 semanas, siendo las 6 primeras obligatorias e ininterrumpidas tras el parto.",
-    "difficulty": "media",
-    "active": true
+    "id": "4015",
+    "code": "4015",
+    "task_number": 4,
+    "topic": "Cultura e historia de España",
+    "question_text": "Paco de Lucía fue un famoso….",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "científico."
+      },
+      {
+        "key": "b",
+        "text": "guitarrista."
+      },
+      {
+        "key": "c",
+        "text": "pintor."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
   },
   {
+    "id": "4016",
+    "code": "4016",
+    "task_number": 4,
+    "topic": "Cultura e historia de España",
+    "question_text": "¿Cuál de estas manifestaciones folclóricas es patrimonio cultural inmaterial de la humanidad?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "El flamenco."
+      },
+      {
+        "key": "b",
+        "text": "La jota."
+      },
+      {
+        "key": "c",
+        "text": "La sardana."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "4017",
+    "code": "4017",
+    "task_number": 4,
+    "topic": "Cultura e historia de España",
+    "question_text": "¿Cuál es la moneda común en muchos países de la Unión Europea?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "El dólar."
+      },
+      {
+        "key": "b",
+        "text": "El peso."
+      },
+      {
+        "key": "c",
+        "text": "El euro."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "4018",
+    "code": "4018",
+    "task_number": 4,
+    "topic": "Cultura e historia de España",
+    "question_text": "La fiesta de la Tomatina se celebra en…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Mérida."
+      },
+      {
+        "key": "b",
+        "text": "Buñol."
+      },
+      {
+        "key": "c",
+        "text": "Santiago de Compostela."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "4019",
+    "code": "4019",
+    "task_number": 4,
+    "topic": "Cultura e historia de España",
+    "question_text": "La Feria del Libro se celebra en toda España, normalmente, en…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "invierno."
+      },
+      {
+        "key": "b",
+        "text": "primavera."
+      },
+      {
+        "key": "c",
+        "text": "verano."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "4020",
+    "code": "4020",
+    "task_number": 4,
+    "topic": "Cultura e historia de España",
+    "question_text": "La Liga y la Copa del Rey son competiciones de…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "natación."
+      },
+      {
+        "key": "b",
+        "text": "atletismo."
+      },
+      {
+        "key": "c",
+        "text": "fútbol."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "4021",
+    "code": "4021",
+    "task_number": 4,
+    "topic": "Cultura e historia de España",
+    "question_text": "¿Quién ha recibido el premio Nobel de Literatura?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "María Zambrano."
+      },
+      {
+        "key": "b",
+        "text": "Pablo Picasso."
+      },
+      {
+        "key": "c",
+        "text": "Vicente Aleixandre."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "4022",
+    "code": "4022",
+    "task_number": 4,
+    "topic": "Cultura e historia de España",
+    "question_text": "Las chirigotas de Cádiz son típicas de…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "la Semana Santa."
+      },
+      {
+        "key": "b",
+        "text": "los carnavales."
+      },
+      {
+        "key": "c",
+        "text": "las verbenas de verano."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "4023",
+    "code": "4023",
+    "task_number": 4,
+    "topic": "Cultura e historia de España",
+    "question_text": "Teresa Perales y Daniel Molina son...",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "campeones paraolímpicos."
+      },
+      {
+        "key": "b",
+        "text": "músicos famosos."
+      },
+      {
+        "key": "c",
+        "text": "artistas de cine."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "4024",
+    "code": "4024",
+    "task_number": 4,
+    "topic": "Cultura e historia de España",
+    "question_text": "¿Qué toman los españoles la noche del 31 de diciembre para celebrar el cambio de año?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Lentejas."
+      },
+      {
+        "key": "b",
+        "text": "Uvas."
+      },
+      {
+        "key": "c",
+        "text": "Aceitunas."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "4025",
+    "code": "4025",
+    "task_number": 4,
+    "topic": "Cultura e historia de España",
+    "question_text": "¿Dónde está al Museo del Prado?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "En Madrid."
+      },
+      {
+        "key": "b",
+        "text": "En Bilbao."
+      },
+      {
+        "key": "c",
+        "text": "En Sevilla."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "4026",
+    "code": "4026",
+    "task_number": 4,
+    "topic": "Cultura e historia de España",
+    "question_text": "¿Dónde se celebra un famoso festival de cine?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "En San Sebastián."
+      },
+      {
+        "key": "b",
+        "text": "En Cuenca."
+      },
+      {
+        "key": "c",
+        "text": "En Vigo."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "4027",
+    "code": "4027",
+    "task_number": 4,
+    "topic": "Cultura e historia de España",
+    "question_text": "¿Qué escritora española escribe en otra lengua oficial de España?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Mercè Rodoreda."
+      },
+      {
+        "key": "b",
+        "text": "Almudena Grandes."
+      },
+      {
+        "key": "c",
+        "text": "Ana María Matute."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "4028",
+    "code": "4028",
+    "task_number": 4,
+    "topic": "Cultura e historia de España",
+    "question_text": "¿Qué tres culturas convivieron en la España medieval?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "La cristiana, la judía y la musulmana."
+      },
+      {
+        "key": "b",
+        "text": "La fenicia, la judía y la musulmana."
+      },
+      {
+        "key": "c",
+        "text": "La griega, la cristiana y la judía."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "4029",
+    "code": "4029",
+    "task_number": 4,
+    "topic": "Cultura e historia de España",
+    "question_text": "El 6 de diciembre se celebra en España…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "el Día de la Constitución."
+      },
+      {
+        "key": "b",
+        "text": "la llegada de Colón a América."
+      },
+      {
+        "key": "c",
+        "text": "el Día del Libro."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "4030",
+    "code": "4030",
+    "task_number": 4,
+    "topic": "Cultura e historia de España",
+    "question_text": "¿Dónde se encuentran la Cueva de Altamira que son Patrimonio Mundial de UNESCO?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "En Cataluña."
+      },
+      {
+        "key": "b",
+        "text": "En Aragón."
+      },
+      {
+        "key": "c",
+        "text": "En Cantabria."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "4031",
+    "code": "4031",
+    "task_number": 4,
+    "topic": "Cultura e historia de España",
+    "question_text": "La Transición española a la democracia comienza en...",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "1936."
+      },
+      {
+        "key": "b",
+        "text": "1975."
+      },
+      {
+        "key": "c",
+        "text": "1982."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "4032",
+    "code": "4032",
+    "task_number": 4,
+    "topic": "Cultura e historia de España",
+    "question_text": "El Premio Cervantes se da a…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "actores."
+      },
+      {
+        "key": "b",
+        "text": "escritores."
+      },
+      {
+        "key": "c",
+        "text": "pintores."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "4033",
+    "code": "4033",
+    "task_number": 4,
+    "topic": "Cultura e historia de España",
+    "question_text": "Los Premios Goya están relacionados con…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "el cine."
+      },
+      {
+        "key": "b",
+        "text": "la literatura."
+      },
+      {
+        "key": "c",
+        "text": "la pintura."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "4034",
+    "code": "4034",
+    "task_number": 4,
+    "topic": "Cultura e historia de España",
+    "question_text": "¿Qué premios promueven en España valores científicos, culturales y humanísticos?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Los Premios Cervantes."
+      },
+      {
+        "key": "b",
+        "text": "Los Premios Princesa de Asturias."
+      },
+      {
+        "key": "c",
+        "text": "Los Premios Goya."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "4035",
+    "code": "4035",
+    "task_number": 4,
+    "topic": "Cultura e historia de España",
+    "question_text": "¿Cuándo fueron los Juegos Olímpicos de Barcelona?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "En 1992."
+      },
+      {
+        "key": "b",
+        "text": "En 1996."
+      },
+      {
+        "key": "c",
+        "text": "En 2004."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "4036",
+    "code": "4036",
+    "task_number": 4,
+    "topic": "Cultura e historia de España",
+    "question_text": "El escritor Miguel de Cervantes nació en…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "La Mancha."
+      },
+      {
+        "key": "b",
+        "text": "Madrid."
+      },
+      {
+        "key": "c",
+        "text": "Alcalá de Henares."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5001",
+    "code": "5001",
     "task_number": 5,
     "topic": "Sociedad española",
-    "question_text": "Los supermercados en España suelen cerrar los domingos.",
-    "question_type": "true_false",
-    "option_a": "Verdadero",
-    "option_b": "Falso",
-    "option_c": null,
-    "correct_answer": "true",
-    "explanation_simple": "Aunque hay excepciones en zonas turísticas o grandes ciudades, la norma general es que los grandes supermercados y comercios no abran los domingos y festivos.",
-    "difficulty": "baja",
-    "active": true
+    "question_text": "¿Quién hace el DNI?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "La Policía Nacional."
+      },
+      {
+        "key": "b",
+        "text": "La Guardia Civil."
+      },
+      {
+        "key": "c",
+        "text": "La Policía local."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5002",
+    "code": "5002",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "¿Cuál es el documento que certifica el lugar de residencia del titular?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "El certificado de empadronamiento."
+      },
+      {
+        "key": "b",
+        "text": "La partida de nacimiento."
+      },
+      {
+        "key": "c",
+        "text": "El carné de conducir."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5003",
+    "code": "5003",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "Para hacer el DNI debes acudir a…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "una comisaría de policía."
+      },
+      {
+        "key": "b",
+        "text": "el Registro Civil."
+      },
+      {
+        "key": "c",
+        "text": "el ayuntamiento."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5004",
+    "code": "5004",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "¿Cuál es la edad mínima para conducir un coche en España?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "16 años."
+      },
+      {
+        "key": "b",
+        "text": "18 años."
+      },
+      {
+        "key": "c",
+        "text": "20 años."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5005",
+    "code": "5005",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "El carné de conducir se hace en…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "la Dirección General de Tráfico (DGT)."
+      },
+      {
+        "key": "b",
+        "text": "la Policía Nacional."
+      },
+      {
+        "key": "c",
+        "text": "el Registro Civil."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5006",
+    "code": "5006",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "Para sacar el carné de conducir hay que aprobar…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "un examen teórico."
+      },
+      {
+        "key": "b",
+        "text": "un examen práctico."
+      },
+      {
+        "key": "c",
+        "text": "un examen teórico y otro práctico."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5007",
+    "code": "5007",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "¿Dónde se tramita el libro de familia?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "En el Registro Civil."
+      },
+      {
+        "key": "b",
+        "text": "En la Seguridad Social."
+      },
+      {
+        "key": "c",
+        "text": "En las comisarías de policía."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5008",
+    "code": "5008",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "¿Cuál de estos canales de televisión es autonómico?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Telecinco."
+      },
+      {
+        "key": "b",
+        "text": "Nova."
+      },
+      {
+        "key": "c",
+        "text": "Canal Sur."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5009",
+    "code": "5009",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "¿Cuánto dura el permiso de maternidad o paternidad?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "12 semanas."
+      },
+      {
+        "key": "b",
+        "text": "16 semanas."
+      },
+      {
+        "key": "c",
+        "text": "22 semanas."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5010",
+    "code": "5010",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "¿Cuál es la tasa máxima de alcohol en sangre permitida a los conductores, en gramos por litro (g/l)?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "0,5."
+      },
+      {
+        "key": "b",
+        "text": "0,7."
+      },
+      {
+        "key": "c",
+        "text": "0,9."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5011",
+    "code": "5011",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "Las viviendas de protección oficial…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "tienen un precio limitado."
+      },
+      {
+        "key": "b",
+        "text": "son para los funcionarios."
+      },
+      {
+        "key": "c",
+        "text": "tienen sistema de vigilancia."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5012",
+    "code": "5012",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "¿Qué comunidad autónoma es conocida por la calidad de su aceite de oliva?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Cantabria."
+      },
+      {
+        "key": "b",
+        "text": "Andalucía."
+      },
+      {
+        "key": "c",
+        "text": "La Rioja."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5013",
+    "code": "5013",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "¿Cómo se llama la revisión que deben pasar obligatoriamente los coches?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "IBI (Impuesto sobre Bienes Inmuebles)."
+      },
+      {
+        "key": "b",
+        "text": "ITV (Inspección Técnica de Vehículos)."
+      },
+      {
+        "key": "c",
+        "text": "ITE (Inspección Técnica de Edificios)."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5014",
+    "code": "5014",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "El aperitivo que acompaña a la bebida en bares y restaurantes se llama...",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "bocadillo."
+      },
+      {
+        "key": "b",
+        "text": "tapa."
+      },
+      {
+        "key": "c",
+        "text": "primer plato."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5015",
+    "code": "5015",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "¿Dónde se tramita la tarjeta sanitaria?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "En la comisaría de policía."
+      },
+      {
+        "key": "b",
+        "text": "En el centro de salud."
+      },
+      {
+        "key": "c",
+        "text": "En el Ministerio de Sanidad."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5016",
+    "code": "5016",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "¿Con cuántos hijos una familia es numerosa?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Con 1 hijo."
+      },
+      {
+        "key": "b",
+        "text": "Con 2 hijos."
+      },
+      {
+        "key": "c",
+        "text": "Con 3 hijos."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5017",
+    "code": "5017",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "En España está permitido el matrimonio…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "solo entre personas del mismo sexo."
+      },
+      {
+        "key": "b",
+        "text": "entre personas del mismo y diferente sexo."
+      },
+      {
+        "key": "c",
+        "text": "solo entre personas de diferente sexo."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5018",
+    "code": "5018",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "Los propietarios de perros deben registrarlos en…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "el Ministerio de Justicia."
+      },
+      {
+        "key": "b",
+        "text": "la comisaría de policía."
+      },
+      {
+        "key": "c",
+        "text": "el Ayuntamiento."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5019",
+    "code": "5019",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "Los principales ingredientes de la tortilla española son huevos y…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "pimientos."
+      },
+      {
+        "key": "b",
+        "text": "patatas."
+      },
+      {
+        "key": "c",
+        "text": "tomates."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5020",
+    "code": "5020",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "¿Quién es un cocinero famoso dentro y fuera de España?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "José Andrés."
+      },
+      {
+        "key": "b",
+        "text": "Rafael Nadal."
+      },
+      {
+        "key": "c",
+        "text": "Josep Carreras."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5021",
+    "code": "5021",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "¿Cuál de estos canales de televisión es público?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Tele5."
+      },
+      {
+        "key": "b",
+        "text": "La 1."
+      },
+      {
+        "key": "c",
+        "text": "Antena 3."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5022",
+    "code": "5022",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "En una comunidad de vecinos, una de las normas es…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "abrir la puerta al cartero."
+      },
+      {
+        "key": "b",
+        "text": "no molestar con ruido."
+      },
+      {
+        "key": "c",
+        "text": "limpiar los espacios comunes."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5023",
+    "code": "5023",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "La sangría es una bebida compuesta por refrescos, vino y…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "fruta."
+      },
+      {
+        "key": "b",
+        "text": "té."
+      },
+      {
+        "key": "c",
+        "text": "agua."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5024",
+    "code": "5024",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "La sidra es una bebida típica de…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Asturias."
+      },
+      {
+        "key": "b",
+        "text": "Valencia."
+      },
+      {
+        "key": "c",
+        "text": "Canarias."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5025",
+    "code": "5025",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "Los españoles tienen dos apellidos, el primero es…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "obligatoriamente el de la madre."
+      },
+      {
+        "key": "b",
+        "text": "obligatoriamente el del padre."
+      },
+      {
+        "key": "c",
+        "text": "puede ser el de la madre o el del padre."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5026",
+    "code": "5026",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "La Fiesta Nacional de España es el…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "6 de diciembre."
+      },
+      {
+        "key": "b",
+        "text": "15 de agosto."
+      },
+      {
+        "key": "c",
+        "text": "12 de octubre."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5027",
+    "code": "5027",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "¿Cuál es el horario habitual de los hipermercados y centros comerciales?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "De 9:00 a 17:00 h."
+      },
+      {
+        "key": "b",
+        "text": "De 10:00 a 22:00 h."
+      },
+      {
+        "key": "c",
+        "text": "De 8:00 a 23:00 h."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5028",
+    "code": "5028",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "¿Dónde se hace el pasaporte?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "En el registro civil."
+      },
+      {
+        "key": "b",
+        "text": "En una comisaría de policía."
+      },
+      {
+        "key": "c",
+        "text": "En el Ayuntamiento."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5029",
+    "code": "5029",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "El Ministerio de Igualdad es el encargado de luchar contra la violencia de género y la…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "separación."
+      },
+      {
+        "key": "b",
+        "text": "discriminación."
+      },
+      {
+        "key": "c",
+        "text": "solidaridad."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5030",
+    "code": "5030",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "¿Cuál de estas regiones es conocida por sus vinos con denominación de origen?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Ribera de Duero."
+      },
+      {
+        "key": "b",
+        "text": "Pirineos."
+      },
+      {
+        "key": "c",
+        "text": "La Vera."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5031",
+    "code": "5031",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "El DNI se hace…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "por internet."
+      },
+      {
+        "key": "b",
+        "text": "en persona."
+      },
+      {
+        "key": "c",
+        "text": "por teléfono."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5032",
+    "code": "5032",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "El horario de Canarias, con respecto a la Península, es de…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "dos horas menos."
+      },
+      {
+        "key": "b",
+        "text": "una hora menos."
+      },
+      {
+        "key": "c",
+        "text": "una hora más."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5033",
+    "code": "5033",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "Para acceder a la Universidad se debe superar una prueba de evaluación llamada…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Selectividad."
+      },
+      {
+        "key": "b",
+        "text": "Examen preuniversitario."
+      },
+      {
+        "key": "c",
+        "text": "Prueba de Acceso a la Universidad."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5034",
+    "code": "5034",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "¿Cuál de estos productos necesita importar España de otros países?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Petróleo."
+      },
+      {
+        "key": "b",
+        "text": "Aceite de oliva."
+      },
+      {
+        "key": "c",
+        "text": "Medicamentos."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5035",
+    "code": "5035",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "¿Qué tipo de impuestos tienen que pagar los ciudadanos en España?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "impuestos directos como el IRPF."
+      },
+      {
+        "key": "b",
+        "text": "impuestos indirectos como el IVA."
+      },
+      {
+        "key": "c",
+        "text": "impuestos directos e indirectos."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5036",
+    "code": "5036",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "Los adultos sin Bachillerato pueden estudiar en la Universidad haciendo una prueba especial a partir de los…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "18 años."
+      },
+      {
+        "key": "b",
+        "text": "23 años."
+      },
+      {
+        "key": "c",
+        "text": "25 años."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5037",
+    "code": "5037",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "¿Dónde puede encontrarse la siguiente norma «Dejar salir antes de entrar»?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "En el transporte público."
+      },
+      {
+        "key": "b",
+        "text": "En parques y jardines."
+      },
+      {
+        "key": "c",
+        "text": "En instalaciones deportivas."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5038",
+    "code": "5038",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "El Bachillerato en España…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "es obligatorio."
+      },
+      {
+        "key": "b",
+        "text": "se compone de dos cursos académicos."
+      },
+      {
+        "key": "c",
+        "text": "es la enseñanza a alumnos de 14 a 16 años."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5039",
+    "code": "5039",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "El Impuesto sobre el Valor Añadido (IVA) forma parte de los…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "impuestos indirectos."
+      },
+      {
+        "key": "b",
+        "text": "impuestos sobre la renta."
+      },
+      {
+        "key": "c",
+        "text": "impuestos sobre sociedades."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5040",
+    "code": "5040",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "¿Qué número reciben los trabajadores al comenzar su primer empleo?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "El de la Seguridad Social."
+      },
+      {
+        "key": "b",
+        "text": "El del pasaporte."
+      },
+      {
+        "key": "c",
+        "text": "El número de servicio."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5041",
+    "code": "5041",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "Los colegios públicos…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "pueden decidir su número de plazas."
+      },
+      {
+        "key": "b",
+        "text": "pueden contratar los profesores que quieran."
+      },
+      {
+        "key": "c",
+        "text": "son gratuitos."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5042",
+    "code": "5042",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "¿Cuál de estos puertos es uno de los principales de España?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Tenerife."
+      },
+      {
+        "key": "b",
+        "text": "Alicante."
+      },
+      {
+        "key": "c",
+        "text": "Algeciras."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5043",
+    "code": "5043",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "Un colegio concertado es un colegio privado que…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "recibe dinero de la Administración."
+      },
+      {
+        "key": "b",
+        "text": "financian los padres de los alumnos."
+      },
+      {
+        "key": "c",
+        "text": "recibe dinero de los bancos."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5044",
+    "code": "5044",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "España exporta productos principalmente a países…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "de Hispanoamérica."
+      },
+      {
+        "key": "b",
+        "text": "de la Unión Europea."
+      },
+      {
+        "key": "c",
+        "text": "del Norte de África."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5045",
+    "code": "5045",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "Las bibliotecas públicas son gratuitas para…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "todos."
+      },
+      {
+        "key": "b",
+        "text": "los parados."
+      },
+      {
+        "key": "c",
+        "text": "los niños."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5046",
+    "code": "5046",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "¿Cuál de estos productos exporta España más que importa?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Gas."
+      },
+      {
+        "key": "b",
+        "text": "Ropa."
+      },
+      {
+        "key": "c",
+        "text": "Calzado."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5047",
+    "code": "5047",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "Una persona mayor de 18 años puede obtener el título de Graduado en Educación Secundaria Obligatoria en…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "un Centro de Educación de Personas Adultas."
+      },
+      {
+        "key": "b",
+        "text": "un centro de enseñanza Primaria."
+      },
+      {
+        "key": "c",
+        "text": "una universidad."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5048",
+    "code": "5048",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "La formación profesional…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "es para mayores de 25 años."
+      },
+      {
+        "key": "b",
+        "text": "puede ser de grado medio o superior."
+      },
+      {
+        "key": "c",
+        "text": "es obligatoria."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5049",
+    "code": "5049",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "¿Adónde vamos para ver al médico de familia o al pediatra?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Al hospital."
+      },
+      {
+        "key": "b",
+        "text": "Al centro de salud."
+      },
+      {
+        "key": "c",
+        "text": "A la farmacia."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5050",
+    "code": "5050",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "¿Para cuántos años vale la tarjeta sanitaria europea?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Para un año."
+      },
+      {
+        "key": "b",
+        "text": "Para dos años."
+      },
+      {
+        "key": "c",
+        "text": "Para 10 años."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5051",
+    "code": "5051",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "¿A qué hora se cena normalmente en España?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "A las 18 h."
+      },
+      {
+        "key": "b",
+        "text": "A las 23 h."
+      },
+      {
+        "key": "c",
+        "text": "A las 21 o 22 h."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5052",
+    "code": "5052",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "¿Cuál es el número de teléfono único para cualquier emergencia?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "060."
+      },
+      {
+        "key": "b",
+        "text": "112."
+      },
+      {
+        "key": "c",
+        "text": "911."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5053",
+    "code": "5053",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "¿Cuál es un periódico deportivo?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "ABC."
+      },
+      {
+        "key": "b",
+        "text": "As."
+      },
+      {
+        "key": "c",
+        "text": "Cinco días."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5054",
+    "code": "5054",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "¿Dónde se venden sellos y tabaco?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "En el quiosco."
+      },
+      {
+        "key": "b",
+        "text": "En la farmacia."
+      },
+      {
+        "key": "c",
+        "text": "En el estanco."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5055",
+    "code": "5055",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "¿Cómo se llama el tren español de alta velocidad?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "AVE."
+      },
+      {
+        "key": "b",
+        "text": "TGV."
+      },
+      {
+        "key": "c",
+        "text": "Eurostar."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5056",
+    "code": "5056",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "La organización que trabaja para conseguir la integración de las personas con discapacidad visual es…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "la ONCE."
+      },
+      {
+        "key": "b",
+        "text": "Unicef."
+      },
+      {
+        "key": "c",
+        "text": "Cáritas."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5057",
+    "code": "5057",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "El Camino de Santiago es…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Patrimonio de la Humanidad."
+      },
+      {
+        "key": "b",
+        "text": "una vía de ferrocarril."
+      },
+      {
+        "key": "c",
+        "text": "una ruta para excursionistas."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5058",
+    "code": "5058",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "¿Cuál es el canal de televisión estatal que transmite noticias de actualidad nacional e internacional continuamente?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Teledeporte."
+      },
+      {
+        "key": "b",
+        "text": "La 1."
+      },
+      {
+        "key": "c",
+        "text": "Canal 24 horas."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5059",
+    "code": "5059",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "El teléfono gratuito para las víctimas de violencia de género es el…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "091."
+      },
+      {
+        "key": "b",
+        "text": "112."
+      },
+      {
+        "key": "c",
+        "text": "016."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5060",
+    "code": "5060",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "En España, la red de trenes puede ser de larga distancia, de media distancia y…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "de cercanías."
+      },
+      {
+        "key": "b",
+        "text": "rural."
+      },
+      {
+        "key": "c",
+        "text": "transnacional."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5061",
+    "code": "5061",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "¿Qué está prohibido hacer en la puerta de un hospital o colegio?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Fumar."
+      },
+      {
+        "key": "b",
+        "text": "Comer."
+      },
+      {
+        "key": "c",
+        "text": "Beber."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5062",
+    "code": "5062",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "Cuando compramos 250 gramos de un alimento estamos comprando…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "medio kilo."
+      },
+      {
+        "key": "b",
+        "text": "un cuarto de kilo."
+      },
+      {
+        "key": "c",
+        "text": "un tercio de kilo."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5063",
+    "code": "5063",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "Si compramos una botella de agua de 750 ml, compramos una botella de…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "tres cuartos de litro."
+      },
+      {
+        "key": "b",
+        "text": "medio litro."
+      },
+      {
+        "key": "c",
+        "text": "un litro."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5064",
+    "code": "5064",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "¿Dónde se compran las medicinas con receta?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "En el hospital."
+      },
+      {
+        "key": "b",
+        "text": "En el centro de salud."
+      },
+      {
+        "key": "c",
+        "text": "En la farmacia."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5065",
+    "code": "5065",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "¿Cuál de estas tres recomendaciones podemos encontrar en un parque?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "No pisar el césped."
+      },
+      {
+        "key": "b",
+        "text": "Se recomienda pagar el billete con el dinero justo."
+      },
+      {
+        "key": "c",
+        "text": "Respetar las normas sobre equipaje."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5066",
+    "code": "5066",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "¿Cuál de las siguientes cosas es obligatoria para el propietario de un coche en España?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "El garaje."
+      },
+      {
+        "key": "b",
+        "text": "El seguro."
+      },
+      {
+        "key": "c",
+        "text": "La alarma."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5067",
+    "code": "5067",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "El aeropuerto Adolfo Suárez está en…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Barcelona."
+      },
+      {
+        "key": "b",
+        "text": "Madrid."
+      },
+      {
+        "key": "c",
+        "text": "Bilbao."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5068",
+    "code": "5068",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "En un coche es obligatorio el uso del cinturón de seguridad...",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "solo en el asiento del conductor."
+      },
+      {
+        "key": "b",
+        "text": "en los asientos delanteros."
+      },
+      {
+        "key": "c",
+        "text": "en todos los asientos."
+      }
+    ],
+    "correct_answer": "c",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5069",
+    "code": "5069",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "¿Cuál es el límite de velocidad en autopista?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "90 km/h."
+      },
+      {
+        "key": "b",
+        "text": "120 km/h."
+      },
+      {
+        "key": "c",
+        "text": "150 km/h."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5070",
+    "code": "5070",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "Ceder el asiento a las personas con movilidad reducida es una norma que encontramosindicada en…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "el transporte público."
+      },
+      {
+        "key": "b",
+        "text": "las bibliotecas."
+      },
+      {
+        "key": "c",
+        "text": "los museos."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5071",
+    "code": "5071",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "¿En qué caso se retira el permiso de conducir?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Por accidente grave."
+      },
+      {
+        "key": "b",
+        "text": "Por la pérdida de los puntos."
+      },
+      {
+        "key": "c",
+        "text": "Por exceso de velocidad."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5072",
+    "code": "5072",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "¿Qué significa Renfe?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Red Nacional de Fondos Europeos."
+      },
+      {
+        "key": "b",
+        "text": "Red Nacional de los Ferrocarriles Españoles."
+      },
+      {
+        "key": "c",
+        "text": "Red Nacional de Fundaciones Estatales."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5073",
+    "code": "5073",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "Los españoles necesitan el pasaporte para viajar a…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Italia."
+      },
+      {
+        "key": "b",
+        "text": "China."
+      },
+      {
+        "key": "c",
+        "text": "Alemania."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5074",
+    "code": "5074",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "¿Cuál es la edad mínima para trabajar en España?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "16 años."
+      },
+      {
+        "key": "b",
+        "text": "18 años."
+      },
+      {
+        "key": "c",
+        "text": "21 años."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5075",
+    "code": "5075",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "¿Cuál es el sector de mayor peso en la economía española?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Agricultura."
+      },
+      {
+        "key": "b",
+        "text": "Servicios."
+      },
+      {
+        "key": "c",
+        "text": "Construcción."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5076",
+    "code": "5076",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "España es innovadora en el sector de…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "la ingeniería aeroespacial."
+      },
+      {
+        "key": "b",
+        "text": "las energías renovables."
+      },
+      {
+        "key": "c",
+        "text": "la energía nuclear."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5077",
+    "code": "5077",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "¿Cómo se llama la ley laboral más importante de España?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "La Constitución."
+      },
+      {
+        "key": "b",
+        "text": "El Estatuto de los Trabajadores."
+      },
+      {
+        "key": "c",
+        "text": "El Servicio Público de Empleo Estatal."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5078",
+    "code": "5078",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "¿Cuáles de estos establecimientos está abierto 24 horas si es necesario?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Farmacia."
+      },
+      {
+        "key": "b",
+        "text": "Pescadería."
+      },
+      {
+        "key": "c",
+        "text": "Librería."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5079",
+    "code": "5079",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "La educación infantil en España…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "es obligatoria."
+      },
+      {
+        "key": "b",
+        "text": "tiene dos ciclos."
+      },
+      {
+        "key": "c",
+        "text": "empieza a los 4 años."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5080",
+    "code": "5080",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "¿Cuándo empieza el calendario escolar?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "En agosto."
+      },
+      {
+        "key": "b",
+        "text": "En septiembre."
+      },
+      {
+        "key": "c",
+        "text": "En octubre."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5081",
+    "code": "5081",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "Las Escuelas Oficiales de Idiomas…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "son centros de enseñanza privada."
+      },
+      {
+        "key": "b",
+        "text": "son para mayores de 16 años."
+      },
+      {
+        "key": "c",
+        "text": "dependen del Instituto Cervantes."
+      }
+    ],
+    "correct_answer": "b",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5082",
+    "code": "5082",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "¿Cuál es el documento que recoge los años de cotización a la Seguridad Social?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Informe de vida laboral."
+      },
+      {
+        "key": "b",
+        "text": "Recibo de finiquito."
+      },
+      {
+        "key": "c",
+        "text": "Certificado de profesionalidad."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5083",
+    "code": "5083",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "Los convenios colectivos de una empresa son los que se firman con los representantes de los trabajadores sobre…",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "las condiciones laborales."
+      },
+      {
+        "key": "b",
+        "text": "El futuro de la empresa."
+      },
+      {
+        "key": "c",
+        "text": "La relación con los clientes."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
+  },
+  {
+    "id": "5084",
+    "code": "5084",
+    "task_number": 5,
+    "topic": "Sociedad española",
+    "question_text": "¿Cuál de estas comunidades autónomas tiene el PIB por habitante más alto?",
+    "question_type": "multiple_choice",
+    "options": [
+      {
+        "key": "a",
+        "text": "Navarra."
+      },
+      {
+        "key": "b",
+        "text": "Galicia."
+      },
+      {
+        "key": "c",
+        "text": "Andalucía."
+      }
+    ],
+    "correct_answer": "a",
+    "active": true,
+    "source": "Manual CCSE 2025"
   }
 ]

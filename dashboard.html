@@ -3,31 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Alumno - CCSE</title>
+    <title>Panel de alumno - CCSE</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <div class="container">
+    <div class="container dashboard-container">
         <header>
-            <h1>Tu Panel de Estudio</h1>
-            <div id="user-info"></div>
-            <button id="logout-btn" class="btn btn-secondary">Cerrar Sesión</button>
+            <div>
+                <h1>Tu panel de estudio</h1>
+                <p id="user-info" class="muted"></p>
+            </div>
+            <button id="logout-btn" class="btn btn-secondary">Cerrar sesión</button>
         </header>
+
         <main>
-            <h2>Elige un modo de práctica</h2>
-            <div class="exam-modes">
-                <button id="start-exam-btn" class="btn btn-primary">Simulacro de Examen Oficial</button>
-                <p>25 preguntas aleatorias de todas las tareas.</p>
-            </div>
-            <div id="exam-history">
-                <h3>
-                    Historial de Exámenes 
-                    <span id="db-status" style="font-size: 0.8rem; font-weight: normal;">(cargando...)</span>
-                </h3>
-                <ul id="exam-list"></ul>
-            </div>
+            <section aria-labelledby="progress-title">
+                <div class="section-heading">
+                    <div>
+                        <h2 id="progress-title">Resumen de progreso</h2>
+                        <p class="muted">Cobertura de las 300 preguntas oficiales del Manual CCSE 2025.</p>
+                    </div>
+                    <span id="db-status" class="status-badge">Cargando…</span>
+                </div>
+
+                <table class="stats-table">
+                    <thead>
+                        <tr>
+                            <th>Métrica</th>
+                            <th>Preguntas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><a href="preguntas.html?filtro=respondidas">Preguntas respondidas</a></td>
+                            <td><a id="stat-respondidas" class="metric-link" href="preguntas.html?filtro=respondidas">0</a></td>
+                        </tr>
+                        <tr>
+                            <td><a href="preguntas.html?filtro=no-respondidas">Preguntas no respondidas</a></td>
+                            <td><a id="stat-no-respondidas" class="metric-link metric-pending" href="preguntas.html?filtro=no-respondidas">300</a></td>
+                        </tr>
+                        <tr>
+                            <td><a href="preguntas.html?filtro=acertadas">Preguntas acertadas</a></td>
+                            <td><a id="stat-acertadas" class="metric-link metric-correct" href="preguntas.html?filtro=acertadas">0</a></td>
+                        </tr>
+                        <tr>
+                            <td><a href="preguntas.html?filtro=falladas">Preguntas falladas</a></td>
+                            <td><a id="stat-falladas" class="metric-link metric-wrong" href="preguntas.html?filtro=falladas">0</a></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <a class="btn btn-secondary btn-block" href="preguntas.html?filtro=todas">
+                    Detalle de todas las preguntas
+                </a>
+            </section>
+
+            <section class="exam-modes" aria-labelledby="practice-title">
+                <h2 id="practice-title">Simulacro oficial</h2>
+                <p>25 preguntas, 5 tareas, 45 minutos. Se necesitan 15 aciertos para resultar apto.</p>
+                <button id="start-exam-btn" class="btn btn-primary btn-block">Comenzar examen</button>
+            </section>
         </main>
     </div>
+
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
