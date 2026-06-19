@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entrenador CCSE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans min-h-screen flex flex-col justify-between">
+
+    <header class="bg-blue-600 text-white text-center py-4 shadow-md">
+        <h1 class="text-xl font-bold tracking-wide">Entrenador Examen CCSE</h1>
+        <p class="text-xs opacity-80">Tu preparador de nacionalidad en el móvil</p>
+    </header>
+
+    <main class="flex-grow p-4 max-w-md mx-auto w-full">
+        
+        <div id="pantalla-inicio" class="space-y-6">
+            <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-800 mb-3">Tu Progreso Histórico</h2>
+                <table class="w-full text-center text-sm">
+                    <tbody class="space-y-2">
+                        <tr class="border-b">
+                            <td class="py-2 px-2 text-gray-600">Respondidas</td>
+                            <td class="py-2 px-2">
+                                <button onclick="mostrarDetalle('respondidas')" class="text-2xl font-bold text-blue-600 hover:text-blue-800 hover:underline">
+                                    <span id="total-respondidas">0</span>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="py-2 px-2 text-gray-600">No Respondidas</td>
+                            <td class="py-2 px-2">
+                                <button onclick="mostrarDetalle('no-respondidas')" class="text-2xl font-bold text-gray-600 hover:text-gray-800 hover:underline">
+                                    <span id="total-no-respondidas">0</span>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="py-2 px-2 text-gray-600">Acertadas</td>
+                            <td class="py-2 px-2">
+                                <button onclick="mostrarDetalle('acertadas')" class="text-2xl font-bold text-green-600 hover:text-green-800 hover:underline">
+                                    <span id="total-acertadas">0</span>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 px-2 text-gray-600">Falladas</td>
+                            <td class="py-2 px-2">
+                                <button onclick="mostrarDetalle('falladas')" class="text-2xl font-bold text-red-600 hover:text-red-800 hover:underline">
+                                    <span id="total-falladas">0</span>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <button onclick="comenzarExamen()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg transition duration-200 text-lg">
+                🚀 Iniciar Test (25 Preguntas)
+            </button>
+        </div>
+
+        <div id="pantalla-test" class="hidden space-y-4">
+            <div class="flex justify-between items-center text-sm text-gray-600">
+                <span id="progreso-texto">Pregunta 1 de 25</span>
+                <span id="temporizador" class="font-mono bg-gray-200 px-2 py-0.5 rounded">Examen Activo</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2">
+                <div id="barra-progreso-visual" class="bg-blue-600 h-2 rounded-full" style="width: 4%"></div>
+            </div>
+
+            <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-200 space-y-4">
+                <p id="pregunta-texto" class="text-gray-800 font-medium text-lg">Aquí irá la pregunta oficial...</p>
+                
+                <div id="opciones-contenedor" class="space-y-2">
+                    </div>
+            </div>
+
+            <div id="contenedor-explicacion" class="hidden bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-r-xl">
+                <p class="font-bold text-yellow-800 text-sm">💡 Explicación Sencilla:</p>
+                <p id="explicacion-texto" class="text-sm text-gray-700 mt-1"></p>
+                <button onclick="siguientePregunta()" class="mt-3 w-full bg-gray-800 text-white font-semibold py-2 px-4 rounded-lg text-sm">
+                    Siguiente Pregunta ➡️
+                </button>
+            </div>
+        </div>
+
+        <div id="pantalla-resultados" class="hidden space-y-4 text-center">
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200 space-y-3">
+                <div id="resultado-icono" class="text-5xl">🎉</div>
+                <h2 id="resultado-titulo" class="text-2xl font-bold text-gray-800">¡Aprobado!</h2>
+                <p id="resultado-score" class="text-lg text-gray-600">Has acertado 20 de 25 preguntas.</p>
+                <p class="text-xs text-gray-400">(Se necesita un mínimo de 15 aciertos para aprobar)</p>
+            </div>
+
+            <button onclick="volverAlInicio()" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-xl transition">
+                Volver al Panel Principal
+            </button>
+        </div>
+
+        <div id="pantalla-detalle" class="hidden space-y-4">
+            <div class="flex justify-between items-center mb-4">
+                <h2 id="detalle-titulo" class="text-lg font-bold text-gray-800">Detalle de Preguntas</h2>
+                <button onclick="volverAlInicio()" class="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded text-sm">
+                    ← Atrás
+                </button>
+            </div>
+            <div id="detalle-lista" class="space-y-3">
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="bg-gray-800 text-white text-center py-3 text-xs opacity-75">
+        Diseñado para Smartphones • CCSE 2026
+    </footer>
+
+    <script>
+        // BANCO DE PREGUNTAS DE MUESTRA (Sustituir por las 300 oficiales)
+        const bancoPreguntas = [
+            { id: 1, pregunta: "¿Quién es el jefe del Estado en España?", opciones: ["El presidente del Gobierno", "El Rey", "El presidente del Congreso"], correcta: 1, explicacion: "El Rey representa a España pero no gobierna. El que dirige el país es el Presidente." },
+            { id: 2, pregunta: "La Constitución española fue aprobada en...", opciones: ["1975", "1978", "1981"], correcta: 1, explicacion: "La Constitución actual se votó y aprobó en el año 1978, dando inicio a la democracia." },
+            { id: 3, pregunta: "¿Cuántas comunidades autónomas hay en España?", opciones: ["15", "17", "19"], correcta: 1, explicacion: "España se divide en 17 Comunidades Autónomas más 2 ciudades autónomas (Ceuta y Melilla)." },
+            { id: 4, pregunta: "La bandera de España tiene tres franjas: roja, amarilla y...", opciones: ["Roja", "Morada", "Blanca"], correcta: 0, explicacion: "La bandera es roja, amarilla y roja (la franja amarilla es el doble de ancha)." },
+            { id: 5, pregunta: "¿Quién hace las leyes en España?", opciones: ["El Rey", "Los jueces", "Las Cortes Generales (Congreso y Senado)"], correcta: 2, explicacion: "Las leyes las discuten y aprueban los políticos elegidos en el Congreso y el Senado." }
+        ];
+
+        // Variables de estado del test actual
+        let preguntasExamen = [];
+        let indiceActual = 0;
+        let aciertosActuales = 0;
+        let respondido = false;
+
+        // Al cargar la página, actualizamos el historial de la pantalla de inicio
+        window.onload = function() {
+            actualizarHistorialPantalla();
+        };
+
+        function actualizarHistorialPantalla() {
+            let historialDetalle = JSON.parse(localStorage.getItem('ccse_historial_detalle')) || [];
+            
+            let respondidas = 0;
+            let noRespondidas = 0;
+            let acertadas = 0;
+            let falladas = 0;
+
+            historialDetalle.forEach(item => {
+                if (item.respondida) {
+                    respondidas++;
+                    if (item.acertada) {
+                        acertadas++;
+                    } else {
+                        falladas++;
+                    }
+                } else {
+                    noRespondidas++;
+                }
+            });
+
+            document.getElementById('total-respondidas').innerText = respondidas;
+            document.getElementById('total-no-respondidas').innerText = noRespondidas;
+            document.getElementById('total-acertadas').innerText = acertadas;
+            document.getElementById('total-falladas').innerText = falladas;
+        }
+
+        function mostrarDetalle(tipo) {
+            let historialDetalle = JSON.parse(localStorage.getItem('ccse_historial_detalle')) || [];
+            
+            let filtradas = [];
+            let titulo = '';
+
+            switch(tipo) {
+                case 'respondidas':
+                    filtradas = historialDetalle.filter(item => item.respondida);
+                    titulo = 'Preguntas Respondidas';
+                    break;
+                case 'no-respondidas':
+                    filtradas = historialDetalle.filter(item => !item.respondida);
+                    titulo = 'Preguntas No Respondidas';
+                    break;
+                case 'acertadas':
+                    filtradas = historialDetalle.filter(item => item.respondida && item.acertada);
+                    titulo = 'Preguntas Acertadas';
+                    break;
+                case 'falladas':
+                    filtradas = historialDetalle.filter(item => item.respondida && !item.acertada);
+                    titulo = 'Preguntas Falladas';
+                    break;
+            }
+
+            // Ordenar por fecha descendente (más recientes primero)
+            filtradas.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+            document.getElementById('detalle-titulo').innerText = titulo;
+            let lista = document.getElementById('detalle-lista');
+            lista.innerHTML = '';
+
+            if (filtradas.length === 0) {
+                lista.innerHTML = '<p class="text-center text-gray-500 py-8">No hay preguntas en esta categoría</p>';
+            } else {
+                filtradas.forEach(item => {
+                    let card = document.createElement('div');
+                    let colorEstado = '';
+                    let iconoEstado = '';
+
+                    if (!item.respondida) {
+                        colorEstado = 'border-gray-300 bg-gray-50';
+                        iconoEstado = '❓';
+                    } else if (item.acertada) {
+                        colorEstado = 'border-green-300 bg-green-50';
+                        iconoEstado = '✅';
+                    } else {
+                        colorEstado = 'border-red-300 bg-red-50';
+                        iconoEstado = '❌';
+                    }
+
+                    card.className = `p-3 rounded-lg border-2 ${colorEstado} text-sm`;
+                    card.innerHTML = `
+                        <div class="flex justify-between items-start gap-2">
+                            <div class="flex-1">
+                                <p class="font-medium text-gray-800 mb-1">${iconoEstado} ${item.pregunta}</p>
+                                <p class="text-xs text-gray-600"><strong>Fecha:</strong> ${new Date(item.fecha).toLocaleString('es-ES')}</p>
+                                ${item.respondida ? `<p class="text-xs text-gray-600 mt-1"><strong>Tu respuesta:</strong> ${item.respuesta}</p>` : ''}
+                                ${item.respondida ? `<p class="text-xs text-gray-600"><strong>Correcta:</strong> ${item.opcionCorrecta}</p>` : ''}
+                            </div>
+                        </div>
+                    `;
+                    lista.appendChild(card);
+                });
+            }
+
+            document.getElementById('pantalla-inicio').classList.add('hidden');
+            document.getElementById('pantalla-test').classList.add('hidden');
+            document.getElementById('pantalla-resultados').classList.add('hidden');
+            document.getElementById('pantalla-detalle').classList.remove('hidden');
+        }
+
+        // COMENZAR UN NUEVO TEST ALEATORIO
+        function comenzarExamen() {
+            // Mezclar y sacar un bloque (aquí usamos máximo 5 de muestra, para producción serán 25)
+            preguntasExamen = [...bancoPreguntas].sort(() => 0.5 - Math.random()).slice(0, 5); 
+            indiceActual = 0;
+            aciertosActuales = 0;
+
+            document.getElementById('pantalla-inicio').classList.add('hidden');
+            document.getElementById('pantalla-resultados').classList.add('hidden');
+            document.getElementById('pantalla-detalle').classList.add('hidden');
+            document.getElementById('pantalla-test').classList.remove('hidden');
+
+            mostrarPregunta();
+        }
+
+        // MOSTRAR LA PREGUNTA ACTUAL
+        function mostrarPregunta() {
+            respondido = false;
+            document.getElementById('contenedor-explicacion').classList.add('hidden');
+            
+            let q = preguntasExamen[indiceActual];
+            
+            // Actualizar textos y barra de progreso
+            document.getElementById('progreso-texto').innerText = `Pregunta ${indiceActual + 1} de ${preguntasExamen.length}`;
+            let porcentaje = ((indiceActual + 1) / preguntasExamen.length) * 100;
+            document.getElementById('barra-progreso-visual').style.width = `${porcentaje}%`;
+            
+            document.getElementById('pregunta-texto').innerText = q.pregunta;
+
+            // Generar botones de respuesta
+            let contenedor = document.getElementById('opciones-contenedor');
+            contenedor.innerHTML = '';
+
+            q.opciones.forEach((opcion, index) => {
+                let btn = document.createElement('button');
+                btn.className = "w-full text-left p-3.5 border-2 border-gray-200 rounded-xl hover:bg-gray-50 transition font-medium text-gray-700 bg-white block text-sm";
+                btn.innerText = opcion;
+                btn.onclick = () => verificarRespuesta(index, btn);
+                contenedor.appendChild(btn);
+            });
+        }
+
+        // VERIFICAR SI ACERTÓ O FALLÓ
+        function verificarRespuesta(indiceSeleccionado, botonPulsado) {
+            if (respondido) return; // Evita pulsar varias opciones
+            respondido = true;
+
+            let q = preguntasExamen[indiceActual];
+            let opcionesBotones = document.getElementById('opciones-contenedor').children;
+            let historial = JSON.parse(localStorage.getItem('ccse_historial_detalle')) || [];
+
+            let acertado = indiceSeleccionado === q.correcta;
+
+            // Crear registro detallado
+            let registroDetalle = {
+                id: q.id,
+                pregunta: q.pregunta,
+                opciones: q.opciones,
+                respuesta: q.opciones[indiceSeleccionado],
+                opcionCorrecta: q.opciones[q.correcta],
+                acertada: acertado,
+                respondida: true,
+                fecha: new Date().toISOString()
+            };
+
+            historial.push(registroDetalle);
+            localStorage.setItem('ccse_historial_detalle', JSON.stringify(historial));
+
+            if (acertado) {
+                // Acierto
+                botonPulsado.classList.replace('border-gray-200', 'border-green-500');
+                botonPulsado.classList.add('bg-green-50', 'text-green-800');
+                aciertosActuales++;
+            } else {
+                // Fallo
+                botonPulsado.classList.replace('border-gray-200', 'border-red-500');
+                botonPulsado.classList.add('bg-red-50', 'text-red-800');
+                
+                // Destacar cuál era la correcta
+                opcionesBotones[q.correcta].classList.replace('border-gray-200', 'border-green-500');
+                opcionesBotones[q.correcta].classList.add('bg-green-50');
+            }
+
+            // Mostrar la explicación sencilla siempre (o solo si falla, según prefieras)
+            document.getElementById('explicacion-texto').innerText = q.explicacion;
+            document.getElementById('contenedor-explicacion').classList.remove('hidden');
+        }
+
+        // PASAR A LA SIGUIENTE PREGUNTA O TERMINAR
+        function siguientePregunta() {
+            indiceActual++;
+            if (indiceActual < preguntasExamen.length) {
+                mostrarPregunta();
+            } else {
+                finalizarExamen();
+            }
+        }
+
+        // MOSTRAR PANTALLA FINAL
+        function finalizarExamen() {
+            document.getElementById('pantalla-test').classList.add('hidden');
+            document.getElementById('pantalla-resultados').classList.remove('hidden');
+
+            let aprobado = aciertosActuales >= (preguntasExamen.length * 0.6); // Escala proporcional para la muestra
+            
+            let titulo = document.getElementById('resultado-titulo');
+            let icono = document.getElementById('resultado-icono');
+            
+            if (aprobado) {
+                titulo.innerText = "¡Apto! 🎉";
+                titulo.className = "text-2xl font-bold text-green-600";
+                icono.innerText = "🏆";
+            } else {
+                titulo.innerText = "No Apto ❌";
+                titulo.className = "text-2xl font-bold text-red-600";
+                icono.innerText = "📚";
+            }
+
+            document.getElementById('resultado-score').innerText = `Has acertado ${aciertosActuales} de ${preguntasExamen.length} preguntas.`;
+        }
+
+        function volverAlInicio() {
+            actualizarHistorialPantalla();
+            document.getElementById('pantalla-resultados').classList.add('hidden');
+            document.getElementById('pantalla-detalle').classList.add('hidden');
+            document.getElementById('pantalla-test').classList.add('hidden');
+            document.getElementById('pantalla-inicio').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
