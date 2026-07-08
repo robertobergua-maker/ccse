@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
         unanswered: document.getElementById('stat-no-respondidas'),
         correct: document.getElementById('stat-acertadas'),
         wrong: document.getElementById('stat-falladas'),
+        examHistorySummary: document.getElementById('exam-history-summary'),
         examHistoryBody: document.getElementById('exam-history-body')
     };
 
@@ -20,15 +21,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     auth.onAuthStateChanged(async user => {
         if (!user) return;
-        if (!ui.answered || !ui.examHistoryBody) return;
+        loadProgress(user);
+        loadExamHistory(user);
+    });
+
+    async function loadProgress(user) {
+        if (!ui.answered) return;
 
         try {
-            const [questionsResponse, statsSnapshot, examsSnapshot] = await Promise.all([
+            const [questionsResponse, statsSnapshot] = await Promise.all([
                 fetch('preguntas.json', { cache: 'no-store' }),
                 db.collection('user_question_stats')
-                    .where('user_id', '==', user.uid)
-                    .get(),
-                db.collection('exams')
                     .where('user_id', '==', user.uid)
                     .get()
             ]);
@@ -58,14 +61,26 @@ document.addEventListener('DOMContentLoaded', () => {
             ui.unanswered.textContent = Math.max(activeQuestionIds.size - answered, 0);
             ui.correct.textContent = correct;
             ui.wrong.textContent = wrong;
-            renderExamHistory(examsSnapshot);
             setStatus(`Banco verificado: ${activeQuestionIds.size}`, 'online');
         } catch (error) {
             console.error('No se pudieron cargar las métricas:', error);
             setStatus('Sin conexión', 'offline');
+        }
+    }
+
+    async function loadExamHistory(user) {
+        if (!ui.examHistoryBody) return;
+
+        try {
+            const snapshot = await db.collection('exams')
+                .where('user_id', '==', user.uid)
+                .get();
+            renderExamHistory(snapshot);
+        } catch (error) {
+            console.error('No se pudo cargar el registro de exámenes:', error);
             renderExamHistoryError();
         }
-    });
+    }
 
     function renderExamHistory(snapshot) {
         if (!ui.examHistoryBody) return;
@@ -78,11 +93,13 @@ document.addEventListener('DOMContentLoaded', () => {
         exams.sort((a, b) => timestampToMillis(b.finished_at) - timestampToMillis(a.finished_at));
 
         if (exams.length === 0) {
+            setExamHistorySummary('No hay simulacros guardados todavía.');
             ui.examHistoryBody.innerHTML =
                 '<tr><td colspan="5" class="empty-state">Aún no hay exámenes guardados.</td></tr>';
             return;
         }
 
+        setExamHistorySummary(`Mostrando ${Math.min(exams.length, 20)} de ${exams.length} simulacros guardados.`);
         ui.examHistoryBody.innerHTML = exams.slice(0, 20).map(exam => {
             const correct = exam.score_correct || 0;
             const total = exam.total_questions || 25;
@@ -104,6 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderExamHistoryError() {
         if (!ui.examHistoryBody) return;
+        setExamHistorySummary('Revisa la conexión o los permisos de Firestore.');
         ui.examHistoryBody.innerHTML =
             '<tr><td colspan="5" class="empty-state">No se pudo cargar el registro de exámenes.</td></tr>';
     }
@@ -112,6 +130,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!ui.dbStatus) return;
         ui.dbStatus.textContent = text;
         ui.dbStatus.className = `status-badge status-${state}`;
+    }
+
+    function setExamHistorySummary(text) {
+        if (!ui.examHistorySummary) return;
+        ui.examHistorySummary.textContent = text;
     }
 
     function timestampToMillis(timestamp) {
