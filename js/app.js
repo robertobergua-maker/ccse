@@ -8,7 +8,8 @@ document.addEventListener('DOMContentLoaded', () => {
         answered: document.getElementById('stat-respondidas'),
         unanswered: document.getElementById('stat-no-respondidas'),
         correct: document.getElementById('stat-acertadas'),
-        wrong: document.getElementById('stat-falladas')
+        wrong: document.getElementById('stat-falladas'),
+        examHistoryBody: document.getElementById('exam-history-body')
     };
 
     if (ui.startExamBtn) {
@@ -19,11 +20,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     auth.onAuthStateChanged(async user => {
         if (!user) return;
+        if (!ui.answered || !ui.examHistoryBody) return;
 
         try {
-            const [questionsResponse, statsSnapshot] = await Promise.all([
+            const [questionsResponse, statsSnapshot, examsSnapshot] = await Promise.all([
                 fetch('preguntas.json', { cache: 'no-store' }),
                 db.collection('user_question_stats')
+                    .where('user_id', '==', user.uid)
+                    .get(),
+                db.collection('exams')
                     .where('user_id', '==', user.uid)
                     .get()
             ]);
@@ -53,16 +58,82 @@ document.addEventListener('DOMContentLoaded', () => {
             ui.unanswered.textContent = Math.max(activeQuestionIds.size - answered, 0);
             ui.correct.textContent = correct;
             ui.wrong.textContent = wrong;
+            renderExamHistory(examsSnapshot);
             setStatus(`Banco verificado: ${activeQuestionIds.size}`, 'online');
         } catch (error) {
             console.error('No se pudieron cargar las métricas:', error);
             setStatus('Sin conexión', 'offline');
+            renderExamHistoryError();
         }
     });
+
+    function renderExamHistory(snapshot) {
+        if (!ui.examHistoryBody) return;
+
+        const exams = [];
+        snapshot.forEach(doc => {
+            exams.push({ id: doc.id, ...doc.data() });
+        });
+
+        exams.sort((a, b) => timestampToMillis(b.finished_at) - timestampToMillis(a.finished_at));
+
+        if (exams.length === 0) {
+            ui.examHistoryBody.innerHTML =
+                '<tr><td colspan="5" class="empty-state">Aún no hay exámenes guardados.</td></tr>';
+            return;
+        }
+
+        ui.examHistoryBody.innerHTML = exams.slice(0, 20).map(exam => {
+            const correct = exam.score_correct || 0;
+            const total = exam.total_questions || 25;
+            const passed = exam.passed === true;
+            const badgeClass = passed ? 'result-correct' : 'result-wrong';
+            const resultText = passed ? 'Apto' : 'No apto';
+
+            return `
+                <tr>
+                    <td>${escapeHtml(formatDate(exam.finished_at))}</td>
+                    <td><span class="result-badge ${badgeClass}">${resultText}</span></td>
+                    <td><strong>${correct}/${total}</strong></td>
+                    <td>${exam.score_incorrect || 0}</td>
+                    <td>${exam.score_unanswered || 0}</td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    function renderExamHistoryError() {
+        if (!ui.examHistoryBody) return;
+        ui.examHistoryBody.innerHTML =
+            '<tr><td colspan="5" class="empty-state">No se pudo cargar el registro de exámenes.</td></tr>';
+    }
 
     function setStatus(text, state) {
         if (!ui.dbStatus) return;
         ui.dbStatus.textContent = text;
         ui.dbStatus.className = `status-badge status-${state}`;
+    }
+
+    function timestampToMillis(timestamp) {
+        if (!timestamp) return 0;
+        if (typeof timestamp.toMillis === 'function') return timestamp.toMillis();
+        if (timestamp.seconds) return timestamp.seconds * 1000;
+        return 0;
+    }
+
+    function formatDate(timestamp) {
+        const millis = timestampToMillis(timestamp);
+        if (!millis) return 'Fecha pendiente';
+
+        return new Intl.DateTimeFormat('es-ES', {
+            dateStyle: 'short',
+            timeStyle: 'short'
+        }).format(new Date(millis));
+    }
+
+    function escapeHtml(value) {
+        const element = document.createElement('div');
+        element.textContent = String(value);
+        return element.innerHTML;
     }
 });

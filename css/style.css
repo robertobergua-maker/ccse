@@ -103,6 +103,20 @@ main {
     color: #666;
 }
 
+.exam-history {
+    margin-top: 34px;
+}
+
+.exam-history-table {
+    min-width: 680px;
+}
+
+.exam-history-table td:nth-child(3),
+.exam-history-table td:nth-child(4),
+.exam-history-table td:nth-child(5) {
+    text-align: right;
+}
+
 #exam-history h3 {
     margin-bottom: 15px;
 }

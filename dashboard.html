@@ -63,6 +63,34 @@
                 <p>25 preguntas, 5 tareas, 45 minutos. Se necesitan 15 aciertos para resultar apto.</p>
                 <button id="start-exam-btn" class="btn btn-primary btn-block">Comenzar examen</button>
             </section>
+
+            <section class="exam-history" aria-labelledby="history-title">
+                <div class="section-heading">
+                    <div>
+                        <h2 id="history-title">Registro de exámenes</h2>
+                        <p class="muted">Últimos simulacros oficiales guardados en tu cuenta.</p>
+                    </div>
+                </div>
+
+                <div class="table-scroll">
+                    <table class="stats-table exam-history-table">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Resultado</th>
+                                <th>Aciertos</th>
+                                <th>Fallos</th>
+                                <th>Sin responder</th>
+                            </tr>
+                        </thead>
+                        <tbody id="exam-history-body">
+                            <tr>
+                                <td colspan="5" class="empty-state">Cargando registro…</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
         </main>
     </div>
 
