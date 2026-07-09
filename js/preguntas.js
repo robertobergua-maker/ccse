@@ -58,7 +58,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     attempts: stat.total_attempts || 0,
                     correct: stat.total_correct || 0,
                     incorrect: stat.total_incorrect || 0,
-                    lastCorrect: typeof stat.last_correct === 'boolean' ? stat.last_correct : null
+                    lastCorrect: typeof stat.last_correct === 'boolean' ? stat.last_correct : null,
+                    lastAnswer: stat.last_answer || null
                 };
             }).filter(matchesFilter);
 
@@ -104,6 +105,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         ui.body.innerHTML = rows.map(row => {
+            const correctOption = getOption(row.question, row.question.correct_answer);
+            const lastOption = getOption(row.question, row.lastAnswer);
+            const answerContext = `
+                <div class="question-context">
+                    <span class="answer-correct">Correcta: ${escapeHtml(formatOption(correctOption))}</span>
+                    ${lastOption ? `<span>Tu última respuesta: ${escapeHtml(formatOption(lastOption))}</span>` : ''}
+                </div>
+            `;
             let result = '<span class="result-badge result-pending">Sin responder</span>';
             if (row.lastCorrect === true) {
                 result = '<span class="result-badge result-correct">Acierto</span>';
@@ -114,7 +123,10 @@ document.addEventListener('DOMContentLoaded', () => {
             return `
                 <tr>
                     <td><strong>${escapeHtml(row.question.id)}</strong></td>
-                    <td>${escapeHtml(row.question.question_text)}</td>
+                    <td>
+                        <strong>${escapeHtml(row.question.question_text)}</strong>
+                        ${answerContext}
+                    </td>
                     <td>${row.question.task_number}</td>
                     <td>${row.attempts}</td>
                     <td>${row.correct}</td>
@@ -180,6 +192,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 ? (sortState.direction === 'asc' ? '↑' : '↓')
                 : '↕';
         });
+    }
+
+    function getOption(question, key) {
+        if (!key) return null;
+        return question.options.find(option => option.key === key) || null;
+    }
+
+    function formatOption(option) {
+        return option
+            ? `${option.key.toUpperCase()}) ${option.text}`
+            : 'No disponible';
     }
 
     function escapeHtml(value) {

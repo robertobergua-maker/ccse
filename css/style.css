@@ -411,6 +411,21 @@ footer {
     background: #f9fafb;
 }
 
+.question-context {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 8px;
+    color: #667085;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.answer-correct {
+    color: #166534;
+    font-weight: 700;
+}
+
 .empty-state {
     color: #667085;
     text-align: center !important;
