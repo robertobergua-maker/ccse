@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const db = firebase.firestore();
     let adminUser = null;
     let currentRows = [];
+    let currentActivityRows = [];
     let extractedManualQuestions = [];
     let extractedManualYear = '';
     let lastManualReport = null;
@@ -28,6 +29,9 @@ document.addEventListener('DOMContentLoaded', () => {
         usersBody: document.getElementById('users-body'),
         activitySummary: document.getElementById('activity-summary'),
         activityBody: document.getElementById('activity-body'),
+        downloadRiskCsvBtn: document.getElementById('download-risk-csv'),
+        downloadUsersCsvBtn: document.getElementById('download-users-csv'),
+        downloadActivityCsvBtn: document.getElementById('download-activity-csv'),
         manualCsvInput: document.getElementById('manual-csv-input'),
         manualCsvCheckBtn: document.getElementById('manual-csv-check-btn'),
         manualUpdateBtn: document.getElementById('manual-update-btn'),
@@ -60,6 +64,9 @@ document.addEventListener('DOMContentLoaded', () => {
     ui.manualCsvCheckBtn?.addEventListener('click', checkManualCsv);
     ui.manualUpdateBtn?.addEventListener('click', updateQuestionDatabase);
     ui.obsoleteCleanupBtn?.addEventListener('click', cleanupObsoleteAnswerRecords);
+    ui.downloadRiskCsvBtn?.addEventListener('click', downloadRiskCsv);
+    ui.downloadUsersCsvBtn?.addEventListener('click', downloadUsersCsv);
+    ui.downloadActivityCsvBtn?.addEventListener('click', downloadActivityCsv);
 
     async function loadAdminData() {
         try {
@@ -80,9 +87,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const rows = buildUserRows(users, usersById, exams);
             currentRows = rows;
+            currentActivityRows = [];
             renderMetrics(users, exams, rows);
             renderRiskRows(rows);
             renderUserRows(rows);
+            updateAdminDownloadButtons();
             setStatus('Activo', 'online');
         } catch (error) {
             console.error('No se pudo cargar el panel admin:', error);
@@ -165,6 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const riskyRows = rows.filter(row => row.risk !== 'ok');
         if (riskyRows.length === 0) {
             ui.riskBody.innerHTML = '<tr><td colspan="6" class="empty-state">Sin señales de exceso ahora mismo.</td></tr>';
+            updateAdminDownloadButtons();
             return;
         }
         ui.riskBody.innerHTML = riskyRows.map(row => `
@@ -181,11 +191,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${escapeHtml(formatDate(row.lastActivity))}</td>
             </tr>
         `).join('');
+        updateAdminDownloadButtons();
     }
 
     function renderUserRows(rows) {
         if (rows.length === 0) {
             ui.usersBody.innerHTML = '<tr><td colspan="8" class="empty-state">No hay usuarios registrados.</td></tr>';
+            updateAdminDownloadButtons();
             return;
         }
         ui.usersBody.innerHTML = rows.map(row => `
@@ -205,6 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </td>
             </tr>
         `).join('');
+        updateAdminDownloadButtons();
     }
 
     async function setUserBlocked(userId, blocked) {
@@ -275,9 +288,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (exams.length === 0) {
                 ui.activityBody.innerHTML = '<tr><td colspan="6" class="empty-state">Este usuario no tiene exámenes guardados.</td></tr>';
+                currentActivityRows = [];
+                updateAdminDownloadButtons();
                 return;
             }
 
+            currentActivityRows = exams.map(exam => {
+                const answers = answersByExam.get(exam.id) || [];
+                return { exam, answers };
+            });
             ui.activityBody.innerHTML = exams.map(exam => {
                 const answers = answersByExam.get(exam.id) || [];
                 const questionIds = answers.map(answer => answer.question_id).filter(Boolean);
@@ -295,10 +314,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     </tr>
                 `;
             }).join('');
+            updateAdminDownloadButtons();
         } catch (error) {
             console.error('No se pudo cargar la actividad del usuario:', error);
             ui.activitySummary.textContent = `No se pudo cargar la actividad de ${displayName(row.user)}.`;
             ui.activityBody.innerHTML = '<tr><td colspan="6" class="empty-state">Error al cargar actividad.</td></tr>';
+            currentActivityRows = [];
+            updateAdminDownloadButtons();
         }
     }
 
@@ -840,6 +862,88 @@ document.addEventListener('DOMContentLoaded', () => {
             .replace(/[^a-z0-9]+/g, ' ')
             .replace(/\s+/g, ' ')
             .trim();
+    }
+
+    function updateAdminDownloadButtons() {
+        const riskyRows = currentRows.filter(row => row.risk !== 'ok');
+        if (ui.downloadRiskCsvBtn) ui.downloadRiskCsvBtn.disabled = riskyRows.length === 0;
+        if (ui.downloadUsersCsvBtn) ui.downloadUsersCsvBtn.disabled = currentRows.length === 0;
+        if (ui.downloadActivityCsvBtn) ui.downloadActivityCsvBtn.disabled = currentActivityRows.length === 0;
+    }
+
+    function downloadRiskCsv() {
+        const rows = currentRows.filter(row => row.risk !== 'ok').map(row => ({
+            usuario: displayName(row.user),
+            email: row.user.email || '',
+            riesgo: riskLabel(row.risk),
+            examenes_24h: row.exams24h,
+            examenes_7_dias: row.exams7d,
+            total_examenes: row.total,
+            ultima_actividad: formatDate(row.lastActivity),
+            notas: row.notes.join(' | ')
+        }));
+        downloadCsv(`riesgos-${formatDateSlug(new Date())}.csv`, rows);
+    }
+
+    function downloadUsersCsv() {
+        const rows = currentRows.map(row => ({
+            usuario: displayName(row.user),
+            email: row.user.email || '',
+            alta: formatTimestamp(row.user.created_at),
+            ultimo_login: formatTimestamp(row.user.last_login),
+            estado: row.user.blocked === true ? 'Bloqueado' : 'Activo',
+            aptos: row.passed,
+            no_aptos: row.failed,
+            examenes_24h: row.exams24h,
+            examenes_7_dias: row.exams7d,
+            total_examenes: row.total
+        }));
+        downloadCsv(`usuarios-${formatDateSlug(new Date())}.csv`, rows);
+    }
+
+    function downloadActivityCsv() {
+        const rows = currentActivityRows.map(row => ({
+            fecha: formatTimestamp(row.exam.finished_at),
+            resultado: row.exam.passed ? 'Apto' : 'No apto',
+            aciertos: `${row.exam.score_correct || 0}/${row.exam.total_questions || 25}`,
+            fallos: row.exam.score_incorrect || 0,
+            sin_responder: row.exam.score_unanswered || 0,
+            respuestas_vigentes: row.answers.length,
+            preguntas: row.answers.map(answer => answer.question_id).filter(Boolean).join(' | ')
+        }));
+        downloadCsv(`actividad-${formatDateSlug(new Date())}.csv`, rows);
+    }
+
+    function riskLabel(risk) {
+        if (risk === 'danger') return 'Crítico';
+        if (risk === 'watch') return 'Vigilar';
+        return 'Normal';
+    }
+
+    function downloadCsv(fileName, rows) {
+        if (rows.length === 0) return;
+        const headers = Object.keys(rows[0]);
+        const csv = [
+            headers.join(','),
+            ...rows.map(row => headers.map(header => csvCell(row[header])).join(','))
+        ].join('\r\n');
+        const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+    }
+
+    function csvCell(value) {
+        return `"${String(value ?? '').replace(/"/g, '""')}"`;
+    }
+
+    function formatDateSlug(date) {
+        return date.toISOString().slice(0, 10);
     }
 
     function setManualCheckStatus(text, state) {

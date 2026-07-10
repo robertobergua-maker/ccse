@@ -17,9 +17,11 @@ document.addEventListener('DOMContentLoaded', () => {
         title: document.getElementById('detail-title'),
         summary: document.getElementById('detail-summary'),
         body: document.getElementById('questions-body'),
+        downloadCsvBtn: document.getElementById('download-questions-csv'),
         sortButtons: [...document.querySelectorAll('.sort-button')]
     };
     let visibleRows = [];
+    let displayedRows = [];
     let sortState = { key: 'attempts', direction: 'desc' };
 
     ui.title.textContent = labels[activeFilter];
@@ -96,6 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
             sortAndRender();
         });
     });
+    ui.downloadCsvBtn?.addEventListener('click', downloadQuestionsCsv);
 
     function matchesFilter(row) {
         if (activeFilter === 'respondidas') return row.attempts > 0;
@@ -196,7 +199,35 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         updateSortButtons();
+        displayedRows = sortedRows;
         renderRows(sortedRows);
+        if (ui.downloadCsvBtn) ui.downloadCsvBtn.disabled = sortedRows.length === 0;
+    }
+
+    function downloadQuestionsCsv() {
+        const rows = displayedRows.map(row => {
+            const correctOption = getOption(row.question, row.question.correct_answer);
+            const lastOption = getOption(row.question, row.lastAnswer);
+            const result = row.lastCorrect === true
+                ? 'Acierto'
+                : row.lastCorrect === false
+                    ? 'Fallo'
+                    : 'Sin responder';
+
+            return {
+                codigo: row.question.id,
+                pregunta: getContextualQuestionText(row.question, correctOption),
+                tarea: row.question.task_number,
+                veces_respondida: row.attempts,
+                aciertos: row.correct,
+                fallos: row.incorrect,
+                ultimo_resultado: result,
+                respuesta_correcta: formatOption(correctOption),
+                ultima_respuesta: lastOption ? formatOption(lastOption) : ''
+            };
+        });
+
+        downloadCsv(`preguntas-${activeFilter}-${formatDateSlug(new Date())}.csv`, rows);
     }
 
     function getSortValue(row, key) {
@@ -283,6 +314,32 @@ document.addEventListener('DOMContentLoaded', () => {
             .replace(/[^a-z0-9]+/g, ' ')
             .replace(/\s+/g, ' ')
             .trim();
+    }
+
+    function downloadCsv(fileName, rows) {
+        if (rows.length === 0) return;
+        const headers = Object.keys(rows[0]);
+        const csv = [
+            headers.join(','),
+            ...rows.map(row => headers.map(header => csvCell(row[header])).join(','))
+        ].join('\r\n');
+        const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+    }
+
+    function csvCell(value) {
+        return `"${String(value ?? '').replace(/"/g, '""')}"`;
+    }
+
+    function formatDateSlug(date) {
+        return date.toISOString().slice(0, 10);
     }
 
     function escapeHtml(value) {

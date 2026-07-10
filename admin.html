@@ -59,7 +59,10 @@
             </section>
 
             <section class="admin-section" aria-labelledby="risk-title">
-                <h2 id="risk-title">Posibles peligros de excesos</h2>
+                <div class="section-heading">
+                    <h2 id="risk-title">Posibles peligros de excesos</h2>
+                    <button id="download-risk-csv" class="btn btn-secondary btn-compact" type="button" disabled>Descargar CSV</button>
+                </div>
                 <div class="table-scroll">
                     <table class="stats-table">
                         <thead>
@@ -80,7 +83,10 @@
             </section>
 
             <section class="admin-section" aria-labelledby="users-title">
-                <h2 id="users-title">Control de usuarios</h2>
+                <div class="section-heading">
+                    <h2 id="users-title">Control de usuarios</h2>
+                    <button id="download-users-csv" class="btn btn-secondary btn-compact" type="button" disabled>Descargar CSV</button>
+                </div>
                 <div class="table-scroll">
                     <table class="stats-table">
                         <thead>
@@ -103,7 +109,10 @@
             </section>
 
             <section class="admin-section" aria-labelledby="activity-title">
-                <h2 id="activity-title">Revisión de actividad</h2>
+                <div class="section-heading">
+                    <h2 id="activity-title">Revisión de actividad</h2>
+                    <button id="download-activity-csv" class="btn btn-secondary btn-compact" type="button" disabled>Descargar CSV</button>
+                </div>
                 <p id="activity-summary" class="muted">Selecciona un usuario para revisar su actividad.</p>
                 <div class="table-scroll">
                     <table class="stats-table">
@@ -131,6 +140,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <script src="js/firebase-config.js"></script>
     <script src="js/auth.js?v=20260710-1"></script>
-    <script src="js/admin.js?v=20260710-17"></script>
+    <script src="js/admin.js?v=20260710-18"></script>
 </body>
 </html>
