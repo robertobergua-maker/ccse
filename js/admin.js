@@ -387,13 +387,13 @@ document.addEventListener('DOMContentLoaded', () => {
             '<p class="empty-state">Extrayendo texto del manual. Puede tardar unos segundos…</p>';
 
         try {
-            const [currentQuestions, pdfText] = await Promise.all([
+            const [currentQuestions, pdfPages] = await Promise.all([
                 loadQuestionBank(),
-                extractPdfText(file)
+                extractPdfPages(file)
             ]);
 
-            const parsed = extractQuestionsFromManual(pdfText);
-            validateExtractedQuestions(parsed.questions);
+            const parsed = extractQuestionsFromManual(pdfPages);
+            validateExtractedQuestions(parsed.questions, parsed.answersFound);
             extractedManualQuestions = parsed.questions;
             extractedManualYear = parsed.manualYear;
 
@@ -482,7 +482,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function extractPdfText(file) {
+    async function extractPdfPages(file) {
         const buffer = await file.arrayBuffer();
         const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
         const pages = [];
@@ -490,10 +490,42 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
             const page = await pdf.getPage(pageNumber);
             const content = await page.getTextContent();
-            pages.push(content.items.map(item => item.str).join(' '));
+            pages.push(textItemsToLines(content.items));
         }
 
-        return pages.join('\n');
+        return pages;
+    }
+
+    function textItemsToLines(items) {
+        const rows = [];
+        const tolerance = 2;
+
+        items
+            .filter(item => String(item.str || '').trim())
+            .forEach(item => {
+                const x = item.transform?.[4] || 0;
+                const y = item.transform?.[5] || 0;
+                let row = rows.find(candidate => Math.abs(candidate.y - y) <= tolerance);
+
+                if (!row) {
+                    row = { y, items: [] };
+                    rows.push(row);
+                }
+
+                row.items.push({ x, text: item.str });
+            });
+
+        return rows
+            .sort((left, right) => right.y - left.y)
+            .map(row => row.items
+                .sort((left, right) => left.x - right.x)
+                .map(item => item.text)
+                .join(' ')
+                .replace(/\s+/g, ' ')
+                .trim()
+            )
+            .filter(Boolean)
+            .join('\n');
     }
 
     async function loadQuestionBank() {
@@ -647,20 +679,44 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     }
 
-    function extractQuestionsFromManual(pdfText) {
-        const answers = extractAnswerMap(pdfText);
-        const markers = [...pdfText.matchAll(/\b([1-5]\d{3})\b/g)];
+    function extractQuestionsFromManual(pdfPages) {
+        const pageText = pdfPages.join('\n');
+        const manualYear = detectManualYear(pageText);
+        const answers = extractAnswerMap(pdfPages.slice(92, 101).join('\n'));
+        const ranges = {
+            1: [16, 28],
+            2: [34, 38],
+            3: [44, 48],
+            4: [60, 64],
+            5: [82, 92]
+        };
         const byId = new Map();
+
+        Object.entries(ranges).forEach(([task, range]) => {
+            extractTaskQuestions(pdfPages.slice(range[0], range[1] + 1).join('\n'), Number(task), answers, manualYear)
+                .forEach(question => byId.set(question.id, question));
+        });
+
+        return {
+            questions: [...byId.values()].sort((left, right) =>
+                left.id.localeCompare(right.id, 'es', { numeric: true })
+            ),
+            manualYear,
+            answersFound: answers.size
+        };
+    }
+
+    function extractTaskQuestions(rawText, taskNumber, answers, manualYear) {
+        const markers = [...rawText.matchAll(/^\s*([1-5]\d{3})\s+/gm)];
+        const questions = [];
 
         markers.forEach((marker, index) => {
             const id = marker[1];
-            if (byId.has(id)) return;
-
             const nextMarker = markers[index + 1];
-            const block = cleanPdfText(pdfText.slice(marker.index + id.length, nextMarker ? nextMarker.index : pdfText.length));
-            const taskNumber = Number(id.charAt(0));
-            const labels = [...block.matchAll(/(?:^|\s)([abc])\)\s*/gi)];
+            const block = cleanPdfText(rawText.slice(marker.index + marker[0].length, nextMarker ? nextMarker.index : rawText.length));
+            const labels = findOptionLabels(block);
             const expectedOptions = taskNumber === 2 ? 2 : 3;
+
             if (labels.length < expectedOptions || !answers.has(id)) return;
 
             const selectedLabels = labels.slice(0, expectedOptions);
@@ -668,17 +724,17 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!questionText || questionText.length < 4) return;
 
             const options = selectedLabels.map((label, optionIndex) => {
-                const start = label.index + label[0].length;
+                const start = label.end;
                 const end = selectedLabels[optionIndex + 1]?.index ?? block.length;
                 return {
-                    key: label[1].toLowerCase(),
+                    key: label.key,
                     text: cleanOptionText(block.slice(start, end))
                 };
             });
 
             if (options.some(option => !option.text)) return;
 
-            byId.set(id, {
+            questions.push({
                 id,
                 code: id,
                 task_number: taskNumber,
@@ -688,16 +744,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 options,
                 correct_answer: answers.get(id),
                 active: true,
-                source: `Manual CCSE ${detectManualYear(pdfText) || 'Cervantes'}`
+                source: `Manual CCSE ${manualYear || 'Cervantes'}`
             });
         });
 
-        return {
-            questions: [...byId.values()].sort((left, right) =>
-                left.id.localeCompare(right.id, 'es', { numeric: true })
-            ),
-            manualYear: detectManualYear(pdfText)
-        };
+        return questions;
+    }
+
+    function findOptionLabels(block) {
+        return [...block.matchAll(/(?:^|\s)([abc])\)\s*/gi)].map(match => ({
+            index: match.index,
+            end: match.index + match[0].length,
+            key: match[1].toLowerCase()
+        }));
     }
 
     function extractAnswerMap(text) {
@@ -707,9 +766,10 @@ document.addEventListener('DOMContentLoaded', () => {
         );
     }
 
-    function validateExtractedQuestions(questions) {
+    function validateExtractedQuestions(questions, answersFound = null) {
         if (questions.length !== 300) {
-            throw new Error(`El PDF debe permitir extraer 300 preguntas y se han extraído ${questions.length}.`);
+            const answerNote = answersFound === null ? '' : ` Respuestas detectadas: ${answersFound}.`;
+            throw new Error(`El PDF debe permitir extraer 300 preguntas y se han extraído ${questions.length}.${answerNote}`);
         }
 
         const expected = { 1: 120, 2: 36, 3: 24, 4: 36, 5: 84 };
@@ -729,8 +789,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function cleanPdfText(value) {
         return String(value || '')
-            .replace(/\s+/g, ' ')
             .replace(/\bPREGUNTAS PARA LA TAREA \d\b/gi, '')
+            .split('\n')
+            .map(line => line.trim())
+            .filter(line => !/^\d{1,3}$/.test(line))
+            .join(' ')
+            .replace(/\s+/g, ' ')
             .trim();
     }
 
