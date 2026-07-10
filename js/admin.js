@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentRows = [];
     let extractedManualQuestions = [];
     let extractedManualYear = '';
+    let lastManualReport = null;
     const ui = {
         summary: document.getElementById('admin-summary'),
         status: document.getElementById('admin-status'),
@@ -398,13 +399,16 @@ document.addEventListener('DOMContentLoaded', () => {
             extractedManualYear = parsed.manualYear;
 
             const report = buildManualReport(currentQuestions, parsed.questions, file.name, parsed.manualYear);
+            lastManualReport = report;
             renderManualReport(report);
-            ui.manualUpdateBtn.disabled = false;
-            setManualCheckStatus(report.isOk ? 'Actualizado' : 'Revisar', report.isOk ? 'online' : 'offline');
+            ui.manualUpdateBtn.disabled = !report.hasDiscrepancies;
+            ui.manualUpdateBtn.textContent = report.hasDiscrepancies ? 'Corregir BBDD' : 'Sin discrepancias';
+            setManualCheckStatus(report.hasDiscrepancies ? 'Revisar discrepancias' : 'Sin discrepancias', report.hasDiscrepancies ? 'offline' : 'online');
         } catch (error) {
             console.error('No se pudo comprobar el manual:', error);
             extractedManualQuestions = [];
             extractedManualYear = '';
+            lastManualReport = null;
             setManualCheckStatus('Error', 'offline');
             ui.manualCheckResults.innerHTML =
                 `<p class="error-message">${escapeHtml(error.message)}</p>`;
@@ -414,13 +418,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function updateQuestionDatabase() {
-        if (!adminUser || extractedManualQuestions.length !== 300) {
+        if (!adminUser || !lastManualReport || extractedManualQuestions.length !== 300) {
             alert('Primero comprueba un PDF válido con 300 preguntas.');
             return;
         }
 
+        if (!lastManualReport.hasDiscrepancies) {
+            alert('No hay discrepancias para corregir. La base de datos ya coincide con el manual extraído.');
+            return;
+        }
+
         const confirmed = confirm(
-            `Vas a reemplazar la colección questions con ${extractedManualQuestions.length} preguntas del manual ${extractedManualYear || 'seleccionado'}. ¿Continuar?`
+            `Se van a corregir ${lastManualReport.discrepancyCount} discrepancias detectadas en el manual ${extractedManualYear || 'seleccionado'} y reemplazar la colección questions con ${extractedManualQuestions.length} preguntas. ¿Continuar?`
         );
         if (!confirmed) return;
 
@@ -453,10 +462,10 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             await commitOperationsInChunks(operations);
-            setManualCheckStatus('BBDD actualizada', 'online');
+            setManualCheckStatus('BBDD corregida', 'online');
             ui.manualCheckResults.insertAdjacentHTML(
                 'afterbegin',
-                `<p class="result-badge result-correct">Base de datos actualizada: ${extractedManualQuestions.length} preguntas activas en Firestore.</p>`
+                `<p class="result-badge result-correct">Corrección aplicada: ${extractedManualQuestions.length} preguntas activas en Firestore.</p>`
             );
         } catch (error) {
             console.error('No se pudo actualizar la BBDD de preguntas:', error);
@@ -649,6 +658,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
+        const hasDiscrepancies = missingCodes.length > 0 ||
+            addedCodes.length > 0 ||
+            questionIssues.length > 0 ||
+            optionIssues.length > 0;
+
         return {
             fileName,
             manualYear,
@@ -658,12 +672,9 @@ document.addEventListener('DOMContentLoaded', () => {
             addedCodes,
             questionIssues,
             optionIssues,
-            isOk: currentQuestions.length === 300 &&
-                manualQuestions.length === 300 &&
-                missingCodes.length === 0 &&
-                addedCodes.length === 0 &&
-                questionIssues.length === 0 &&
-                optionIssues.length === 0
+            discrepancyCount: missingCodes.length + addedCodes.length + questionIssues.length + optionIssues.length,
+            hasDiscrepancies,
+            isOk: !hasDiscrepancies && currentQuestions.length === 300 && manualQuestions.length === 300
         };
     }
 
@@ -677,6 +688,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="admin-card"><span>PDF</span><strong>${escapeHtml(report.fileName)}</strong></div>
                 <div class="admin-card"><span>Año detectado</span><strong>${escapeHtml(report.manualYear || 'No detectado')}</strong></div>
                 <div class="admin-card"><span>Banco / PDF</span><strong>${report.totalQuestions}/${report.extractedQuestions}</strong></div>
+                <div class="admin-card"><span>Discrepancias</span><strong>${report.discrepancyCount}</strong></div>
+            </div>
+            <p class="admin-notes">${report.hasDiscrepancies
+                ? `Se han detectado ${report.discrepancyCount} diferencias. Revísalas y, cuando estés seguro, aplica la corrección.`
+                : 'No hay discrepancias detectadas. La base de datos ya coincide con el PDF extraído.'}</p>
+            <div class="admin-check-grid">
                 <div class="admin-card"><span>Estado</span><strong>${status}</strong></div>
             </div>
             ${renderIssueBlock('Códigos del banco que no están en el PDF', report.missingCodes)}
