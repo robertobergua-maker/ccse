@@ -56,7 +56,7 @@ service cloud.firestore {
     match /questions/{questionId} {
       // El banco es común, pero solo está disponible tras iniciar sesión.
       allow read: if signedIn();
-      allow write: if false;
+      allow write: if isAdmin();
     }
 
     match /exams/{examId} {

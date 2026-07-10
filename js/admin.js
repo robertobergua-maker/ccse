@@ -13,6 +13,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const db = firebase.firestore();
     let adminUser = null;
     let currentRows = [];
+    let extractedManualQuestions = [];
+    let extractedManualYear = '';
     const ui = {
         summary: document.getElementById('admin-summary'),
         status: document.getElementById('admin-status'),
@@ -26,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
         activityBody: document.getElementById('activity-body'),
         manualPdfInput: document.getElementById('manual-pdf-input'),
         manualCheckBtn: document.getElementById('manual-check-btn'),
+        manualUpdateBtn: document.getElementById('manual-update-btn'),
         manualCheckStatus: document.getElementById('manual-check-status'),
         manualCheckResults: document.getElementById('manual-check-results')
     };
@@ -69,6 +72,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     ui.manualCheckBtn.addEventListener('click', () => {
         checkManualPdf();
+    });
+
+    ui.manualUpdateBtn.addEventListener('click', () => {
+        updateQuestionDatabase();
     });
 
     async function loadAdminData() {
@@ -375,31 +382,103 @@ document.addEventListener('DOMContentLoaded', () => {
 
         setManualCheckStatus('Leyendo PDF…', 'online');
         ui.manualCheckBtn.disabled = true;
+        ui.manualUpdateBtn.disabled = true;
         ui.manualCheckResults.innerHTML =
             '<p class="empty-state">Extrayendo texto del manual. Puede tardar unos segundos…</p>';
 
         try {
-            const [questionsResponse, pdfText] = await Promise.all([
-                fetch('preguntas.json', { cache: 'no-store' }),
+            const [currentQuestions, pdfText] = await Promise.all([
+                loadQuestionBank(),
                 extractPdfText(file)
             ]);
 
-            if (!questionsResponse.ok) {
-                throw new Error(`No se pudo cargar preguntas.json (${questionsResponse.status})`);
-            }
+            const parsed = extractQuestionsFromManual(pdfText);
+            validateExtractedQuestions(parsed.questions);
+            extractedManualQuestions = parsed.questions;
+            extractedManualYear = parsed.manualYear;
 
-            const questions = (await questionsResponse.json())
-                .filter(question => question.active !== false);
-            const report = buildManualReport(questions, pdfText, file.name);
+            const report = buildManualReport(currentQuestions, parsed.questions, file.name, parsed.manualYear);
             renderManualReport(report);
+            ui.manualUpdateBtn.disabled = false;
             setManualCheckStatus(report.isOk ? 'Actualizado' : 'Revisar', report.isOk ? 'online' : 'offline');
         } catch (error) {
             console.error('No se pudo comprobar el manual:', error);
+            extractedManualQuestions = [];
+            extractedManualYear = '';
             setManualCheckStatus('Error', 'offline');
             ui.manualCheckResults.innerHTML =
                 `<p class="error-message">${escapeHtml(error.message)}</p>`;
         } finally {
             ui.manualCheckBtn.disabled = false;
+        }
+    }
+
+    async function updateQuestionDatabase() {
+        if (!adminUser || extractedManualQuestions.length !== 300) {
+            alert('Primero comprueba un PDF válido con 300 preguntas.');
+            return;
+        }
+
+        const confirmed = confirm(
+            `Vas a reemplazar la colección questions con ${extractedManualQuestions.length} preguntas del manual ${extractedManualYear || 'seleccionado'}. ¿Continuar?`
+        );
+        if (!confirmed) return;
+
+        ui.manualUpdateBtn.disabled = true;
+        ui.manualCheckBtn.disabled = true;
+        setManualCheckStatus('Actualizando…', 'online');
+
+        try {
+            const existingSnapshot = await db.collection('questions').get();
+            const newIds = new Set(extractedManualQuestions.map(question => question.id));
+            const operations = [];
+
+            existingSnapshot.forEach(doc => {
+                if (!newIds.has(doc.id)) {
+                    operations.push({ type: 'delete', ref: doc.ref });
+                }
+            });
+
+            extractedManualQuestions.forEach(question => {
+                const ref = db.collection('questions').doc(question.id);
+                operations.push({
+                    type: 'set',
+                    ref,
+                    data: {
+                    ...question,
+                    updated_at: firebase.firestore.FieldValue.serverTimestamp(),
+                    updated_by: adminUser.email
+                    }
+                });
+            });
+
+            await commitOperationsInChunks(operations);
+            setManualCheckStatus('BBDD actualizada', 'online');
+            ui.manualCheckResults.insertAdjacentHTML(
+                'afterbegin',
+                `<p class="result-badge result-correct">Base de datos actualizada: ${extractedManualQuestions.length} preguntas activas en Firestore.</p>`
+            );
+        } catch (error) {
+            console.error('No se pudo actualizar la BBDD de preguntas:', error);
+            setManualCheckStatus('Error', 'offline');
+            alert('No se pudo actualizar la BBDD. Revisa permisos o conexión.');
+        } finally {
+            ui.manualCheckBtn.disabled = false;
+        }
+    }
+
+    async function commitOperationsInChunks(operations) {
+        const chunkSize = 450;
+        for (let index = 0; index < operations.length; index += chunkSize) {
+            const batch = db.batch();
+            operations.slice(index, index + chunkSize).forEach(operation => {
+                if (operation.type === 'delete') {
+                    batch.delete(operation.ref);
+                } else {
+                    batch.set(operation.ref, operation.data);
+                }
+            });
+            await batch.commit();
         }
     }
 
@@ -417,48 +496,86 @@ document.addEventListener('DOMContentLoaded', () => {
         return pages.join('\n');
     }
 
-    function buildManualReport(questions, pdfText, fileName) {
-        const normalizedPdf = normalizeForSearch(pdfText);
-        const manualYear = detectManualYear(pdfText);
+    async function loadQuestionBank() {
+        try {
+            const snapshot = await db.collection('questions').get();
+            const questions = [];
+            snapshot.forEach(doc => questions.push({ id: doc.id, ...doc.data() }));
+            if (questions.length > 0) {
+                return questions
+                    .filter(question => question.active !== false)
+                    .sort((left, right) => String(left.id).localeCompare(String(right.id), 'es', { numeric: true }));
+            }
+        } catch (error) {
+            console.warn('No se pudo leer questions en Firestore. Se usará preguntas.json.', error);
+        }
+
+        const response = await fetch('preguntas.json', { cache: 'no-store' });
+        if (!response.ok) {
+            throw new Error(`No se pudo cargar preguntas.json (${response.status})`);
+        }
+        return (await response.json()).filter(question => question.active !== false);
+    }
+
+    function buildManualReport(currentQuestions, manualQuestions, fileName, manualYear) {
+        const manualById = new Map(manualQuestions.map(question => [question.id, question]));
         const questionIssues = [];
         const optionIssues = [];
         const missingCodes = [];
+        const addedCodes = manualQuestions
+            .filter(question => !currentQuestions.some(current => current.id === question.id))
+            .map(question => question.id);
 
-        questions.forEach(question => {
-            const codeFound = normalizedPdf.includes(normalizeForSearch(question.id));
-            const questionFound = appearsInManual(normalizedPdf, question.question_text);
-
-            if (!codeFound) {
+        currentQuestions.forEach(question => {
+            const manualQuestion = manualById.get(question.id);
+            if (!manualQuestion) {
                 missingCodes.push(question.id);
+                return;
             }
 
-            if (!questionFound) {
+            if (!sameNormalizedText(question.question_text, manualQuestion.question_text)) {
                 questionIssues.push({
                     id: question.id,
-                    text: question.question_text
+                    text: question.question_text,
+                    newText: manualQuestion.question_text
                 });
             }
 
             question.options.forEach(option => {
-                if (!appearsInManual(normalizedPdf, option.text)) {
+                const manualOption = manualQuestion.options.find(candidate => candidate.key === option.key);
+                if (!manualOption || !sameNormalizedText(option.text, manualOption.text)) {
                     optionIssues.push({
                         id: question.id,
                         option: option.key.toUpperCase(),
-                        text: option.text
+                        text: option.text,
+                        newText: manualOption ? manualOption.text : 'No disponible'
                     });
                 }
             });
+
+            if (question.correct_answer !== manualQuestion.correct_answer) {
+                optionIssues.push({
+                    id: question.id,
+                    option: 'Correcta',
+                    text: question.correct_answer,
+                    newText: manualQuestion.correct_answer
+                });
+            }
         });
 
         return {
             fileName,
             manualYear,
-            totalQuestions: questions.length,
+            totalQuestions: currentQuestions.length,
+            extractedQuestions: manualQuestions.length,
             missingCodes,
+            addedCodes,
             questionIssues,
             optionIssues,
-            isOk: questions.length === 300 &&
+            isOk: currentQuestions.length === 300 &&
+                manualQuestions.length === 300 &&
                 missingCodes.length === 0 &&
+                addedCodes.length === 0 &&
                 questionIssues.length === 0 &&
                 optionIssues.length === 0
         };
@@ -473,12 +590,13 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="admin-check-grid">
                 <div class="admin-card"><span>PDF</span><strong>${escapeHtml(report.fileName)}</strong></div>
                 <div class="admin-card"><span>Año detectado</span><strong>${escapeHtml(report.manualYear || 'No detectado')}</strong></div>
-                <div class="admin-card"><span>Preguntas banco</span><strong>${report.totalQuestions}</strong></div>
+                <div class="admin-card"><span>Banco / PDF</span><strong>${report.totalQuestions}/${report.extractedQuestions}</strong></div>
                 <div class="admin-card"><span>Estado</span><strong>${status}</strong></div>
             </div>
-            ${renderIssueBlock('Códigos no encontrados', report.missingCodes)}
-            ${renderQuestionIssueBlock('Enunciados que no aparecen igual', report.questionIssues)}
-            ${renderOptionIssueBlock('Opciones que no aparecen igual', report.optionIssues)}
+            ${renderIssueBlock('Códigos del banco que no están en el PDF', report.missingCodes)}
+            ${renderIssueBlock('Códigos nuevos en el PDF', report.addedCodes)}
+            ${renderQuestionIssueBlock('Enunciados distintos', report.questionIssues)}
+            ${renderOptionIssueBlock('Opciones o respuestas distintas', report.optionIssues)}
             <p class="admin-notes">El PDF se procesa en este navegador y no se sube ni se guarda en Firestore.</p>
         `;
     }
@@ -506,7 +624,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <h3>${escapeHtml(title)} (${issues.length})</h3>
             <ul class="admin-check-list">
                 ${issues.slice(0, 20).map(issue =>
-                    `<li><strong>${escapeHtml(issue.id)}</strong>: ${escapeHtml(issue.text)}</li>`
+                    `<li><strong>${escapeHtml(issue.id)}</strong>: ${escapeHtml(issue.text)} → ${escapeHtml(issue.newText)}</li>`
                 ).join('')}
             </ul>
             ${issues.length > 20 ? `<p class="admin-notes">Se muestran 20 de ${issues.length} incidencias.</p>` : ''}
@@ -522,26 +640,125 @@ document.addEventListener('DOMContentLoaded', () => {
             <h3>${escapeHtml(title)} (${issues.length})</h3>
             <ul class="admin-check-list">
                 ${issues.slice(0, 30).map(issue =>
-                    `<li><strong>${escapeHtml(issue.id)} ${escapeHtml(issue.option)})</strong> ${escapeHtml(issue.text)}</li>`
+                    `<li><strong>${escapeHtml(issue.id)} ${escapeHtml(issue.option)}</strong>: ${escapeHtml(issue.text)} → ${escapeHtml(issue.newText)}</li>`
                 ).join('')}
             </ul>
             ${issues.length > 30 ? `<p class="admin-notes">Se muestran 30 de ${issues.length} incidencias.</p>` : ''}
         `;
     }
 
-    function appearsInManual(normalizedPdf, value) {
-        const normalized = normalizeForSearch(value);
-        if (!normalized) return true;
-        if (normalizedPdf.includes(normalized)) return true;
+    function extractQuestionsFromManual(pdfText) {
+        const answers = extractAnswerMap(pdfText);
+        const markers = [...pdfText.matchAll(/\b([1-5]\d{3})\b/g)];
+        const byId = new Map();
 
-        const withoutEllipsis = normalized.trim();
-        if (withoutEllipsis.length >= 12 && normalizedPdf.includes(withoutEllipsis)) return true;
+        markers.forEach((marker, index) => {
+            const id = marker[1];
+            if (byId.has(id)) return;
 
-        const words = withoutEllipsis.split(' ').filter(Boolean);
-        if (words.length < 4) return false;
+            const nextMarker = markers[index + 1];
+            const block = cleanPdfText(pdfText.slice(marker.index + id.length, nextMarker ? nextMarker.index : pdfText.length));
+            const taskNumber = Number(id.charAt(0));
+            const labels = [...block.matchAll(/(?:^|\s)([abc])\)\s*/gi)];
+            const expectedOptions = taskNumber === 2 ? 2 : 3;
+            if (labels.length < expectedOptions || !answers.has(id)) return;
 
-        const fragment = words.slice(0, Math.min(words.length, 9)).join(' ');
-        return fragment.length >= 20 && normalizedPdf.includes(fragment);
+            const selectedLabels = labels.slice(0, expectedOptions);
+            const questionText = cleanQuestionText(block.slice(0, selectedLabels[0].index));
+            if (!questionText || questionText.length < 4) return;
+
+            const options = selectedLabels.map((label, optionIndex) => {
+                const start = label.index + label[0].length;
+                const end = selectedLabels[optionIndex + 1]?.index ?? block.length;
+                return {
+                    key: label[1].toLowerCase(),
+                    text: cleanOptionText(block.slice(start, end))
+                };
+            });
+
+            if (options.some(option => !option.text)) return;
+
+            byId.set(id, {
+                id,
+                code: id,
+                task_number: taskNumber,
+                topic: taskTopic(taskNumber),
+                question_text: questionText,
+                question_type: taskNumber === 2 ? 'true_false' : 'multiple_choice',
+                options,
+                correct_answer: answers.get(id),
+                active: true,
+                source: `Manual CCSE ${detectManualYear(pdfText) || 'Cervantes'}`
+            });
+        });
+
+        return {
+            questions: [...byId.values()].sort((left, right) =>
+                left.id.localeCompare(right.id, 'es', { numeric: true })
+            ),
+            manualYear: detectManualYear(pdfText)
+        };
+    }
+
+    function extractAnswerMap(text) {
+        return new Map(
+            [...text.matchAll(/\b([1-5]\d{3})\s+([abc])\b/gi)]
+                .map(match => [match[1], match[2].toLowerCase()])
+        );
+    }
+
+    function validateExtractedQuestions(questions) {
+        if (questions.length !== 300) {
+            throw new Error(`El PDF debe permitir extraer 300 preguntas y se han extraído ${questions.length}.`);
+        }
+
+        const expected = { 1: 120, 2: 36, 3: 24, 4: 36, 5: 84 };
+        Object.entries(expected).forEach(([task, amount]) => {
+            const found = questions.filter(question => question.task_number === Number(task)).length;
+            if (found !== amount) {
+                throw new Error(`La tarea ${task} debe tener ${amount} preguntas y se han extraído ${found}.`);
+            }
+        });
+
+        questions.forEach(question => {
+            if (!question.options.some(option => option.key === question.correct_answer)) {
+                throw new Error(`La pregunta ${question.id} tiene una respuesta correcta no disponible.`);
+            }
+        });
+    }
+
+    function cleanPdfText(value) {
+        return String(value || '')
+            .replace(/\s+/g, ' ')
+            .replace(/\bPREGUNTAS PARA LA TAREA \d\b/gi, '')
+            .trim();
+    }
+
+    function cleanQuestionText(value) {
+        return cleanPdfText(value)
+            .replace(/^\d{1,3}\s+/, '')
+            .replace(/\s+$/, '');
+    }
+
+    function cleanOptionText(value) {
+        return cleanPdfText(value)
+            .replace(/\b[1-5]\d{3}\b[\s\S]*$/, '')
+            .trim();
+    }
+
+    function taskTopic(taskNumber) {
+        const topics = {
+            1: 'Gobierno, legislación y participación ciudadana',
+            2: 'Derechos y deberes fundamentales',
+            3: 'Organización territorial de España. Geografía física y política',
+            4: 'Cultura e historia de España',
+            5: 'Sociedad española'
+        };
+        return topics[taskNumber] || 'Manual CCSE';
+    }
+
+    function sameNormalizedText(left, right) {
+        return normalizeForSearch(left) === normalizeForSearch(right);
     }
 
     function detectManualYear(text) {

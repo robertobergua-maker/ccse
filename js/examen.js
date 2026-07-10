@@ -42,16 +42,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error('No se pudo identificar al usuario para personalizar el examen');
             }
 
-            const [response, selectionStats] = await Promise.all([
-                fetch('preguntas.json', { cache: 'no-store' }),
+            const [allQuestions, selectionStats] = await Promise.all([
+                loadQuestionBank(),
                 loadQuestionSelectionStats(userId)
             ]);
-            if (!response.ok) {
-                throw new Error(`No se pudo cargar el banco (${response.status})`);
-            }
-
-            const allQuestions = (await response.json())
-                .filter(question => question.active !== false);
             validateQuestionBank(allQuestions);
             selectionContext = {
                 strategy: 'per_user_weighted_v1',
@@ -99,6 +93,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(`No hay suficientes preguntas para la tarea ${task}`);
             }
         });
+    }
+
+    async function loadQuestionBank() {
+        try {
+            const snapshot = await db.collection('questions').get();
+            const questions = [];
+            snapshot.forEach(doc => questions.push({ id: doc.id, ...doc.data() }));
+            if (questions.length > 0) {
+                return sortQuestions(questions.filter(question => question.active !== false));
+            }
+        } catch (error) {
+            console.warn('No se pudo cargar questions desde Firestore. Se usará preguntas.json.', error);
+        }
+
+        const response = await fetch('preguntas.json', { cache: 'no-store' });
+        if (!response.ok) {
+            throw new Error(`No se pudo cargar el banco (${response.status})`);
+        }
+        return sortQuestions((await response.json()).filter(question => question.active !== false));
+    }
+
+    function sortQuestions(questions) {
+        return questions.sort((left, right) =>
+            String(left.id).localeCompare(String(right.id), 'es', { numeric: true })
+        );
     }
 
     async function loadQuestionSelectionStats(userId) {

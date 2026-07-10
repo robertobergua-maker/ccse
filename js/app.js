@@ -38,18 +38,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!ui.answered) return;
 
         try {
-            const [questionsResponse, statsSnapshot] = await Promise.all([
-                fetch('preguntas.json', { cache: 'no-store' }),
+            const [questions, statsSnapshot] = await Promise.all([
+                loadQuestionBank(),
                 db.collection('user_question_stats')
                     .where('user_id', '==', user.uid)
                     .get()
             ]);
-
-            if (!questionsResponse.ok) {
-                throw new Error(`No se pudo cargar el banco (${questionsResponse.status})`);
-            }
-
-            const questions = await questionsResponse.json();
             const activeQuestionIds = new Set(
                 questions.filter(question => question.active !== false).map(question => question.id)
             );
@@ -75,6 +69,25 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('No se pudieron cargar las métricas:', error);
             setStatus('Sin conexión', 'offline');
         }
+    }
+
+    async function loadQuestionBank() {
+        try {
+            const snapshot = await db.collection('questions').get();
+            const questions = [];
+            snapshot.forEach(doc => questions.push({ id: doc.id, ...doc.data() }));
+            if (questions.length > 0) {
+                return questions.filter(question => question.active !== false);
+            }
+        } catch (error) {
+            console.warn('No se pudo cargar questions desde Firestore. Se usará preguntas.json.', error);
+        }
+
+        const response = await fetch('preguntas.json', { cache: 'no-store' });
+        if (!response.ok) {
+            throw new Error(`No se pudo cargar el banco (${response.status})`);
+        }
+        return (await response.json()).filter(question => question.active !== false);
     }
 
     async function loadExamHistory(user) {

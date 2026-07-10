@@ -32,19 +32,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!user) return;
 
         try {
-            const [questionsResponse, statsSnapshot] = await Promise.all([
-                fetch('preguntas.json', { cache: 'no-store' }),
+            const [questions, statsSnapshot] = await Promise.all([
+                loadQuestionBank(),
                 db.collection('user_question_stats')
                     .where('user_id', '==', user.uid)
                     .get()
             ]);
-
-            if (!questionsResponse.ok) {
-                throw new Error(`No se pudo cargar el banco (${questionsResponse.status})`);
-            }
-
-            const questions = (await questionsResponse.json())
-                .filter(question => question.active !== false);
             const statsByQuestion = new Map();
             statsSnapshot.forEach(doc => {
                 const stat = doc.data();
@@ -96,6 +89,31 @@ document.addEventListener('DOMContentLoaded', () => {
         if (activeFilter === 'acertadas') return row.lastCorrect === true;
         if (activeFilter === 'falladas') return row.lastCorrect === false;
         return true;
+    }
+
+    async function loadQuestionBank() {
+        try {
+            const snapshot = await db.collection('questions').get();
+            const questions = [];
+            snapshot.forEach(doc => questions.push({ id: doc.id, ...doc.data() }));
+            if (questions.length > 0) {
+                return sortQuestions(questions.filter(question => question.active !== false));
+            }
+        } catch (error) {
+            console.warn('No se pudo cargar questions desde Firestore. Se usará preguntas.json.', error);
+        }
+
+        const response = await fetch('preguntas.json', { cache: 'no-store' });
+        if (!response.ok) {
+            throw new Error(`No se pudo cargar el banco (${response.status})`);
+        }
+        return sortQuestions((await response.json()).filter(question => question.active !== false));
+    }
+
+    function sortQuestions(questions) {
+        return questions.sort((left, right) =>
+            String(left.id).localeCompare(String(right.id), 'es', { numeric: true })
+        );
     }
 
     function renderRows(rows) {
