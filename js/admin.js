@@ -28,8 +28,6 @@ document.addEventListener('DOMContentLoaded', () => {
         usersBody: document.getElementById('users-body'),
         activitySummary: document.getElementById('activity-summary'),
         activityBody: document.getElementById('activity-body'),
-        manualPdfInput: document.getElementById('manual-pdf-input'),
-        manualCheckBtn: document.getElementById('manual-check-btn'),
         manualCsvInput: document.getElementById('manual-csv-input'),
         manualCsvCheckBtn: document.getElementById('manual-csv-check-btn'),
         manualUpdateBtn: document.getElementById('manual-update-btn'),
@@ -37,11 +35,6 @@ document.addEventListener('DOMContentLoaded', () => {
         manualCheckStatus: document.getElementById('manual-check-status'),
         manualCheckResults: document.getElementById('manual-check-results')
     };
-
-    if (window.pdfjsLib) {
-        pdfjsLib.GlobalWorkerOptions.workerSrc =
-            'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-    }
 
     auth.onAuthStateChanged(user => {
         if (!user) return;
@@ -64,7 +57,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (action === 'unblock') setUserBlocked(userId, false);
     });
 
-    ui.manualCheckBtn?.addEventListener('click', checkManualPdf);
     ui.manualCsvCheckBtn?.addEventListener('click', checkManualCsv);
     ui.manualUpdateBtn?.addEventListener('click', updateQuestionDatabase);
     ui.obsoleteCleanupBtn?.addEventListener('click', cleanupObsoleteAnswerRecords);
@@ -294,31 +286,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function checkManualPdf() {
-        if (!adminUser) return alert('Esta comprobación solo está disponible para el administrador.');
-        const file = ui.manualPdfInput.files[0];
-        if (!file) return alert('Selecciona primero el PDF del manual.');
-        if (!window.pdfjsLib) {
-            setManualCheckStatus('Sin PDF.js', 'offline');
-            ui.manualCheckResults.innerHTML = '<p class="error-message">No se pudo cargar el lector PDF del navegador.</p>';
-            return;
-        }
-
-        resetImportState('Leyendo PDF...');
-        ui.manualCheckBtn.disabled = true;
-        try {
-            const [currentQuestions, pdfPages] = await Promise.all([loadQuestionBank(), extractPdfPages(file)]);
-            const parsed = extractQuestionsFromManual(pdfPages);
-            validateExtractedQuestions(parsed.questions, parsed.answersFound, parsed.missingCodes, 'PDF');
-            validatePdfExtractionQuality(parsed.questions);
-            showImportReport(currentQuestions, parsed.questions, file.name, parsed.manualYear || '');
-        } catch (error) {
-            showImportError(error);
-        } finally {
-            ui.manualCheckBtn.disabled = false;
-        }
-    }
-
     async function checkManualCsv() {
         if (!adminUser) return alert('Esta comprobación solo está disponible para el administrador.');
         const file = ui.manualCsvInput.files[0];
@@ -372,7 +339,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function updateQuestionDatabase() {
         if (!adminUser || extractedManualQuestions.length !== 300 || !lastManualReport) {
-            alert('Primero comprueba un PDF o CSV válido con 300 preguntas.');
+            alert('Primero comprueba un CSV válido con 300 preguntas.');
             return;
         }
 
@@ -382,7 +349,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!confirmed) return;
 
         ui.manualUpdateBtn.disabled = true;
-        ui.manualCheckBtn.disabled = true;
         ui.manualCsvCheckBtn.disabled = true;
         setManualCheckStatus('Actualizando...', 'online');
 
@@ -407,7 +373,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             });
 
-            const cleanup = await collectObsoleteAnswerOperations(newIds);
+            const validQuestionTexts = new Set(extractedManualQuestions.map(question => normalizeForSearch(question.question_text)));
+            const cleanup = await collectObsoleteAnswerOperations(validQuestionTexts);
             operations.push(...cleanup.operations);
 
             await commitOperationsInChunks(operations);
@@ -421,7 +388,6 @@ document.addEventListener('DOMContentLoaded', () => {
             setManualCheckStatus('Error', 'offline');
             alert('No se pudo actualizar la BBDD. Revisa permisos o conexión.');
         } finally {
-            ui.manualCheckBtn.disabled = false;
             ui.manualCsvCheckBtn.disabled = false;
         }
     }
@@ -433,7 +399,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const confirmed = confirm(
-            'Se eliminarán los registros de respuestas y estadísticas cuyo question_id no exista en la colección questions actual. ¿Continuar?'
+            'Se eliminarán los registros de respuestas y estadísticas cuyo enunciado no exista en la colección questions actual. Los registros antiguos sin enunciado guardado también se eliminarán. ¿Continuar?'
         );
         if (!confirmed) return;
 
@@ -442,8 +408,8 @@ document.addEventListener('DOMContentLoaded', () => {
         setManualCheckStatus('Limpiando...', 'online');
 
         try {
-            const validQuestionIds = await loadQuestionIdsFromDatabase();
-            const cleanup = await collectObsoleteAnswerOperations(validQuestionIds);
+            const validQuestionTexts = await loadQuestionTextsFromDatabase();
+            const cleanup = await collectObsoleteAnswerOperations(validQuestionTexts);
 
             if (cleanup.operations.length > 0) {
                 await commitOperationsInChunks(cleanup.operations);
@@ -465,18 +431,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function loadQuestionIdsFromDatabase() {
+    async function loadQuestionTextsFromDatabase() {
         const snapshot = await db.collection('questions').get();
-        const ids = new Set();
+        const texts = new Set();
         snapshot.forEach(doc => {
             const data = doc.data();
-            if (data.active !== false) ids.add(doc.id);
+            if (data.active !== false) {
+                const normalizedText = normalizeForSearch(data.question_text);
+                if (normalizedText) texts.add(normalizedText);
+            }
         });
-        if (ids.size === 0) throw new Error('La colección questions no tiene preguntas activas.');
-        return ids;
+        if (texts.size === 0) throw new Error('La colección questions no tiene preguntas activas con enunciado.');
+        return texts;
     }
 
-    async function collectObsoleteAnswerOperations(validQuestionIds) {
+    async function collectObsoleteAnswerOperations(validQuestionTexts) {
         const [answersSnapshot, statsSnapshot] = await Promise.all([
             db.collection('exam_answers').get(),
             db.collection('user_question_stats').get()
@@ -486,16 +455,16 @@ document.addEventListener('DOMContentLoaded', () => {
         let statsDeleted = 0;
 
         answersSnapshot.forEach(doc => {
-            const questionId = String(doc.data().question_id || '');
-            if (!validQuestionIds.has(questionId)) {
+            const questionText = normalizeForSearch(doc.data().question_text);
+            if (!questionText || !validQuestionTexts.has(questionText)) {
                 operations.push({ type: 'delete', ref: doc.ref });
                 examAnswersDeleted += 1;
             }
         });
 
         statsSnapshot.forEach(doc => {
-            const questionId = String(doc.data().question_id || '');
-            if (!validQuestionIds.has(questionId)) {
+            const questionText = normalizeForSearch(doc.data().question_text);
+            if (!questionText || !validQuestionTexts.has(questionText)) {
                 operations.push({ type: 'delete', ref: doc.ref });
                 statsDeleted += 1;
             }
@@ -622,193 +591,6 @@ document.addEventListener('DOMContentLoaded', () => {
             .replace(/^_+|_+$/g, '');
     }
 
-    async function extractPdfPages(file) {
-        const buffer = await file.arrayBuffer();
-        const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
-        const pages = [];
-
-        for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
-            const page = await pdf.getPage(pageNumber);
-            const viewport = page.getViewport({ scale: 1 });
-            const content = await page.getTextContent();
-            pages.push({
-                questionText: textItemsToLines(content.items, viewport.width),
-                answerText: textItemsToFlowLines(content.items)
-            });
-        }
-        return pages;
-    }
-
-    function textItemsToLines(items, pageWidth) {
-        const textItems = normalizePdfItems(items);
-        if (textItems.length === 0) return '';
-        const columnBreak = pageWidth ? pageWidth / 2 : medianColumnBreak(textItems);
-        const hasTwoColumns = textItems.filter(item => item.x > columnBreak).length > 12;
-        const groups = hasTwoColumns
-            ? [textItems.filter(item => item.x <= columnBreak), textItems.filter(item => item.x > columnBreak)]
-            : [textItems];
-        return groups.map(group => textGroupToLines(group)).filter(Boolean).join('\n');
-    }
-
-    function textItemsToFlowLines(items) {
-        return textGroupToLines(normalizePdfItems(items));
-    }
-
-    function normalizePdfItems(items) {
-        return items
-            .filter(item => String(item.str || '').trim())
-            .map(item => ({
-                x: item.transform?.[4] || 0,
-                y: item.transform?.[5] || 0,
-                text: item.str
-            }));
-    }
-
-    function medianColumnBreak(items) {
-        const xs = [...new Set(items.map(item => Math.round(item.x)))].sort((left, right) => left - right);
-        let biggestGap = 0;
-        let breakPoint = xs[Math.floor(xs.length / 2)] || 0;
-        for (let index = 1; index < xs.length; index += 1) {
-            const gap = xs[index] - xs[index - 1];
-            if (gap > biggestGap) {
-                biggestGap = gap;
-                breakPoint = xs[index - 1] + (gap / 2);
-            }
-        }
-        return breakPoint;
-    }
-
-    function textGroupToLines(items) {
-        const rows = [];
-        const tolerance = 2;
-        items.forEach(item => {
-            let row = rows.find(candidate => Math.abs(candidate.y - item.y) <= tolerance);
-            if (!row) {
-                row = { y: item.y, items: [] };
-                rows.push(row);
-            }
-            row.items.push(item);
-        });
-        return rows
-            .sort((left, right) => right.y - left.y)
-            .map(row => row.items.sort((left, right) => left.x - right.x).map(item => item.text).join(' ').replace(/\s+/g, ' ').trim())
-            .filter(Boolean)
-            .join('\n');
-    }
-
-    function extractQuestionsFromManual(pdfPages) {
-        const questionPages = pdfPages.map(page => page.questionText || '');
-        const answerPages = pdfPages.map(page => page.answerText || '');
-        const pageText = questionPages.join('\n');
-        const manualYear = detectManualYear(pageText);
-        const answerStart = findAnswerStartPage(answerPages);
-        const answers = extractAnswerMap(answerPages.slice(answerStart).join('\n'));
-        const questionText = questionPages.slice(0, answerStart).join('\n');
-        const byId = new Map();
-        [1, 2, 3, 4, 5].forEach(taskNumber => {
-            extractTaskQuestions(questionText, taskNumber, answers, manualYear)
-                .forEach(question => byId.set(question.id, question));
-        });
-        return {
-            questions: [...byId.values()].sort((left, right) => left.id.localeCompare(right.id, 'es', { numeric: true })),
-            manualYear,
-            answersFound: answers.size,
-            missingCodes: [...answers.keys()].filter(code => !byId.has(code))
-        };
-    }
-
-    function validatePdfExtractionQuality(questions) {
-        const contaminated = questions.filter(question => {
-            const fragments = [
-                question.question_text,
-                ...question.options.map(option => option.text)
-            ].map(value => String(value || ''));
-
-            return fragments.some(fragment =>
-                fragment.length > 360 ||
-                /\bInstituto Cervantes\b/i.test(fragment) ||
-                /\bManual de preparaci[oó]n\b/i.test(fragment) ||
-                /\bTarea\s+[1-5]\b/i.test(fragment) ||
-                /\bFIGURA\s+\d+/i.test(fragment) ||
-                /\bPREGUNTAS\b/i.test(fragment) ||
-                /\bwww\.cervantes\.es\b/i.test(fragment)
-            );
-        });
-
-        if (contaminated.length === 0) return;
-
-        const sample = contaminated.slice(0, 8).map(question => question.id).join(', ');
-        throw new Error(
-            `El PDF se procesa en este navegador, pero la extracción no es fiable: ` +
-            `${contaminated.length} preguntas parecen mezcladas con texto del manual (${sample}${contaminated.length > 8 ? '...' : ''}). ` +
-            'Usa el CSV revisado para comparar y actualizar la BBDD.'
-        );
-    }
-
-    function findAnswerStartPage(pdfPages) {
-        let bestIndex = 92;
-        let bestCount = 0;
-        pdfPages.forEach((_, index) => {
-            const count = extractAnswerMap(pdfPages.slice(index, Math.min(index + 10, pdfPages.length)).join('\n')).size;
-            if (count >= bestCount) {
-                bestCount = count;
-                bestIndex = index;
-            }
-        });
-        return bestCount >= 250 ? bestIndex : 92;
-    }
-
-    function extractTaskQuestions(rawText, taskNumber, answers, manualYear) {
-        const markers = [...rawText.matchAll(new RegExp(`\\b(${taskNumber}\\d{3})\\b\\s*`, 'g'))]
-            .filter(marker => answers.has(marker[1]));
-        const questions = [];
-        markers.forEach((marker, index) => {
-            const id = marker[1];
-            const nextMarker = markers[index + 1];
-            const block = cleanPdfText(rawText.slice(marker.index + marker[0].length, nextMarker ? nextMarker.index : rawText.length));
-            const labels = findOptionLabels(block);
-            const expectedOptions = taskNumber === 2 ? 2 : 3;
-            if (labels.length < expectedOptions || !answers.has(id)) return;
-            const selectedLabels = labels.slice(0, expectedOptions);
-            const questionText = cleanQuestionText(block.slice(0, selectedLabels[0].index));
-            if (!questionText || questionText.length < 4) return;
-            const options = selectedLabels.map((label, optionIndex) => ({
-                key: label.key,
-                text: cleanOptionText(block.slice(label.end, selectedLabels[optionIndex + 1]?.index ?? block.length))
-            }));
-            if (options.some(option => !option.text)) return;
-            questions.push({
-                id,
-                code: id,
-                task_number: taskNumber,
-                topic: taskTopic(taskNumber),
-                question_text: questionText,
-                question_type: taskNumber === 2 ? 'true_false' : 'multiple_choice',
-                options,
-                correct_answer: answers.get(id),
-                active: true,
-                source: `Manual CCSE ${manualYear || 'Cervantes'}`
-            });
-        });
-        return questions;
-    }
-
-    function findOptionLabels(block) {
-        return [...block.matchAll(/(?:^|\s)([abc])[\).]\s*/gi)].map(match => ({
-            index: match.index,
-            end: match.index + match[0].length,
-            key: match[1].toLowerCase()
-        }));
-    }
-
-    function extractAnswerMap(text) {
-        return new Map(
-            [...text.matchAll(/\b([1-5]\d{3})\s+([abc])\b/gi)]
-                .filter(match => isValidQuestionCode(match[1]))
-                .map(match => [match[1], match[2].toLowerCase()])
-        );
-    }
-
     function buildManualReport(currentQuestions, manualQuestions, fileName, manualYear) {
         const currentById = new Map(currentQuestions.map(question => [question.id, question]));
         const manualById = new Map(manualQuestions.map(question => [question.id, question]));
@@ -861,7 +643,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderManualReport(report) {
-        const sourceLabel = report.fileName.toLowerCase().endsWith('.csv') ? 'CSV' : 'PDF';
+        const sourceLabel = 'CSV';
         const status = report.isOk
             ? '<span class="risk-badge risk-ok">Banco alineado</span>'
             : '<span class="risk-badge risk-danger">Hay diferencias que revisar</span>';
@@ -970,36 +752,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function isValidQuestionCode(code) {
-        return expectedQuestionCodes().includes(String(code));
-    }
-
     function extractTaskNumber(value, id) {
         const fromValue = String(value || '').match(/[1-5]/);
         if (fromValue) return Number(fromValue[0]);
         return Number(String(id || '').charAt(0)) || 1;
-    }
-
-    function cleanPdfText(value) {
-        return String(value || '')
-            .replace(/\bPREGUNTAS PARA LA TAREA \d\b/gi, '')
-            .split('\n')
-            .map(line => line.trim())
-            .filter(line => !/^\d{1,3}$/.test(line))
-            .filter(line => !/^Instituto Cervantes\b/i.test(line))
-            .filter(line => !/^Manual de preparación\b/i.test(line))
-            .filter(line => !/^SATNUGERP$/.test(line))
-            .join(' ')
-            .replace(/\s+/g, ' ')
-            .trim();
-    }
-
-    function cleanQuestionText(value) {
-        return cleanPdfText(value).replace(/^\d{1,3}\s+/, '').trim();
-    }
-
-    function cleanOptionText(value) {
-        return cleanPdfText(value).replace(/\b[1-5]\d{3}\b[\s\S]*$/, '').trim();
     }
 
     function taskTopic(taskNumber) {

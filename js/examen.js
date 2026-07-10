@@ -249,6 +249,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     user_id: currentUser.uid,
                     exam_id: examRef.id,
                     question_id: question.id,
+                    question_text: question.question_text,
+                    task_number: question.task_number,
                     selected_answer: selectedKey,
                     correct_answer: question.correct_answer,
                     answered,
