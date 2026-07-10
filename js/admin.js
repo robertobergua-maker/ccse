@@ -497,23 +497,47 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function textItemsToLines(items) {
+        const textItems = items
+            .filter(item => String(item.str || '').trim())
+            .map(item => ({
+                x: item.transform?.[4] || 0,
+                y: item.transform?.[5] || 0,
+                text: item.str
+            }));
+        if (textItems.length === 0) return '';
+
+        const minX = Math.min(...textItems.map(item => item.x));
+        const maxX = Math.max(...textItems.map(item => item.x));
+        const columnBreak = minX + ((maxX - minX) * 0.52);
+        const hasTwoColumns = textItems.filter(item => item.x > columnBreak).length > 12;
+        const groups = hasTwoColumns
+            ? [
+                textItems.filter(item => item.x <= columnBreak),
+                textItems.filter(item => item.x > columnBreak)
+            ]
+            : [textItems];
+
+        return groups
+            .map(group => textGroupToLines(group))
+            .filter(Boolean)
+            .join('\n');
+    }
+
+    function textGroupToLines(items) {
         const rows = [];
         const tolerance = 2;
 
-        items
-            .filter(item => String(item.str || '').trim())
-            .forEach(item => {
-                const x = item.transform?.[4] || 0;
-                const y = item.transform?.[5] || 0;
-                let row = rows.find(candidate => Math.abs(candidate.y - y) <= tolerance);
+        items.forEach(item => {
+            const { x, y, text } = item;
+            let row = rows.find(candidate => Math.abs(candidate.y - y) <= tolerance);
 
-                if (!row) {
-                    row = { y, items: [] };
-                    rows.push(row);
-                }
+            if (!row) {
+                row = { y, items: [] };
+                rows.push(row);
+            }
 
-                row.items.push({ x, text: item.str });
-            });
+            row.items.push({ x, text });
+        });
 
         return rows
             .sort((left, right) => right.y - left.y)
@@ -682,18 +706,13 @@ document.addEventListener('DOMContentLoaded', () => {
     function extractQuestionsFromManual(pdfPages) {
         const pageText = pdfPages.join('\n');
         const manualYear = detectManualYear(pageText);
-        const answers = extractAnswerMap(pdfPages.slice(92, 101).join('\n'));
-        const ranges = {
-            1: [16, 28],
-            2: [34, 38],
-            3: [44, 48],
-            4: [60, 64],
-            5: [82, 92]
-        };
+        const answerStart = findAnswerStartPage(pdfPages);
+        const answers = extractAnswerMap(pdfPages.slice(answerStart).join('\n'));
+        const questionText = pdfPages.slice(0, answerStart).join('\n');
         const byId = new Map();
 
-        Object.entries(ranges).forEach(([task, range]) => {
-            extractTaskQuestions(pdfPages.slice(range[0], range[1] + 1).join('\n'), Number(task), answers, manualYear)
+        [1, 2, 3, 4, 5].forEach(taskNumber => {
+            extractTaskQuestions(questionText, taskNumber, answers, manualYear)
                 .forEach(question => byId.set(question.id, question));
         });
 
@@ -706,8 +725,23 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
+    function findAnswerStartPage(pdfPages) {
+        let bestIndex = 92;
+        let bestCount = 0;
+
+        pdfPages.forEach((_, index) => {
+            const count = extractAnswerMap(pdfPages.slice(index, Math.min(index + 10, pdfPages.length)).join('\n')).size;
+            if (count > bestCount) {
+                bestCount = count;
+                bestIndex = index;
+            }
+        });
+
+        return bestCount >= 250 ? bestIndex : 92;
+    }
+
     function extractTaskQuestions(rawText, taskNumber, answers, manualYear) {
-        const markers = [...rawText.matchAll(/^\s*([1-5]\d{3})\s+/gm)];
+        const markers = [...rawText.matchAll(new RegExp(`\\b(${taskNumber}\\d{3})\\b\\s*`, 'g'))];
         const questions = [];
 
         markers.forEach((marker, index) => {
