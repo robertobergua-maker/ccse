@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel administrador - CCSE</title>
-    <link rel="stylesheet" href="css/style.css?v=20260710-4">
+    <link rel="stylesheet" href="css/style.css?v=20260710-5">
 </head>
 <body>
     <div class="container dashboard-container">
@@ -34,6 +34,25 @@
                     <div class="admin-card"><span>Exámenes</span><strong id="metric-exams">0</strong></div>
                     <div class="admin-card"><span>Últimas 24 h</span><strong id="metric-exams-24h">0</strong></div>
                     <div class="admin-card"><span>Alertas</span><strong id="metric-alerts">0</strong></div>
+                </div>
+            </section>
+
+            <section class="admin-section" aria-labelledby="manual-check-title">
+                <div class="section-heading">
+                    <div>
+                        <h2 id="manual-check-title">Comprobar manual Cervantes</h2>
+                        <p class="muted">Sube el PDF oficial más reciente para contrastarlo con las preguntas cargadas.</p>
+                    </div>
+                    <span id="manual-check-status" class="status-badge">Pendiente</span>
+                </div>
+
+                <div class="admin-upload">
+                    <input id="manual-pdf-input" type="file" accept="application/pdf">
+                    <button id="manual-check-btn" class="btn btn-primary" type="button">Comprobar PDF</button>
+                </div>
+
+                <div id="manual-check-results" class="admin-check-results">
+                    <p class="empty-state">Selecciona un manual en PDF para iniciar la comprobación.</p>
                 </div>
             </section>
 
@@ -108,8 +127,9 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="js/firebase-config.js"></script>
     <script src="js/auth.js?v=20260710-1"></script>
-    <script src="js/admin.js?v=20260710-2"></script>
+    <script src="js/admin.js?v=20260710-4"></script>
 </body>
 </html>

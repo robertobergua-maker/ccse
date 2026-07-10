@@ -474,6 +474,42 @@ footer {
     gap: 8px;
 }
 
+.admin-upload {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 14px 0 18px;
+}
+
+.admin-upload input {
+    border: 1px solid #d0d5dd;
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.admin-check-results {
+    border: 1px solid #e4e7ec;
+    border-radius: 8px;
+    padding: 16px;
+}
+
+.admin-check-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.admin-check-list {
+    margin: 8px 0 0;
+    padding-left: 20px;
+}
+
+.admin-check-list li {
+    margin-bottom: 6px;
+}
+
 .filter-nav {
     display: flex;
     flex-wrap: wrap;
@@ -561,6 +597,9 @@ footer {
         width: 100%;
     }
     .admin-grid {
+        grid-template-columns: 1fr;
+    }
+    .admin-check-grid {
         grid-template-columns: 1fr;
     }
     .btn {

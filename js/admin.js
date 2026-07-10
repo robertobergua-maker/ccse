@@ -23,8 +23,17 @@ document.addEventListener('DOMContentLoaded', () => {
         riskBody: document.getElementById('risk-body'),
         usersBody: document.getElementById('users-body'),
         activitySummary: document.getElementById('activity-summary'),
-        activityBody: document.getElementById('activity-body')
+        activityBody: document.getElementById('activity-body'),
+        manualPdfInput: document.getElementById('manual-pdf-input'),
+        manualCheckBtn: document.getElementById('manual-check-btn'),
+        manualCheckStatus: document.getElementById('manual-check-status'),
+        manualCheckResults: document.getElementById('manual-check-results')
     };
+
+    if (window.pdfjsLib) {
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+            'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
 
     auth.onAuthStateChanged(user => {
         if (!user) return;
@@ -56,6 +65,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (action === 'unblock') {
             setUserBlocked(userId, false);
         }
+    });
+
+    ui.manualCheckBtn.addEventListener('click', () => {
+        checkManualPdf();
     });
 
     async function loadAdminData() {
@@ -339,6 +352,222 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         return `<button class="btn btn-danger btn-compact" data-action="block" data-user-id="${escapeHtml(user.id)}" type="button">Bloquear</button>`;
+    }
+
+    async function checkManualPdf() {
+        if (!adminUser) {
+            alert('Esta comprobación solo está disponible para el administrador.');
+            return;
+        }
+
+        const file = ui.manualPdfInput.files[0];
+        if (!file) {
+            alert('Selecciona primero el PDF del manual.');
+            return;
+        }
+
+        if (!window.pdfjsLib) {
+            setManualCheckStatus('Sin PDF.js', 'offline');
+            ui.manualCheckResults.innerHTML =
+                '<p class="error-message">No se pudo cargar el lector PDF del navegador.</p>';
+            return;
+        }
+
+        setManualCheckStatus('Leyendo PDF…', 'online');
+        ui.manualCheckBtn.disabled = true;
+        ui.manualCheckResults.innerHTML =
+            '<p class="empty-state">Extrayendo texto del manual. Puede tardar unos segundos…</p>';
+
+        try {
+            const [questionsResponse, pdfText] = await Promise.all([
+                fetch('preguntas.json', { cache: 'no-store' }),
+                extractPdfText(file)
+            ]);
+
+            if (!questionsResponse.ok) {
+                throw new Error(`No se pudo cargar preguntas.json (${questionsResponse.status})`);
+            }
+
+            const questions = (await questionsResponse.json())
+                .filter(question => question.active !== false);
+            const report = buildManualReport(questions, pdfText, file.name);
+            renderManualReport(report);
+            setManualCheckStatus(report.isOk ? 'Actualizado' : 'Revisar', report.isOk ? 'online' : 'offline');
+        } catch (error) {
+            console.error('No se pudo comprobar el manual:', error);
+            setManualCheckStatus('Error', 'offline');
+            ui.manualCheckResults.innerHTML =
+                `<p class="error-message">${escapeHtml(error.message)}</p>`;
+        } finally {
+            ui.manualCheckBtn.disabled = false;
+        }
+    }
+
+    async function extractPdfText(file) {
+        const buffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
+        const pages = [];
+
+        for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
+            const page = await pdf.getPage(pageNumber);
+            const content = await page.getTextContent();
+            pages.push(content.items.map(item => item.str).join(' '));
+        }
+
+        return pages.join('\n');
+    }
+
+    function buildManualReport(questions, pdfText, fileName) {
+        const normalizedPdf = normalizeForSearch(pdfText);
+        const manualYear = detectManualYear(pdfText);
+        const questionIssues = [];
+        const optionIssues = [];
+        const missingCodes = [];
+
+        questions.forEach(question => {
+            const codeFound = normalizedPdf.includes(normalizeForSearch(question.id));
+            const questionFound = appearsInManual(normalizedPdf, question.question_text);
+
+            if (!codeFound) {
+                missingCodes.push(question.id);
+            }
+
+            if (!questionFound) {
+                questionIssues.push({
+                    id: question.id,
+                    text: question.question_text
+                });
+            }
+
+            question.options.forEach(option => {
+                if (!appearsInManual(normalizedPdf, option.text)) {
+                    optionIssues.push({
+                        id: question.id,
+                        option: option.key.toUpperCase(),
+                        text: option.text
+                    });
+                }
+            });
+        });
+
+        return {
+            fileName,
+            manualYear,
+            totalQuestions: questions.length,
+            missingCodes,
+            questionIssues,
+            optionIssues,
+            isOk: questions.length === 300 &&
+                missingCodes.length === 0 &&
+                questionIssues.length === 0 &&
+                optionIssues.length === 0
+        };
+    }
+
+    function renderManualReport(report) {
+        const status = report.isOk
+            ? '<span class="risk-badge risk-ok">Banco alineado con el PDF</span>'
+            : '<span class="risk-badge risk-danger">Hay diferencias que revisar</span>';
+
+        ui.manualCheckResults.innerHTML = `
+            <div class="admin-check-grid">
+                <div class="admin-card"><span>PDF</span><strong>${escapeHtml(report.fileName)}</strong></div>
+                <div class="admin-card"><span>Año detectado</span><strong>${escapeHtml(report.manualYear || 'No detectado')}</strong></div>
+                <div class="admin-card"><span>Preguntas banco</span><strong>${report.totalQuestions}</strong></div>
+                <div class="admin-card"><span>Estado</span><strong>${status}</strong></div>
+            </div>
+            ${renderIssueBlock('Códigos no encontrados', report.missingCodes)}
+            ${renderQuestionIssueBlock('Enunciados que no aparecen igual', report.questionIssues)}
+            ${renderOptionIssueBlock('Opciones que no aparecen igual', report.optionIssues)}
+            <p class="admin-notes">El PDF se procesa en este navegador y no se sube ni se guarda en Firestore.</p>
+        `;
+    }
+
+    function renderIssueBlock(title, values) {
+        if (values.length === 0) {
+            return `<h3>${escapeHtml(title)}</h3><p class="admin-notes">Sin incidencias.</p>`;
+        }
+
+        return `
+            <h3>${escapeHtml(title)} (${values.length})</h3>
+            <ul class="admin-check-list">
+                ${values.slice(0, 40).map(value => `<li>${escapeHtml(value)}</li>`).join('')}
+            </ul>
+            ${values.length > 40 ? `<p class="admin-notes">Se muestran 40 de ${values.length} incidencias.</p>` : ''}
+        `;
+    }
+
+    function renderQuestionIssueBlock(title, issues) {
+        if (issues.length === 0) {
+            return `<h3>${escapeHtml(title)}</h3><p class="admin-notes">Sin incidencias.</p>`;
+        }
+
+        return `
+            <h3>${escapeHtml(title)} (${issues.length})</h3>
+            <ul class="admin-check-list">
+                ${issues.slice(0, 20).map(issue =>
+                    `<li><strong>${escapeHtml(issue.id)}</strong>: ${escapeHtml(issue.text)}</li>`
+                ).join('')}
+            </ul>
+            ${issues.length > 20 ? `<p class="admin-notes">Se muestran 20 de ${issues.length} incidencias.</p>` : ''}
+        `;
+    }
+
+    function renderOptionIssueBlock(title, issues) {
+        if (issues.length === 0) {
+            return `<h3>${escapeHtml(title)}</h3><p class="admin-notes">Sin incidencias.</p>`;
+        }
+
+        return `
+            <h3>${escapeHtml(title)} (${issues.length})</h3>
+            <ul class="admin-check-list">
+                ${issues.slice(0, 30).map(issue =>
+                    `<li><strong>${escapeHtml(issue.id)} ${escapeHtml(issue.option)})</strong> ${escapeHtml(issue.text)}</li>`
+                ).join('')}
+            </ul>
+            ${issues.length > 30 ? `<p class="admin-notes">Se muestran 30 de ${issues.length} incidencias.</p>` : ''}
+        `;
+    }
+
+    function appearsInManual(normalizedPdf, value) {
+        const normalized = normalizeForSearch(value);
+        if (!normalized) return true;
+        if (normalizedPdf.includes(normalized)) return true;
+
+        const withoutEllipsis = normalized.trim();
+        if (withoutEllipsis.length >= 12 && normalizedPdf.includes(withoutEllipsis)) return true;
+
+        const words = withoutEllipsis.split(' ').filter(Boolean);
+        if (words.length < 4) return false;
+
+        const fragment = words.slice(0, Math.min(words.length, 9)).join(' ');
+        return fragment.length >= 20 && normalizedPdf.includes(fragment);
+    }
+
+    function detectManualYear(text) {
+        const matches = [...text.matchAll(/\b20\d{2}\b/g)].map(match => match[0]);
+        const counts = matches.reduce((accumulator, year) => {
+            accumulator[year] = (accumulator[year] || 0) + 1;
+            return accumulator;
+        }, {});
+        return Object.entries(counts)
+            .sort((left, right) => right[1] - left[1])
+            .map(([year]) => year)[0] || '';
+    }
+
+    function normalizeForSearch(value) {
+        return String(value || '')
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z0-9]+/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+    }
+
+    function setManualCheckStatus(text, state) {
+        ui.manualCheckStatus.textContent = text;
+        ui.manualCheckStatus.className = `status-badge status-${state}`;
     }
 
     function setForbiddenTables() {
