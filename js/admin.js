@@ -393,7 +393,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ]);
 
             const parsed = extractQuestionsFromManual(pdfPages);
-            validateExtractedQuestions(parsed.questions, parsed.answersFound);
+            validateExtractedQuestions(parsed.questions, parsed.answersFound, parsed.missingCodes);
             extractedManualQuestions = parsed.questions;
             extractedManualYear = parsed.manualYear;
 
@@ -489,9 +489,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
             const page = await pdf.getPage(pageNumber);
+            const viewport = page.getViewport({ scale: 1 });
             const content = await page.getTextContent();
             pages.push({
-                questionText: textItemsToLines(content.items),
+                questionText: textItemsToLines(content.items, viewport.width),
                 answerText: textItemsToFlowLines(content.items)
             });
         }
@@ -499,7 +500,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return pages;
     }
 
-    function textItemsToLines(items) {
+    function textItemsToLines(items, pageWidth) {
         const textItems = items
             .filter(item => String(item.str || '').trim())
             .map(item => ({
@@ -509,9 +510,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }));
         if (textItems.length === 0) return '';
 
-        const minX = Math.min(...textItems.map(item => item.x));
-        const maxX = Math.max(...textItems.map(item => item.x));
-        const columnBreak = minX + ((maxX - minX) * 0.52);
+        const columnBreak = pageWidth ? pageWidth / 2 : medianColumnBreak(textItems);
         const hasTwoColumns = textItems.filter(item => item.x > columnBreak).length > 12;
         const groups = hasTwoColumns
             ? [
@@ -524,6 +523,22 @@ document.addEventListener('DOMContentLoaded', () => {
             .map(group => textGroupToLines(group))
             .filter(Boolean)
             .join('\n');
+    }
+
+    function medianColumnBreak(items) {
+        const xs = [...new Set(items.map(item => Math.round(item.x)))].sort((left, right) => left - right);
+        let biggestGap = 0;
+        let breakPoint = xs[Math.floor(xs.length / 2)] || 0;
+
+        for (let index = 1; index < xs.length; index += 1) {
+            const gap = xs[index] - xs[index - 1];
+            if (gap > biggestGap) {
+                biggestGap = gap;
+                breakPoint = xs[index - 1] + (gap / 2);
+            }
+        }
+
+        return breakPoint;
     }
 
     function textGroupToLines(items) {
@@ -738,7 +753,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 left.id.localeCompare(right.id, 'es', { numeric: true })
             ),
             manualYear,
-            answersFound: answers.size
+            answersFound: answers.size,
+            missingCodes: [...answers.keys()].filter(code => !byId.has(code))
         };
     }
 
@@ -828,10 +844,13 @@ document.addEventListener('DOMContentLoaded', () => {
             (value >= 5001 && value <= 5084);
     }
 
-    function validateExtractedQuestions(questions, answersFound = null) {
+    function validateExtractedQuestions(questions, answersFound = null, missingCodes = []) {
         if (questions.length !== 300) {
             const answerNote = answersFound === null ? '' : ` Respuestas detectadas: ${answersFound}.`;
-            throw new Error(`El PDF debe permitir extraer 300 preguntas y se han extraído ${questions.length}.${answerNote}`);
+            const missingNote = missingCodes.length === 0
+                ? ''
+                : ` Códigos pendientes: ${missingCodes.slice(0, 24).join(', ')}${missingCodes.length > 24 ? '…' : ''}.`;
+            throw new Error(`El PDF debe permitir extraer 300 preguntas y se han extraído ${questions.length}.${answerNote}${missingNote}`);
         }
 
         const expected = { 1: 120, 2: 36, 3: 24, 4: 36, 5: 84 };
