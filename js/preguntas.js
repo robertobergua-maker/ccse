@@ -107,6 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ui.body.innerHTML = rows.map(row => {
             const correctOption = getOption(row.question, row.question.correct_answer);
             const lastOption = getOption(row.question, row.lastAnswer);
+            const questionText = getContextualQuestionText(row.question, correctOption);
             const answerContext = `
                 <div class="question-context">
                     <span class="answer-correct">Correcta: ${escapeHtml(formatOption(correctOption))}</span>
@@ -124,7 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <tr>
                     <td><strong>${escapeHtml(row.question.id)}</strong></td>
                     <td>
-                        <strong>${escapeHtml(row.question.question_text)}</strong>
+                        <strong>${escapeHtml(questionText)}</strong>
                         ${answerContext}
                     </td>
                     <td>${row.question.task_number}</td>
@@ -203,6 +204,29 @@ document.addEventListener('DOMContentLoaded', () => {
         return option
             ? `${option.key.toUpperCase()}) ${option.text}`
             : 'No disponible';
+    }
+
+    function getContextualQuestionText(question, correctOption) {
+        const text = String(question.question_text || '').trim();
+        if (!correctOption || !/(?:…|\.\.\.)\s*$/.test(text)) {
+            return text;
+        }
+
+        const stem = text.replace(/(?:…|\.\.\.)\s*$/, '').trim();
+        const answer = lowercaseFirst(cleanSentence(correctOption.text));
+        const separator = /[\s¿¡]$/.test(stem) ? '' : ' ';
+
+        return cleanSentence(`${stem}${separator}${answer}`) + '.';
+    }
+
+    function cleanSentence(value) {
+        return String(value).trim().replace(/[.\s]+$/, '');
+    }
+
+    function lowercaseFirst(value) {
+        if (!value) return value;
+        if (/^[A-ZÁÉÍÓÚÑ]{2,}\b/.test(value)) return value;
+        return value.charAt(0).toLowerCase() + value.slice(1);
     }
 
     function escapeHtml(value) {
