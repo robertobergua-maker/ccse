@@ -741,7 +741,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function extractTaskQuestions(rawText, taskNumber, answers, manualYear) {
-        const markers = [...rawText.matchAll(new RegExp(`\\b(${taskNumber}\\d{3})\\b\\s*`, 'g'))];
+        const markers = [...rawText.matchAll(new RegExp(`\\b(${taskNumber}\\d{3})\\b\\s*`, 'g'))]
+            .filter(marker => answers.has(marker[1]));
         const questions = [];
 
         markers.forEach((marker, index) => {
@@ -786,7 +787,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function findOptionLabels(block) {
-        return [...block.matchAll(/(?:^|\s)([abc])\)\s*/gi)].map(match => ({
+        return [...block.matchAll(/(?:^|\s)([abc])[\).]\s*/gi)].map(match => ({
             index: match.index,
             end: match.index + match[0].length,
             key: match[1].toLowerCase()
@@ -827,6 +828,9 @@ document.addEventListener('DOMContentLoaded', () => {
             .split('\n')
             .map(line => line.trim())
             .filter(line => !/^\d{1,3}$/.test(line))
+            .filter(line => !/^Instituto Cervantes\b/i.test(line))
+            .filter(line => !/^Manual de preparación\b/i.test(line))
+            .filter(line => !/^SATNUGERP$/.test(line))
             .join(' ')
             .replace(/\s+/g, ' ')
             .trim();
