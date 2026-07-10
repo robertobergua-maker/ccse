@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
+    const ADMIN_EMAIL = 'roberto.bergua@gmail.com';
     const auth = firebase.auth();
     const db = firebase.firestore();
 
@@ -40,7 +41,18 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- OBSERVADOR DE ESTADO DE AUTENTICACIÓN ---
     auth.onAuthStateChanged(user => {
         if (user) {
-            saveUserToFirestore(user);
+            saveUserToFirestore(user).then(profile => {
+                if (isBlockedProfile(profile) && !isAdmin(user)) {
+                    if (!window.location.pathname.endsWith('blocked.html')) {
+                        window.location.href = 'blocked.html';
+                    }
+                    return;
+                }
+
+                if (window.location.pathname.endsWith('blocked.html')) {
+                    window.location.href = 'dashboard.html';
+                }
+            });
             if (ui.userInfo) {
                 ui.userInfo.textContent = `Hola, ${user.displayName}`;
             }
@@ -60,29 +72,38 @@ document.addEventListener('DOMContentLoaded', function() {
     function saveUserToFirestore(user) {
         const usersRef = db.collection('users').doc(user.uid);
 
-        usersRef.get().then(doc => {
+        return usersRef.get().then(doc => {
             if (!doc.exists) {
                 // Crear nuevo registro de usuario
-                usersRef.set({
+                return usersRef.set({
                     id: user.uid,
                     name: user.displayName,
                     email: user.email,
                     created_at: firebase.firestore.FieldValue.serverTimestamp(),
                     last_login: firebase.firestore.FieldValue.serverTimestamp()
-                }).catch(error => {
-                    console.error("Error al crear el registro de usuario en Firestore:", error);
-                });
-            } else {
-                // Actualizar la fecha del último login
-                usersRef.update({
-                    last_login: firebase.firestore.FieldValue.serverTimestamp()
-                }).catch(error => {
-                    console.error("Error al actualizar la fecha de último login:", error);
-                });
+                }).then(() => ({ id: user.uid, blocked: false }));
             }
+
+            const profile = doc.data();
+            // Actualizar la fecha del último login
+            return usersRef.update({
+                last_login: firebase.firestore.FieldValue.serverTimestamp()
+            }).then(() => profile).catch(error => {
+                console.error("Error al actualizar la fecha de último login:", error);
+                return profile;
+            });
         }).catch(error => {
             // Este error saltará si no hay conexión para hacer el get()
             console.error("Error al obtener el documento del usuario desde Firestore:", error);
+            return null;
         });
+    }
+
+    function isAdmin(user) {
+        return String(user.email || '').toLowerCase() === ADMIN_EMAIL;
+    }
+
+    function isBlockedProfile(profile) {
+        return profile && profile.blocked === true;
     }
 });

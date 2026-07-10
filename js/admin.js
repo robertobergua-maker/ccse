@@ -11,6 +11,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const auth = firebase.auth();
     const db = firebase.firestore();
+    let adminUser = null;
+    let currentRows = [];
     const ui = {
         summary: document.getElementById('admin-summary'),
         status: document.getElementById('admin-status'),
@@ -19,7 +21,9 @@ document.addEventListener('DOMContentLoaded', () => {
         exams24h: document.getElementById('metric-exams-24h'),
         alerts: document.getElementById('metric-alerts'),
         riskBody: document.getElementById('risk-body'),
-        usersBody: document.getElementById('users-body')
+        usersBody: document.getElementById('users-body'),
+        activitySummary: document.getElementById('activity-summary'),
+        activityBody: document.getElementById('activity-body')
     };
 
     auth.onAuthStateChanged(user => {
@@ -30,7 +34,28 @@ document.addEventListener('DOMContentLoaded', () => {
             setForbiddenTables();
             return;
         }
+        adminUser = user;
         loadAdminData();
+    });
+
+    ui.usersBody.addEventListener('click', event => {
+        const action = event.target.dataset.action;
+        const userId = event.target.dataset.userId;
+        if (!action || !userId) return;
+
+        if (action === 'review') {
+            reviewUserActivity(userId);
+            return;
+        }
+
+        if (action === 'block') {
+            setUserBlocked(userId, true);
+            return;
+        }
+
+        if (action === 'unblock') {
+            setUserBlocked(userId, false);
+        }
     });
 
     async function loadAdminData() {
@@ -54,6 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             const rows = buildUserRows(users, usersById, exams);
+            currentRows = rows;
             renderMetrics(users, exams, rows);
             renderRiskRows(rows);
             renderUserRows(rows);
@@ -63,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ui.summary.textContent = 'No se pudo cargar el panel administrador.';
             setStatus('Error', 'offline');
             ui.riskBody.innerHTML = '<tr><td colspan="6" class="empty-state">Error al cargar señales.</td></tr>';
-            ui.usersBody.innerHTML = '<tr><td colspan="6" class="empty-state">Error al cargar usuarios.</td></tr>';
+            ui.usersBody.innerHTML = '<tr><td colspan="8" class="empty-state">Error al cargar usuarios.</td></tr>';
         }
     }
 
@@ -168,7 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderUserRows(rows) {
         if (rows.length === 0) {
-            ui.usersBody.innerHTML = '<tr><td colspan="6" class="empty-state">No hay usuarios registrados.</td></tr>';
+            ui.usersBody.innerHTML = '<tr><td colspan="8" class="empty-state">No hay usuarios registrados.</td></tr>';
             return;
         }
 
@@ -178,10 +204,103 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${escapeHtml(row.user.email || 'No disponible')}</td>
                 <td>${escapeHtml(formatTimestamp(row.user.created_at))}</td>
                 <td>${escapeHtml(formatTimestamp(row.user.last_login))}</td>
+                <td>${userStatusBadge(row.user)}</td>
                 <td>${row.passed}</td>
                 <td>${row.failed}</td>
+                <td>
+                    <div class="admin-actions">
+                        <button class="btn btn-secondary btn-compact" data-action="review" data-user-id="${escapeHtml(row.user.id)}" type="button">Revisar</button>
+                        ${blockButton(row.user)}
+                    </div>
+                </td>
             </tr>
         `).join('');
+    }
+
+    async function setUserBlocked(userId, blocked) {
+        const row = currentRows.find(item => item.user.id === userId);
+        if (!row) return;
+
+        const userLabel = displayName(row.user);
+        const verb = blocked ? 'bloquear' : 'desbloquear';
+        const confirmed = confirm(`¿Quieres ${verb} a ${userLabel}?`);
+        if (!confirmed) return;
+
+        try {
+            const update = blocked
+                ? {
+                    blocked: true,
+                    blocked_at: firebase.firestore.FieldValue.serverTimestamp(),
+                    blocked_by: adminUser.email,
+                    blocked_reason: 'Bloqueado desde panel administrador'
+                }
+                : {
+                    blocked: false,
+                    unblocked_at: firebase.firestore.FieldValue.serverTimestamp(),
+                    unblocked_by: adminUser.email
+                };
+
+            await db.collection('users').doc(userId).update(update);
+            await loadAdminData();
+            reviewUserActivity(userId);
+        } catch (error) {
+            console.error(`No se pudo ${verb} el usuario:`, error);
+            alert(`No se pudo ${verb} el usuario. Revisa permisos o conexión.`);
+        }
+    }
+
+    async function reviewUserActivity(userId) {
+        const row = currentRows.find(item => item.user.id === userId);
+        if (!row) return;
+
+        ui.activitySummary.textContent = `Cargando actividad de ${displayName(row.user)}…`;
+        ui.activityBody.innerHTML = '<tr><td colspan="6" class="empty-state">Cargando actividad…</td></tr>';
+
+        try {
+            const answersSnapshot = await db.collection('exam_answers')
+                .where('user_id', '==', userId)
+                .get();
+            const answersByExam = new Map();
+            answersSnapshot.forEach(doc => {
+                const answer = doc.data();
+                const examId = answer.exam_id || 'sin_examen';
+                if (!answersByExam.has(examId)) answersByExam.set(examId, []);
+                answersByExam.get(examId).push(answer);
+            });
+
+            const exams = [...row.exams].sort(
+                (left, right) => timestampToMillis(right.finished_at) - timestampToMillis(left.finished_at)
+            );
+            ui.activitySummary.textContent =
+                `${displayName(row.user)} · ${row.total} exámenes · ${answersSnapshot.size} respuestas registradas · ${row.exams24h} exámenes en 24 h.`;
+
+            if (exams.length === 0) {
+                ui.activityBody.innerHTML = '<tr><td colspan="6" class="empty-state">Este usuario no tiene exámenes guardados.</td></tr>';
+                return;
+            }
+
+            ui.activityBody.innerHTML = exams.map(exam => {
+                const answers = answersByExam.get(exam.id) || [];
+                const questionIds = answers.map(answer => answer.question_id).filter(Boolean);
+                return `
+                    <tr>
+                        <td>${escapeHtml(formatTimestamp(exam.finished_at))}</td>
+                        <td>${exam.passed ? '<span class="result-badge result-correct">Apto</span>' : '<span class="result-badge result-wrong">No apto</span>'}</td>
+                        <td>${exam.score_correct || 0}/${exam.total_questions || 25}</td>
+                        <td>${exam.score_incorrect || 0}</td>
+                        <td>${exam.score_unanswered || 0}</td>
+                        <td>
+                            <strong>${answers.length}</strong>
+                            <p class="admin-notes">${escapeHtml(questionIds.slice(0, 12).join(', ') || 'Sin detalle')}</p>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        } catch (error) {
+            console.error('No se pudo cargar la actividad del usuario:', error);
+            ui.activitySummary.textContent = `No se pudo cargar la actividad de ${displayName(row.user)}.`;
+            ui.activityBody.innerHTML = '<tr><td colspan="6" class="empty-state">Error al cargar actividad.</td></tr>';
+        }
     }
 
     function getRisk(row) {
@@ -205,9 +324,27 @@ document.addEventListener('DOMContentLoaded', () => {
         return '<span class="risk-badge risk-ok">Normal</span>';
     }
 
+    function userStatusBadge(user) {
+        if (user.blocked === true) return '<span class="risk-badge risk-danger">Bloqueado</span>';
+        return '<span class="risk-badge risk-ok">Activo</span>';
+    }
+
+    function blockButton(user) {
+        if (String(user.email || '').toLowerCase() === ADMIN_EMAIL) {
+            return '<span class="admin-notes">Admin</span>';
+        }
+
+        if (user.blocked === true) {
+            return `<button class="btn btn-primary btn-compact" data-action="unblock" data-user-id="${escapeHtml(user.id)}" type="button">Desbloquear</button>`;
+        }
+
+        return `<button class="btn btn-danger btn-compact" data-action="block" data-user-id="${escapeHtml(user.id)}" type="button">Bloquear</button>`;
+    }
+
     function setForbiddenTables() {
         ui.riskBody.innerHTML = '<tr><td colspan="6" class="empty-state">No tienes permiso para ver este panel.</td></tr>';
-        ui.usersBody.innerHTML = '<tr><td colspan="6" class="empty-state">No tienes permiso para ver usuarios.</td></tr>';
+        ui.usersBody.innerHTML = '<tr><td colspan="8" class="empty-state">No tienes permiso para ver usuarios.</td></tr>';
+        ui.activityBody.innerHTML = '<tr><td colspan="6" class="empty-state">No tienes permiso para ver actividad.</td></tr>';
     }
 
     function setStatus(text, state) {

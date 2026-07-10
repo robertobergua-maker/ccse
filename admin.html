@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel administrador - CCSE</title>
-    <link rel="stylesheet" href="css/style.css?v=20260710-2">
+    <link rel="stylesheet" href="css/style.css?v=20260710-4">
 </head>
 <body>
     <div class="container dashboard-container">
@@ -68,12 +68,36 @@
                                 <th>Email</th>
                                 <th>Alta</th>
                                 <th>Último login</th>
+                                <th>Estado</th>
                                 <th>Aptos</th>
                                 <th>No aptos</th>
+                                <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody id="users-body">
-                            <tr><td colspan="6" class="empty-state">Cargando usuarios…</td></tr>
+                            <tr><td colspan="8" class="empty-state">Cargando usuarios…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="admin-section" aria-labelledby="activity-title">
+                <h2 id="activity-title">Revisión de actividad</h2>
+                <p id="activity-summary" class="muted">Selecciona un usuario para revisar su actividad.</p>
+                <div class="table-scroll">
+                    <table class="stats-table">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Resultado</th>
+                                <th>Aciertos</th>
+                                <th>Fallos</th>
+                                <th>Sin responder</th>
+                                <th>Preguntas</th>
+                            </tr>
+                        </thead>
+                        <tbody id="activity-body">
+                            <tr><td colspan="6" class="empty-state">Sin usuario seleccionado.</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -85,7 +109,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <script src="js/firebase-config.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/admin.js?v=20260710-1"></script>
+    <script src="js/auth.js?v=20260710-1"></script>
+    <script src="js/admin.js?v=20260710-2"></script>
 </body>
 </html>

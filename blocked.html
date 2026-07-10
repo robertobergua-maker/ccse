@@ -1,24 +1,28 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Acceso de Usuario - CCSE</title>
-    <link rel="stylesheet" href="css/style.css">
+    <title>Acceso bloqueado - CCSE</title>
+    <link rel="stylesheet" href="css/style.css?v=20260710-4">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Acceso a tu Panel de Estudio</h1>
+            <div>
+                <h1>Acceso bloqueado</h1>
+                <p class="muted">Tu cuenta no puede generar actividad en este momento.</p>
+            </div>
+            <button id="logout-btn" class="btn btn-secondary">Cerrar sesión</button>
         </header>
         <main>
-            <p>Regístrate o inicia sesión para guardar tu progreso y acceder a todas las funcionalidades.</p>
-            <div id="auth-container">
-                <button id="google-login-btn" class="btn btn-primary">Acceder con Google</button>
-            </div>
+            <p class="error-message">
+                Esta cuenta ha sido bloqueada por el administrador. Si crees que se trata de un error,
+                contacta con el responsable de la aplicación.
+            </p>
         </main>
     </div>
+
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>

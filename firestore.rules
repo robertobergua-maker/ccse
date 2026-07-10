@@ -15,6 +15,12 @@ service cloud.firestore {
       return signedIn() && request.auth.uid == userId;
     }
 
+    function isBlocked() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.blocked == true;
+    }
+
     function ownsStoredRecord() {
       return signedIn()
         && resource != null
@@ -34,10 +40,16 @@ service cloud.firestore {
       // Cada perfil solamente es visible y editable por su propio usuario.
       allow read: if isCurrentUser(userId) || isAdmin();
       allow create: if isCurrentUser(userId)
-        && request.resource.data.id == userId;
-      allow update: if isCurrentUser(userId)
-        && resource.data.id == userId
-        && request.resource.data.id == userId;
+        && request.resource.data.id == userId
+        && !request.resource.data.keys().hasAny(["blocked", "blocked_at", "blocked_by", "blocked_reason"]);
+      allow update: if isAdmin()
+        || (
+          isCurrentUser(userId)
+          && resource.data.id == userId
+          && request.resource.data.id == userId
+          && !request.resource.data.diff(resource.data).affectedKeys()
+            .hasAny(["blocked", "blocked_at", "blocked_by", "blocked_reason"])
+        );
       allow delete: if false;
     }
 
@@ -49,26 +61,28 @@ service cloud.firestore {
 
     match /exams/{examId} {
       allow read: if ownsStoredRecord() || isAdmin();
-      allow delete: if ownsStoredRecord();
-      allow create: if ownsNewRecord();
-      allow update: if ownsStoredRecord() && ownsNewRecord() && keepsOwner();
+      allow delete: if ownsStoredRecord() && !isBlocked();
+      allow create: if ownsNewRecord() && !isBlocked();
+      allow update: if ownsStoredRecord() && ownsNewRecord() && keepsOwner() && !isBlocked();
     }
 
     match /exam_answers/{answerId} {
       allow read: if ownsStoredRecord() || isAdmin();
-      allow delete: if ownsStoredRecord();
-      allow create: if ownsNewRecord();
-      allow update: if ownsStoredRecord() && ownsNewRecord() && keepsOwner();
+      allow delete: if ownsStoredRecord() && !isBlocked();
+      allow create: if ownsNewRecord() && !isBlocked();
+      allow update: if ownsStoredRecord() && ownsNewRecord() && keepsOwner() && !isBlocked();
     }
 
     match /user_question_stats/{statId} {
       allow read: if ownsStoredRecord() || isAdmin();
-      allow delete: if ownsStoredRecord();
+      allow delete: if ownsStoredRecord() && !isBlocked();
       allow create: if ownsNewRecord()
+        && !isBlocked()
         && statId == request.auth.uid + "_" + request.resource.data.question_id;
       allow update: if ownsStoredRecord()
         && ownsNewRecord()
         && keepsOwner()
+        && !isBlocked()
         && request.resource.data.question_id == resource.data.question_id
         && statId == request.auth.uid + "_" + resource.data.question_id;
     }

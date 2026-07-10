@@ -82,6 +82,20 @@ main {
     background-color: #5a6268;
 }
 
+.btn-danger {
+    background-color: #dc2626;
+}
+
+.btn-danger:hover {
+    background-color: #b91c1c;
+}
+
+.btn-compact {
+    border-radius: 6px;
+    font-size: 0.86rem;
+    padding: 8px 10px;
+}
+
 #auth-container {
     text-align: center;
     margin-top: 40px;
@@ -452,6 +466,12 @@ footer {
     color: #667085;
     font-size: 0.9rem;
     margin: 6px 0 0;
+}
+
+.admin-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
 .filter-nav {
