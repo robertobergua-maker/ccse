@@ -33,6 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
         manualCsvInput: document.getElementById('manual-csv-input'),
         manualCsvCheckBtn: document.getElementById('manual-csv-check-btn'),
         manualUpdateBtn: document.getElementById('manual-update-btn'),
+        obsoleteCleanupBtn: document.getElementById('obsolete-cleanup-btn'),
         manualCheckStatus: document.getElementById('manual-check-status'),
         manualCheckResults: document.getElementById('manual-check-results')
     };
@@ -66,6 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
     ui.manualCheckBtn?.addEventListener('click', checkManualPdf);
     ui.manualCsvCheckBtn?.addEventListener('click', checkManualCsv);
     ui.manualUpdateBtn?.addEventListener('click', updateQuestionDatabase);
+    ui.obsoleteCleanupBtn?.addEventListener('click', cleanupObsoleteAnswerRecords);
 
     async function loadAdminData() {
         try {
@@ -308,6 +310,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const [currentQuestions, pdfPages] = await Promise.all([loadQuestionBank(), extractPdfPages(file)]);
             const parsed = extractQuestionsFromManual(pdfPages);
             validateExtractedQuestions(parsed.questions, parsed.answersFound, parsed.missingCodes, 'PDF');
+            validatePdfExtractionQuality(parsed.questions);
             showImportReport(currentQuestions, parsed.questions, file.name, parsed.manualYear || '');
         } catch (error) {
             showImportError(error);
@@ -421,6 +424,56 @@ document.addEventListener('DOMContentLoaded', () => {
             ui.manualCheckBtn.disabled = false;
             ui.manualCsvCheckBtn.disabled = false;
         }
+    }
+
+    async function cleanupObsoleteAnswerRecords() {
+        if (!adminUser) {
+            alert('Esta limpieza solo está disponible para el administrador.');
+            return;
+        }
+
+        const confirmed = confirm(
+            'Se eliminarán los registros de respuestas y estadísticas cuyo question_id no exista en la colección questions actual. ¿Continuar?'
+        );
+        if (!confirmed) return;
+
+        ui.obsoleteCleanupBtn.disabled = true;
+        ui.manualUpdateBtn.disabled = true;
+        setManualCheckStatus('Limpiando...', 'online');
+
+        try {
+            const validQuestionIds = await loadQuestionIdsFromDatabase();
+            const cleanup = await collectObsoleteAnswerOperations(validQuestionIds);
+
+            if (cleanup.operations.length > 0) {
+                await commitOperationsInChunks(cleanup.operations);
+            }
+
+            setManualCheckStatus('Limpieza completada', 'online');
+            ui.manualCheckResults.innerHTML = `
+                <p class="result-badge result-correct">
+                    Limpieza completada: ${cleanup.examAnswersDeleted} respuestas y ${cleanup.statsDeleted} estadísticas obsoletas eliminadas.
+                </p>
+            `;
+        } catch (error) {
+            console.error('No se pudieron limpiar los registros obsoletos:', error);
+            setManualCheckStatus('Error', 'offline');
+            ui.manualCheckResults.innerHTML = `<p class="error-message">No se pudieron limpiar los registros obsoletos: ${escapeHtml(error.message)}</p>`;
+        } finally {
+            ui.obsoleteCleanupBtn.disabled = false;
+            ui.manualUpdateBtn.disabled = !(extractedManualQuestions.length === 300 && lastManualReport);
+        }
+    }
+
+    async function loadQuestionIdsFromDatabase() {
+        const snapshot = await db.collection('questions').get();
+        const ids = new Set();
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.active !== false) ids.add(doc.id);
+        });
+        if (ids.size === 0) throw new Error('La colección questions no tiene preguntas activas.');
+        return ids;
     }
 
     async function collectObsoleteAnswerOperations(validQuestionIds) {
@@ -662,6 +715,34 @@ document.addEventListener('DOMContentLoaded', () => {
             answersFound: answers.size,
             missingCodes: [...answers.keys()].filter(code => !byId.has(code))
         };
+    }
+
+    function validatePdfExtractionQuality(questions) {
+        const contaminated = questions.filter(question => {
+            const fragments = [
+                question.question_text,
+                ...question.options.map(option => option.text)
+            ].map(value => String(value || ''));
+
+            return fragments.some(fragment =>
+                fragment.length > 360 ||
+                /\bInstituto Cervantes\b/i.test(fragment) ||
+                /\bManual de preparaci[oó]n\b/i.test(fragment) ||
+                /\bTarea\s+[1-5]\b/i.test(fragment) ||
+                /\bFIGURA\s+\d+/i.test(fragment) ||
+                /\bPREGUNTAS\b/i.test(fragment) ||
+                /\bwww\.cervantes\.es\b/i.test(fragment)
+            );
+        });
+
+        if (contaminated.length === 0) return;
+
+        const sample = contaminated.slice(0, 8).map(question => question.id).join(', ');
+        throw new Error(
+            `El PDF se procesa en este navegador, pero la extracción no es fiable: ` +
+            `${contaminated.length} preguntas parecen mezcladas con texto del manual (${sample}${contaminated.length > 8 ? '...' : ''}). ` +
+            'Usa el CSV revisado para comparar y actualizar la BBDD.'
+        );
     }
 
     function findAnswerStartPage(pdfPages) {
