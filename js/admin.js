@@ -374,7 +374,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const confirmed = confirm(
-            `Hay ${lastManualReport.discrepancyCount} discrepancias. Vas a reemplazar la colección questions con las 300 preguntas revisadas. ¿Continuar?`
+            `Hay ${lastManualReport.discrepancyCount} discrepancias. Vas a reemplazar la colección questions con las 300 preguntas revisadas y eliminar registros de respuestas asociados a preguntas que ya no existan. ¿Continuar?`
         );
         if (!confirmed) return;
 
@@ -404,11 +404,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             });
 
+            const cleanup = await collectObsoleteAnswerOperations(newIds);
+            operations.push(...cleanup.operations);
+
             await commitOperationsInChunks(operations);
             setManualCheckStatus('BBDD actualizada', 'online');
             ui.manualCheckResults.insertAdjacentHTML(
                 'afterbegin',
-                `<p class="result-badge result-correct">Base de datos actualizada: ${extractedManualQuestions.length} preguntas activas en Firestore.</p>`
+                `<p class="result-badge result-correct">Base de datos actualizada: ${extractedManualQuestions.length} preguntas activas. Limpieza: ${cleanup.examAnswersDeleted} respuestas y ${cleanup.statsDeleted} estadísticas obsoletas eliminadas.</p>`
             );
         } catch (error) {
             console.error('No se pudo actualizar la BBDD de preguntas:', error);
@@ -418,6 +421,34 @@ document.addEventListener('DOMContentLoaded', () => {
             ui.manualCheckBtn.disabled = false;
             ui.manualCsvCheckBtn.disabled = false;
         }
+    }
+
+    async function collectObsoleteAnswerOperations(validQuestionIds) {
+        const [answersSnapshot, statsSnapshot] = await Promise.all([
+            db.collection('exam_answers').get(),
+            db.collection('user_question_stats').get()
+        ]);
+        const operations = [];
+        let examAnswersDeleted = 0;
+        let statsDeleted = 0;
+
+        answersSnapshot.forEach(doc => {
+            const questionId = String(doc.data().question_id || '');
+            if (!validQuestionIds.has(questionId)) {
+                operations.push({ type: 'delete', ref: doc.ref });
+                examAnswersDeleted += 1;
+            }
+        });
+
+        statsSnapshot.forEach(doc => {
+            const questionId = String(doc.data().question_id || '');
+            if (!validQuestionIds.has(questionId)) {
+                operations.push({ type: 'delete', ref: doc.ref });
+                statsDeleted += 1;
+            }
+        });
+
+        return { operations, examAnswersDeleted, statsDeleted };
     }
 
     async function commitOperationsInChunks(operations) {

@@ -68,14 +68,14 @@ service cloud.firestore {
 
     match /exam_answers/{answerId} {
       allow read: if ownsStoredRecord() || isAdmin();
-      allow delete: if ownsStoredRecord() && !isBlocked();
+      allow delete: if isAdmin() || (ownsStoredRecord() && !isBlocked());
       allow create: if ownsNewRecord() && !isBlocked();
       allow update: if ownsStoredRecord() && ownsNewRecord() && keepsOwner() && !isBlocked();
     }
 
     match /user_question_stats/{statId} {
       allow read: if ownsStoredRecord() || isAdmin();
-      allow delete: if ownsStoredRecord() && !isBlocked();
+      allow delete: if isAdmin() || (ownsStoredRecord() && !isBlocked());
       allow create: if ownsNewRecord()
         && !isBlocked()
         && statId == request.auth.uid + "_" + request.resource.data.question_id;
