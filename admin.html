@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel administrador - CCSE</title>
+    <link rel="stylesheet" href="css/style.css?v=20260710-2">
+</head>
+<body>
+    <div class="container dashboard-container">
+        <header>
+            <div>
+                <h1>Panel de administrador</h1>
+                <p id="admin-summary" class="muted">Cargando datos…</p>
+            </div>
+            <div class="header-actions">
+                <a href="dashboard.html" class="btn btn-secondary">Volver al panel</a>
+                <button id="logout-btn" class="btn btn-secondary">Cerrar sesión</button>
+            </div>
+        </header>
+
+        <main>
+            <section aria-labelledby="admin-metrics-title">
+                <div class="section-heading">
+                    <div>
+                        <h2 id="admin-metrics-title">Vista general</h2>
+                        <p class="muted">Actividad global, usuarios y señales de uso excesivo.</p>
+                    </div>
+                    <span id="admin-status" class="status-badge">Cargando…</span>
+                </div>
+
+                <div class="admin-grid">
+                    <div class="admin-card"><span>Usuarios</span><strong id="metric-users">0</strong></div>
+                    <div class="admin-card"><span>Exámenes</span><strong id="metric-exams">0</strong></div>
+                    <div class="admin-card"><span>Últimas 24 h</span><strong id="metric-exams-24h">0</strong></div>
+                    <div class="admin-card"><span>Alertas</span><strong id="metric-alerts">0</strong></div>
+                </div>
+            </section>
+
+            <section class="admin-section" aria-labelledby="risk-title">
+                <h2 id="risk-title">Posibles peligros de excesos</h2>
+                <div class="table-scroll">
+                    <table class="stats-table">
+                        <thead>
+                            <tr>
+                                <th>Usuario</th>
+                                <th>Riesgo</th>
+                                <th>Exámenes 24 h</th>
+                                <th>Exámenes 7 días</th>
+                                <th>Total</th>
+                                <th>Última actividad</th>
+                            </tr>
+                        </thead>
+                        <tbody id="risk-body">
+                            <tr><td colspan="6" class="empty-state">Cargando señales…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="admin-section" aria-labelledby="users-title">
+                <h2 id="users-title">Control de usuarios</h2>
+                <div class="table-scroll">
+                    <table class="stats-table">
+                        <thead>
+                            <tr>
+                                <th>Usuario</th>
+                                <th>Email</th>
+                                <th>Alta</th>
+                                <th>Último login</th>
+                                <th>Aptos</th>
+                                <th>No aptos</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-body">
+                            <tr><td colspan="6" class="empty-state">Cargando usuarios…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/admin.js?v=20260710-1"></script>
+</body>
+</html>

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de alumno - CCSE</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=20260710-3">
 </head>
 <body>
     <div class="container dashboard-container">
@@ -13,7 +13,10 @@
                 <h1>Tu panel de estudio</h1>
                 <p id="user-info" class="muted"></p>
             </div>
-            <button id="logout-btn" class="btn btn-secondary">Cerrar sesión</button>
+            <div class="header-actions">
+                <a id="admin-panel-link" class="btn btn-primary admin-only" href="admin.html" hidden>Panel admin</a>
+                <button id="logout-btn" class="btn btn-secondary">Cerrar sesión</button>
+            </div>
         </header>
 
         <main>
@@ -99,6 +102,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <script src="js/firebase-config.js"></script>
     <script src="js/auth.js"></script>
-    <script src="js/app.js?v=20260708-1"></script>
+    <script src="js/app.js?v=20260710-3"></script>
 </body>
 </html>

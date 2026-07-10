@@ -10,7 +10,8 @@ document.addEventListener('DOMContentLoaded', () => {
         correct: document.getElementById('stat-acertadas'),
         wrong: document.getElementById('stat-falladas'),
         examHistorySummary: document.getElementById('exam-history-summary'),
-        examHistoryBody: document.getElementById('exam-history-body')
+        examHistoryBody: document.getElementById('exam-history-body'),
+        adminPanelLink: document.getElementById('admin-panel-link')
     };
 
     if (ui.startExamBtn) {
@@ -21,9 +22,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     auth.onAuthStateChanged(async user => {
         if (!user) return;
+        showAdminAccess(user);
         loadProgress(user);
         loadExamHistory(user);
     });
+
+    function showAdminAccess(user) {
+        if (!ui.adminPanelLink) return;
+        const isAdmin = String(user.email || '').toLowerCase() === 'roberto.bergua@gmail.com';
+        ui.adminPanelLink.hidden = !isAdmin;
+        ui.adminPanelLink.classList.toggle('is-visible', isAdmin);
+    }
 
     async function loadProgress(user) {
         if (!ui.answered) return;

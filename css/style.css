@@ -30,6 +30,12 @@ header {
     align-items: center;
 }
 
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
 header h1 {
     font-size: 1.8em;
     margin: 0;
@@ -378,6 +384,76 @@ footer {
     box-sizing: border-box;
 }
 
+.admin-only {
+    display: none;
+}
+
+.admin-only.is-visible {
+    display: inline-block;
+}
+
+.admin-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin: 18px 0 28px;
+}
+
+.admin-card {
+    background: #f9fafb;
+    border: 1px solid #e4e7ec;
+    border-radius: 8px;
+    padding: 16px;
+}
+
+.admin-card span {
+    color: #667085;
+    display: block;
+    font-size: 0.88rem;
+    margin-bottom: 8px;
+}
+
+.admin-card strong {
+    color: #101828;
+    display: block;
+    font-size: 1.8rem;
+    line-height: 1;
+}
+
+.admin-section {
+    margin-top: 32px;
+}
+
+.risk-badge {
+    border-radius: 999px;
+    display: inline-block;
+    font-size: 0.82rem;
+    font-weight: 800;
+    padding: 6px 10px;
+    white-space: nowrap;
+}
+
+.risk-ok {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.risk-watch {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.risk-danger {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.admin-notes {
+    color: #667085;
+    font-size: 0.9rem;
+    margin: 6px 0 0;
+}
+
 .filter-nav {
     display: flex;
     flex-wrap: wrap;
@@ -459,6 +535,13 @@ footer {
     }
     .section-heading {
         flex-direction: column;
+    }
+    .header-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+    .admin-grid {
+        grid-template-columns: 1fr;
     }
     .btn {
         width: 100%;
