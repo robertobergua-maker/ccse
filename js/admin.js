@@ -242,20 +242,36 @@ document.addEventListener('DOMContentLoaded', () => {
         ui.activityBody.innerHTML = '<tr><td colspan="6" class="empty-state">Cargando actividad...</td></tr>';
 
         try {
-            const answersSnapshot = await db.collection('exam_answers').where('user_id', '==', userId).get();
+            const [answersSnapshot, validQuestionTexts] = await Promise.all([
+                db.collection('exam_answers').where('user_id', '==', userId).get(),
+                loadQuestionTextsFromDatabase()
+            ]);
             const answersByExam = new Map();
+            const obsoleteAnswerOperations = [];
+            let answerCount = 0;
+
             answersSnapshot.forEach(doc => {
                 const answer = doc.data();
+                const answerText = normalizeForSearch(answer.question_text);
+                if (!answerText || !validQuestionTexts.has(answerText)) {
+                    obsoleteAnswerOperations.push({ type: 'delete', ref: doc.ref });
+                    return;
+                }
+
+                answerCount += 1;
                 const examId = answer.exam_id || 'sin_examen';
                 if (!answersByExam.has(examId)) answersByExam.set(examId, []);
                 answersByExam.get(examId).push(answer);
             });
+            if (obsoleteAnswerOperations.length > 0) {
+                await commitOperationsInChunks(obsoleteAnswerOperations);
+            }
 
             const exams = [...row.exams].sort(
                 (left, right) => timestampToMillis(right.finished_at) - timestampToMillis(left.finished_at)
             );
             ui.activitySummary.textContent =
-                `${displayName(row.user)} · ${row.total} exámenes · ${answersSnapshot.size} respuestas registradas · ${row.exams24h} exámenes en 24 h.`;
+                `${displayName(row.user)} · ${row.total} exámenes · ${answerCount} respuestas vigentes · ${obsoleteAnswerOperations.length} obsoletas eliminadas · ${row.exams24h} exámenes en 24 h.`;
 
             if (exams.length === 0) {
                 ui.activityBody.innerHTML = '<tr><td colspan="6" class="empty-state">Este usuario no tiene exámenes guardados.</td></tr>';

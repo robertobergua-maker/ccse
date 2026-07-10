@@ -38,11 +38,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     .where('user_id', '==', user.uid)
                     .get()
             ]);
+            const validQuestionTexts = new Set(questions.map(question => normalizeForSearch(question.question_text)));
+            const currentTextByQuestion = new Map(
+                questions.map(question => [question.id, normalizeForSearch(question.question_text)])
+            );
             const statsByQuestion = new Map();
+            const obsoleteStats = [];
+
             statsSnapshot.forEach(doc => {
                 const stat = doc.data();
-                statsByQuestion.set(stat.question_id, stat);
+                const statText = normalizeForSearch(stat.question_text);
+                if (!statText || !validQuestionTexts.has(statText)) {
+                    obsoleteStats.push(doc.ref);
+                    return;
+                }
+                if (currentTextByQuestion.get(stat.question_id) === statText) {
+                    statsByQuestion.set(stat.question_id, stat);
+                }
             });
+            await cleanupObsoleteStats(obsoleteStats);
 
             visibleRows = questions.map(question => {
                 const stat = statsByQuestion.get(question.id) || {};
@@ -89,6 +103,20 @@ document.addEventListener('DOMContentLoaded', () => {
         if (activeFilter === 'acertadas') return row.lastCorrect === true;
         if (activeFilter === 'falladas') return row.lastCorrect === false;
         return true;
+    }
+
+    async function cleanupObsoleteStats(refs) {
+        if (refs.length === 0) return;
+        try {
+            const chunkSize = 450;
+            for (let index = 0; index < refs.length; index += chunkSize) {
+                const batch = db.batch();
+                refs.slice(index, index + chunkSize).forEach(ref => batch.delete(ref));
+                await batch.commit();
+            }
+        } catch (error) {
+            console.warn('No se pudieron limpiar estadísticas obsoletas del usuario:', error);
+        }
     }
 
     async function loadQuestionBank() {
@@ -245,6 +273,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!value) return value;
         if (/^[A-ZÁÉÍÓÚÑ]{2,}\b/.test(value)) return value;
         return value.charAt(0).toLowerCase() + value.slice(1);
+    }
+
+    function normalizeForSearch(value) {
+        return String(value || '')
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z0-9]+/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
     }
 
     function escapeHtml(value) {

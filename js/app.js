@@ -47,14 +47,26 @@ document.addEventListener('DOMContentLoaded', () => {
             const activeQuestionIds = new Set(
                 questions.filter(question => question.active !== false).map(question => question.id)
             );
+            const validQuestionTexts = new Set(
+                questions.filter(question => question.active !== false).map(question => normalizeForSearch(question.question_text))
+            );
+            const seenQuestionTexts = new Set();
+            const obsoleteStats = [];
             const stats = [];
 
             statsSnapshot.forEach(doc => {
                 const stat = doc.data();
-                if (activeQuestionIds.has(stat.question_id) && (stat.total_attempts || 0) > 0) {
+                const statText = normalizeForSearch(stat.question_text);
+                if (!statText || !validQuestionTexts.has(statText)) {
+                    obsoleteStats.push(doc.ref);
+                    return;
+                }
+                if ((stat.total_attempts || 0) > 0 && !seenQuestionTexts.has(statText)) {
+                    seenQuestionTexts.add(statText);
                     stats.push(stat);
                 }
             });
+            await cleanupObsoleteStats(obsoleteStats);
 
             const answered = stats.length;
             const correct = stats.filter(stat => stat.last_correct === true).length;
@@ -68,6 +80,20 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('No se pudieron cargar las métricas:', error);
             setStatus('Sin conexión', 'offline');
+        }
+    }
+
+    async function cleanupObsoleteStats(refs) {
+        if (refs.length === 0) return;
+        try {
+            const chunkSize = 450;
+            for (let index = 0; index < refs.length; index += chunkSize) {
+                const batch = db.batch();
+                refs.slice(index, index + chunkSize).forEach(ref => batch.delete(ref));
+                await batch.commit();
+            }
+        } catch (error) {
+            console.warn('No se pudieron limpiar estadísticas obsoletas del usuario:', error);
         }
     }
 
@@ -180,5 +206,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const element = document.createElement('div');
         element.textContent = String(value);
         return element.innerHTML;
+    }
+
+    function normalizeForSearch(value) {
+        return String(value || '')
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z0-9]+/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
     }
 });
