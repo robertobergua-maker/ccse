@@ -490,7 +490,10 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
             const page = await pdf.getPage(pageNumber);
             const content = await page.getTextContent();
-            pages.push(textItemsToLines(content.items));
+            pages.push({
+                questionText: textItemsToLines(content.items),
+                answerText: textItemsToFlowLines(content.items)
+            });
         }
 
         return pages;
@@ -550,6 +553,18 @@ document.addEventListener('DOMContentLoaded', () => {
             )
             .filter(Boolean)
             .join('\n');
+    }
+
+    function textItemsToFlowLines(items) {
+        const textItems = items
+            .filter(item => String(item.str || '').trim())
+            .map(item => ({
+                x: item.transform?.[4] || 0,
+                y: item.transform?.[5] || 0,
+                text: item.str
+            }));
+
+        return textGroupToLines(textItems);
     }
 
     async function loadQuestionBank() {
@@ -704,11 +719,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function extractQuestionsFromManual(pdfPages) {
-        const pageText = pdfPages.join('\n');
+        const questionPages = pdfPages.map(page => page.questionText || '');
+        const answerPages = pdfPages.map(page => page.answerText || '');
+        const pageText = questionPages.join('\n');
         const manualYear = detectManualYear(pageText);
-        const answerStart = findAnswerStartPage(pdfPages);
-        const answers = extractAnswerMap(pdfPages.slice(answerStart).join('\n'));
-        const questionText = pdfPages.slice(0, answerStart).join('\n');
+        const answerStart = findAnswerStartPage(answerPages);
+        const answers = extractAnswerMap(answerPages.slice(answerStart).join('\n'));
+        const questionText = questionPages.slice(0, answerStart).join('\n');
         const byId = new Map();
 
         [1, 2, 3, 4, 5].forEach(taskNumber => {
@@ -731,7 +748,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         pdfPages.forEach((_, index) => {
             const count = extractAnswerMap(pdfPages.slice(index, Math.min(index + 10, pdfPages.length)).join('\n')).size;
-            if (count > bestCount) {
+            if (count >= bestCount) {
                 bestCount = count;
                 bestIndex = index;
             }
@@ -797,8 +814,18 @@ document.addEventListener('DOMContentLoaded', () => {
     function extractAnswerMap(text) {
         return new Map(
             [...text.matchAll(/\b([1-5]\d{3})\s+([abc])\b/gi)]
+                .filter(match => isValidQuestionCode(match[1]))
                 .map(match => [match[1], match[2].toLowerCase()])
         );
+    }
+
+    function isValidQuestionCode(code) {
+        const value = Number(code);
+        return (value >= 1001 && value <= 1120) ||
+            (value >= 2001 && value <= 2036) ||
+            (value >= 3001 && value <= 3024) ||
+            (value >= 4001 && value <= 4036) ||
+            (value >= 5001 && value <= 5084);
     }
 
     function validateExtractedQuestions(questions, answersFound = null) {
