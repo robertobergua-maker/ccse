@@ -2,6 +2,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const OFFICIAL_DISTRIBUTION = { 1: 10, 2: 3, 3: 2, 4: 3, 5: 7 };
     const EXAM_DURATION_SECONDS = 45 * 60;
     const PASSING_SCORE = 15;
+    const UNSEEN_PRIORITY = 0.18;
+    const WRONG_PRIORITY = 0.16;
 
     const auth = firebase.auth();
     const db = firebase.firestore();
@@ -34,7 +36,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function startNewExam() {
         try {
-            const response = await fetch('preguntas.json', { cache: 'no-store' });
+            const [response, selectionStats] = await Promise.all([
+                fetch('preguntas.json', { cache: 'no-store' }),
+                loadQuestionSelectionStats()
+            ]);
             if (!response.ok) {
                 throw new Error(`No se pudo cargar el banco (${response.status})`);
             }
@@ -42,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const allQuestions = (await response.json())
                 .filter(question => question.active !== false);
             validateQuestionBank(allQuestions);
-            examQuestions = buildOfficialExam(allQuestions);
+            examQuestions = buildOfficialExam(allQuestions, selectionStats);
             userAnswers = {};
             renderExam(examQuestions);
             startTimer(EXAM_DURATION_SECONDS);
@@ -82,13 +87,67 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function buildOfficialExam(questions) {
+    async function loadQuestionSelectionStats() {
+        const stats = new Map();
+
+        try {
+            const snapshot = await db.collection('exam_answers')
+                .where('user_id', '==', currentUser.uid)
+                .get();
+
+            snapshot.forEach(doc => {
+                const answer = doc.data();
+                const questionId = answer.question_id;
+                if (!questionId) return;
+
+                const current = stats.get(questionId) || { appearances: 0, wrong: 0 };
+                current.appearances += 1;
+                if (answer.answered === true && answer.correct === false) {
+                    current.wrong += 1;
+                }
+                stats.set(questionId, current);
+            });
+        } catch (error) {
+            console.warn('No se pudo cargar la ponderación de preguntas. Se usará sorteo uniforme.', error);
+        }
+
+        return stats;
+    }
+
+    function buildOfficialExam(questions, selectionStats) {
         return Object.entries(OFFICIAL_DISTRIBUTION).flatMap(([task, amount]) => {
             const taskQuestions = questions.filter(
                 question => question.task_number === Number(task)
             );
-            return shuffleArray([...taskQuestions]).slice(0, amount);
+            return weightedSample(taskQuestions, amount, selectionStats);
         });
+    }
+
+    function weightedSample(questions, amount, selectionStats) {
+        const maxAppearances = Math.max(
+            0,
+            ...questions.map(question => getQuestionStats(selectionStats, question.id).appearances)
+        );
+
+        return questions
+            .map(question => {
+                const stats = getQuestionStats(selectionStats, question.id);
+                const lessSeenBoost = Math.max(0, maxAppearances - stats.appearances) * UNSEEN_PRIORITY;
+                const wrongBoost = stats.wrong * WRONG_PRIORITY;
+                const weight = 1 + Math.min(lessSeenBoost, 1.8) + Math.min(wrongBoost, 1.2);
+
+                return {
+                    question,
+                    rank: Math.random() ** (1 / weight)
+                };
+            })
+            .sort((left, right) => right.rank - left.rank)
+            .slice(0, amount)
+            .map(item => item.question);
+    }
+
+    function getQuestionStats(selectionStats, questionId) {
+        return selectionStats.get(questionId) || { appearances: 0, wrong: 0 };
     }
 
     function renderExam(questions) {
