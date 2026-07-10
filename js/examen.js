@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentUser = null;
     let examQuestions = [];
     let userAnswers = {};
+    let selectionContext = null;
     let timerInterval = null;
     let isFinishing = false;
 
@@ -25,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         currentUser = user;
-        startNewExam();
+        startNewExam(user);
     });
 
     ui.submitExamBtn.addEventListener('click', () => {
@@ -34,11 +35,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    async function startNewExam() {
+    async function startNewExam(user) {
         try {
+            const userId = user?.uid;
+            if (!userId) {
+                throw new Error('No se pudo identificar al usuario para personalizar el examen');
+            }
+
             const [response, selectionStats] = await Promise.all([
                 fetch('preguntas.json', { cache: 'no-store' }),
-                loadQuestionSelectionStats()
+                loadQuestionSelectionStats(userId)
             ]);
             if (!response.ok) {
                 throw new Error(`No se pudo cargar el banco (${response.status})`);
@@ -47,6 +53,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const allQuestions = (await response.json())
                 .filter(question => question.active !== false);
             validateQuestionBank(allQuestions);
+            selectionContext = {
+                strategy: 'per_user_weighted_v1',
+                stats_source: 'exam_answers',
+                stats_user_id: userId,
+                stats_count: selectionStats.size,
+                unseen_priority: UNSEEN_PRIORITY,
+                wrong_priority: WRONG_PRIORITY
+            };
             examQuestions = buildOfficialExam(allQuestions, selectionStats);
             userAnswers = {};
             renderExam(examQuestions);
@@ -87,12 +101,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    async function loadQuestionSelectionStats() {
+    async function loadQuestionSelectionStats(userId) {
         const stats = new Map();
 
         try {
             const snapshot = await db.collection('exam_answers')
-                .where('user_id', '==', currentUser.uid)
+                .where('user_id', '==', userId)
                 .get();
 
             snapshot.forEach(doc => {
@@ -201,6 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 passed: result.correct >= PASSING_SCORE,
                 exam_mode: 'simulacro_oficial',
                 task_distribution: OFFICIAL_DISTRIBUTION,
+                selection_strategy: selectionContext,
                 question_ids: examQuestions.map(question => question.id)
             });
 
