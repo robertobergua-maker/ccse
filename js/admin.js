@@ -21,115 +21,121 @@ document.addEventListener('DOMContentLoaded', () => {
         status: document.getElementById('admin-status'),
         users: document.getElementById('metric-users'),
         exams: document.getElementById('metric-exams'),
-        exams24h: document.getElementById('metric-exams-24h'),
-        alerts: document.getElementById('metric-alerts'),
-        riskBody: document.getElementById('risk-body'),
-        usersBody: document.getElementById('users-body'),
-        activitySummary: document.getElementById('activity-summary'),
-        activityBody: document.getElementById('activity-body'),
-        manualPdfInput: document.getElementById('manual-pdf-input'),
-        manualCheckBtn: document.getElementById('manual-check-btn'),
-        manualUpdateBtn: document.getElementById('manual-update-btn'),
-        manualCheckStatus: document.getElementById('manual-check-status'),
-        manualCheckResults: document.getElementById('manual-check-results')
-    };
+            const lines = text.split(/\r?\n/).filter(Boolean);
+            if (lines.length === 0) return { questions: [], manualYear: '', answersFound: 0, missingCodes: [] };
 
-    if (window.pdfjsLib) {
-        pdfjsLib.GlobalWorkerOptions.workerSrc =
-            'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-    }
+            const headers = parseCsvLine(lines[0]).map(h => String(h || '').trim().toLowerCase());
 
-    auth.onAuthStateChanged(user => {
-        if (!user) return;
-        if (String(user.email || '').toLowerCase() !== ADMIN_EMAIL) {
-            ui.summary.textContent = 'Acceso restringido al administrador.';
-            setStatus('Sin permiso', 'offline');
-            setForbiddenTables();
-            return;
-        }
-        adminUser = user;
-        loadAdminData();
-    });
+            const findHeader = candidates => {
+                for (const name of candidates) {
+                    const idx = headers.findIndex(h => h === name);
+                    if (idx >= 0) return idx;
+                }
+                return -1;
+            };
 
-    ui.usersBody.addEventListener('click', event => {
-        const action = event.target.dataset.action;
-        const userId = event.target.dataset.userId;
-        if (!action || !userId) return;
+            const idIdx = findHeader(['id', 'codigo', 'code']);
+            const textIdx = findHeader(['pregunta', 'question', 'question_text', 'questiontext']);
+            const correctTextIdx = findHeader(['respuesta_correcta', 'correct_answer', 'answer']);
+            const correctLetterIdx = findHeader(['respuesta_correcta_letra', 'correct_answer_letter', 'answer_letter']);
+            const taskIdx = findHeader(['tarea', 'task', 'task_number', 'tasknumber']);
 
-        if (action === 'review') {
-            reviewUserActivity(userId);
-            return;
-        }
-
-        if (action === 'block') {
-            setUserBlocked(userId, true);
-            return;
-        }
-
-        if (action === 'unblock') {
-            setUserBlocked(userId, false);
-        }
-    });
-
-    ui.manualCheckBtn.addEventListener('click', () => {
-        checkManualPdf();
-    });
-
-    ui.manualUpdateBtn.addEventListener('click', () => {
-        updateQuestionDatabase();
-    });
-
-    async function loadAdminData() {
-        try {
-            const [usersSnapshot, examsSnapshot] = await Promise.all([
-                db.collection('users').get(),
-                db.collection('exams').get()
-            ]);
-
-            const users = [];
-            const usersById = new Map();
-            usersSnapshot.forEach(doc => {
-                const user = { id: doc.id, ...doc.data() };
-                users.push(user);
-                usersById.set(doc.id, user);
+            // detect option headers (opcion_a, opcion-b, option_a, a, b, c)
+            const optionHeaders = new Map(); // idx -> key
+            headers.forEach((h, idx) => {
+                let m = h.match(/^opcion[_-]?([a-d])$/);
+                if (!m) m = h.match(/^option[_-]?([a-d])$/);
+                if (!m) m = h.match(/^opt[_-]?([a-d])$/);
+                if (!m) m = h.match(/^([abcd])$/);
+                if (m) optionHeaders.set(idx, m[1]);
             });
 
-            const exams = [];
-            examsSnapshot.forEach(doc => {
-                exams.push({ id: doc.id, ...doc.data() });
-            });
+            // fallback: headers containing 'opcion' without a letter, collect them in order
+            if (optionHeaders.size === 0) {
+                headers.forEach((h, idx) => {
+                    if (h.includes('opcion') || h.includes('option')) optionHeaders.set(idx, null);
+                });
+            }
 
-            const rows = buildUserRows(users, usersById, exams);
-            currentRows = rows;
-            renderMetrics(users, exams, rows);
-            renderRiskRows(rows);
-            renderUserRows(rows);
-            setStatus('Activo', 'online');
-        } catch (error) {
-            console.error('No se pudo cargar el panel admin:', error);
-            ui.summary.textContent = 'No se pudo cargar el panel administrador.';
-            setStatus('Error', 'offline');
-            ui.riskBody.innerHTML = '<tr><td colspan="6" class="empty-state">Error al cargar señales.</td></tr>';
-            ui.usersBody.innerHTML = '<tr><td colspan="8" class="empty-state">Error al cargar usuarios.</td></tr>';
-        }
-    }
+            const questions = [];
+            let answersFound = 0;
 
-    function buildUserRows(users, usersById, exams) {
-        const rowsByUser = new Map();
+            for (let i = 1; i < lines.length; i++) {
+                const row = parseCsvLine(lines[i]);
+                if (row.length === 0) continue;
+                const id = (idIdx >= 0 ? (row[idIdx] || '') : (row[0] || '')).trim();
+                if (!id) continue;
 
-        users.forEach(user => {
-            rowsByUser.set(user.id, {
-                user,
-                exams: [],
-                total: 0,
-                exams24h: 0,
-                exams7d: 0,
-                passed: 0,
-                failed: 0,
-                lastActivity: 0,
-                risk: 'ok',
-                notes: []
-            });
+                const qText = textIdx >= 0 ? (row[textIdx] || '') : (row[1] || '');
+
+                // build options by key order
+                const options = [];
+                if (optionHeaders.size > 0) {
+                    const entries = [...optionHeaders.entries()];
+                    // if keys are null, order as they appear and assign a,b,c
+                    let assigned = 0;
+                    entries.sort((a, b) => a[0] - b[0]).forEach(([idx, key]) => {
+                        const textOpt = (row[idx] || '').trim();
+                        if (!textOpt) return;
+                        let k = key;
+                        if (!k) { k = String.fromCharCode(97 + assigned); assigned += 1; }
+                        options.push({ key: k, text: textOpt });
+                    });
+                }
+
+                // determine task number
+                let taskNumber = 0;
+                if (taskIdx >= 0) {
+                    const raw = (row[taskIdx] || '').trim();
+                    const m = raw.match(/(\d+)/);
+                    if (m) taskNumber = Number(m[1]);
+                }
+                if (!taskNumber) taskNumber = Math.floor((Number(id) || 1000) / 1000);
+                if (!taskNumber) taskNumber = Number(String(id).charAt(0)) || 1;
+
+                // determine correct answer: prefer letter column, then text matching
+                let correctLetter = '';
+                if (correctLetterIdx >= 0) {
+                    correctLetter = String((row[correctLetterIdx] || '')).trim().toLowerCase().replace(/[^a-z]/g, '');
+                }
+
+                let correctText = '';
+                if (correctTextIdx >= 0) correctText = String((row[correctTextIdx] || '')).trim();
+
+                let mappedCorrect = '';
+                if (correctLetter) {
+                    mappedCorrect = correctLetter;
+                } else if (correctText) {
+                    // try to match by option text (normalize)
+                    const norm = normalizeForSearch(correctText);
+                    const matchOpt = options.find(opt => normalizeForSearch(opt.text) === norm);
+                    if (matchOpt) mappedCorrect = matchOpt.key;
+                    else {
+                        // sometimes CSV contains the letter in 'respuesta_correcta' as a single char
+                        const maybe = String(correctText).trim().toLowerCase().replace(/[^a-z]/g, '');
+                        if (/^[a-d]$/.test(maybe)) mappedCorrect = maybe;
+                    }
+                }
+
+                if (mappedCorrect) answersFound += 1;
+
+                const question_type = options.length === 2 ? 'true_false' : 'multiple_choice';
+
+                questions.push({
+                    id: id,
+                    code: id,
+                    task_number: taskNumber || 1,
+                    topic: taskTopic(taskNumber) || 'CSV import',
+                    question_text: qText,
+                    question_type,
+                    options,
+                    correct_answer: mappedCorrect || correctText || '',
+                    active: true,
+                    source: 'CSV import'
+                });
+            }
+
+            return { questions, manualYear: '', answersFound, missingCodes: [] };
         });
 
         exams.forEach(exam => {
@@ -397,7 +403,6 @@ document.addEventListener('DOMContentLoaded', () => {
             validateExtractedQuestions(parsed.questions, parsed.answersFound, parsed.missingCodes);
             extractedManualQuestions = parsed.questions;
             extractedManualYear = parsed.manualYear;
-
             const report = buildManualReport(currentQuestions, parsed.questions, file.name, parsed.manualYear);
             lastManualReport = report;
             renderManualReport(report);
@@ -416,6 +421,126 @@ document.addEventListener('DOMContentLoaded', () => {
             ui.manualCheckBtn.disabled = false;
         }
     }
+
+    async function checkManualCsv() {
+        if (!adminUser) {
+            alert('Esta comprobación solo está disponible para el administrador.');
+            return;
+        }
+
+        const file = ui.manualCsvInput.files[0];
+        if (!file) {
+            alert('Selecciona primero el fichero CSV.');
+            return;
+        }
+
+        setManualCheckStatus('Procesando CSV…', 'online');
+        ui.manualCsvCheckBtn.disabled = true;
+        ui.manualCheckBtn.disabled = true;
+        ui.manualUpdateBtn.disabled = true;
+        ui.manualCheckResults.innerHTML = '<p class="empty-state">Extrayendo preguntas del CSV. Puede tardar unos segundos…</p>';
+
+        try {
+            const [currentQuestions, text] = await Promise.all([
+                loadQuestionBank(),
+                file.text()
+            ]);
+
+            const parsed = parseCsvQuestions(text);
+            validateExtractedQuestions(parsed.questions, parsed.answersFound, parsed.missingCodes);
+            extractedManualQuestions = parsed.questions;
+            extractedManualYear = parsed.manualYear || '';
+
+            const report = buildManualReport(currentQuestions, parsed.questions, file.name, parsed.manualYear);
+            lastManualReport = report;
+            renderManualReport(report);
+            ui.manualUpdateBtn.disabled = !report.hasDiscrepancies;
+            ui.manualUpdateBtn.textContent = report.hasDiscrepancies ? 'Corregir BBDD' : 'Sin discrepancias';
+            setManualCheckStatus(report.hasDiscrepancies ? 'Revisar discrepancias' : 'Sin discrepancias', report.hasDiscrepancies ? 'offline' : 'online');
+        } catch (error) {
+            console.error('No se pudo comprobar el CSV:', error);
+            extractedManualQuestions = [];
+            extractedManualYear = '';
+            lastManualReport = null;
+            setManualCheckStatus('Error', 'offline');
+            ui.manualCheckResults.innerHTML = `<p class="error-message">${escapeHtml(error.message)}</p>`;
+        } finally {
+            ui.manualCsvCheckBtn.disabled = false;
+            ui.manualCheckBtn.disabled = false;
+        }
+    }
+
+    function parseCsvLine(line) {
+        const result = [];
+        let current = '';
+        let inQuotes = false;
+        for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            if (inQuotes) {
+                if (char === '"') {
+                    if (line[i + 1] === '"') { current += '"'; i += 1; }
+                    else { inQuotes = false; }
+                } else { current += char; }
+            } else {
+                if (char === '"') { inQuotes = true; }
+                else if (char === ',') { result.push(current); current = ''; }
+                else { current += char; }
+            }
+        }
+        result.push(current);
+        return result.map(f => f.trim());
+    }
+
+    function parseCsvQuestions(text) {
+        const lines = text.split(/\r?\n/).filter(Boolean);
+        if (lines.length === 0) return { questions: [], manualYear: '', answersFound: 0, missingCodes: [] };
+        const headers = parseCsvLine(lines[0]).map(h => h.toLowerCase());
+        const indexOf = name => headers.findIndex(h => h === name || h === name.toLowerCase());
+        const idIdx = indexOf('id') >= 0 ? indexOf('id') : indexOf('code');
+        const textIdx = indexOf('question_text') >= 0 ? indexOf('question_text') : indexOf('question') >= 0 ? indexOf('question') : -1;
+        const correctIdx = indexOf('correct_answer') >= 0 ? indexOf('correct_answer') : indexOf('answer') >= 0 ? indexOf('answer') : -1;
+        const taskIdx = indexOf('task_number') >= 0 ? indexOf('task_number') : indexOf('task') >= 0 ? indexOf('task') : -1;
+
+        const optionIdxs = [];
+        headers.forEach((h, idx) => {
+            if (/^option_?/.test(h) || /^[abc]$/.test(h) || /^opt_/.test(h)) optionIdxs.push(idx);
+            if (/^a$|^b$|^c$|^d$/.test(h)) optionIdxs.push(idx);
+        });
+
+        const questions = [];
+        for (let i = 1; i < lines.length; i++) {
+            const row = parseCsvLine(lines[i]);
+            if (row.length === 0) continue;
+            const id = (idIdx >= 0 ? (row[idIdx] || '') : (row[0] || '')).trim();
+            if (!id) continue;
+            const qText = textIdx >= 0 ? (row[textIdx] || '') : (row[1] || '');
+            const correct = correctIdx >= 0 ? (row[correctIdx] || '').toLowerCase().trim() : '';
+            const taskNumber = taskIdx >= 0 ? Number(row[taskIdx]) || Number(String(id).charAt(0)) : Number(String(id).charAt(0));
+
+            const options = optionIdxs.map((idx, optIndex) => {
+                const key = String.fromCharCode(97 + optIndex); // a, b, c...
+                return { key, text: (row[idx] || '').trim() };
+            }).filter(opt => opt.text);
+
+            const question_type = options.length === 2 ? 'true_false' : 'multiple_choice';
+
+            questions.push({
+                id: id,
+                code: id,
+                task_number: taskNumber || 1,
+                topic: taskTopic(taskNumber) || 'CSV import',
+                question_text: qText,
+                question_type,
+                options,
+                correct_answer: correct,
+                active: true,
+                source: 'CSV import'
+            });
+        }
+
+        return { questions, manualYear: '', answersFound: 0, missingCodes: [] };
+    }
+
 
     async function updateQuestionDatabase() {
         if (!adminUser || !lastManualReport || extractedManualQuestions.length !== 300) {
