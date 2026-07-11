@@ -218,14 +218,20 @@ document.addEventListener('DOMContentLoaded', () => {
         ui.submitExamBtn.textContent = 'Guardando resultados…';
 
         const result = calculateResult();
+        let saveCheckpoint = 'inicio';
+        let examId = '';
 
         try {
+            saveCheckpoint = 'refrescar token';
+            await currentUser.getIdToken(true);
+
             const examRef = db.collection('exams').doc();
-            const examBatch = db.batch();
+            examId = examRef.id;
+            const answerBatch = db.batch();
             const statsBatch = db.batch();
             let hasStatsWrites = false;
 
-            examBatch.set(examRef, {
+            const examData = {
                 user_id: currentUser.uid,
                 finished_at: firebase.firestore.FieldValue.serverTimestamp(),
                 score_correct: result.correct,
@@ -238,8 +244,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 task_distribution: OFFICIAL_DISTRIBUTION,
                 selection_strategy: selectionContext,
                 question_ids: examQuestions.map(question => question.id)
-            });
+            };
 
+            saveCheckpoint = 'crear examen';
+            await examRef.set(examData);
+
+            saveCheckpoint = 'preparar respuestas';
             examQuestions.forEach((question, index) => {
                 const selectedKey = userAnswers[index] ?? null;
                 const answered = selectedKey !== null;
@@ -247,7 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const answerRef = db.collection('exam_answers')
                     .doc(`${examRef.id}_${question.id}`);
 
-                examBatch.set(answerRef, {
+                answerBatch.set(answerRef, {
                     user_id: currentUser.uid,
                     exam_id: examRef.id,
                     question_id: question.id,
@@ -279,17 +289,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            await examBatch.commit();
+            saveCheckpoint = 'guardar respuestas';
+            await answerBatch.commit();
+
             if (hasStatsWrites) {
                 try {
+                    saveCheckpoint = 'guardar estadísticas';
                     await statsBatch.commit();
                 } catch (statsError) {
-                    console.warn('El examen se guardó, pero no se pudieron actualizar las estadísticas:', statsError);
+                    const diagnostic = buildSaveDiagnostic(saveCheckpoint, statsError, examId);
+                    sessionStorage.setItem('lastExamStatsSaveError', JSON.stringify(diagnostic));
+                    console.warn('El examen se guardó, pero no se pudieron actualizar las estadísticas:', diagnostic, statsError);
                 }
             }
         } catch (error) {
-            console.error('No se pudieron guardar los resultados:', error);
-            alert('El examen se ha corregido, pero no se pudo guardar en la nube. Revisa tu conexión.');
+            const diagnostic = buildSaveDiagnostic(saveCheckpoint, error, examId);
+            sessionStorage.setItem('lastExamSaveError', JSON.stringify(diagnostic));
+            console.error('No se pudieron guardar los resultados:', diagnostic, error);
+            alert(
+                'El examen se ha corregido, pero no se pudo guardar en la nube.\n' +
+                `Punto de fallo: ${diagnostic.checkpoint}.\n` +
+                `Código: ${diagnostic.code}.\n` +
+                `Mensaje: ${diagnostic.message}`
+            );
         }
 
         sessionStorage.setItem('examResults', JSON.stringify({
@@ -309,6 +331,18 @@ document.addEventListener('DOMContentLoaded', () => {
             else totals.incorrect += 1;
             return totals;
         }, { correct: 0, incorrect: 0, unanswered: 0 });
+    }
+
+    function buildSaveDiagnostic(checkpoint, error, examId) {
+        return {
+            checkpoint,
+            code: error?.code || error?.name || 'sin_codigo',
+            message: error?.message || String(error || 'Error desconocido'),
+            exam_id: examId || '',
+            user_id: currentUser?.uid || '',
+            email: currentUser?.email || '',
+            timestamp: new Date().toISOString()
+        };
     }
 
     function startTimer(duration) {
