@@ -111,7 +111,10 @@
             <section class="admin-section" aria-labelledby="activity-title">
                 <div class="section-heading">
                     <h2 id="activity-title">Revisión de actividad</h2>
-                    <button id="download-activity-csv" class="btn btn-secondary btn-compact" type="button" disabled>Descargar CSV</button>
+                    <div class="admin-actions">
+                        <button id="audit-samira-btn" class="btn btn-primary btn-compact" type="button" disabled>Auditar Samira Raysse</button>
+                        <button id="download-activity-csv" class="btn btn-secondary btn-compact" type="button" disabled>Descargar CSV</button>
+                    </div>
                 </div>
                 <p id="activity-summary" class="muted">Selecciona un usuario para revisar su actividad.</p>
                 <div class="table-scroll">
@@ -124,10 +127,11 @@
                                 <th>Fallos</th>
                                 <th>Sin responder</th>
                                 <th>Preguntas</th>
+                                <th>Auditoría</th>
                             </tr>
                         </thead>
                         <tbody id="activity-body">
-                            <tr><td colspan="6" class="empty-state">Sin usuario seleccionado.</td></tr>
+                            <tr><td colspan="7" class="empty-state">Sin usuario seleccionado.</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -140,6 +144,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <script src="js/firebase-config.js"></script>
     <script src="js/auth.js?v=20260710-1"></script>
-    <script src="js/admin.js?v=20260710-18"></script>
+    <script src="js/admin.js?v=20260711-1"></script>
 </body>
 </html>

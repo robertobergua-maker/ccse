@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let adminUser = null;
     let currentRows = [];
     let currentActivityRows = [];
+    let currentActivityUser = null;
     let extractedManualQuestions = [];
     let extractedManualYear = '';
     let lastManualReport = null;
@@ -29,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
         usersBody: document.getElementById('users-body'),
         activitySummary: document.getElementById('activity-summary'),
         activityBody: document.getElementById('activity-body'),
+        auditSamiraBtn: document.getElementById('audit-samira-btn'),
         downloadRiskCsvBtn: document.getElementById('download-risk-csv'),
         downloadUsersCsvBtn: document.getElementById('download-users-csv'),
         downloadActivityCsvBtn: document.getElementById('download-activity-csv'),
@@ -67,6 +69,13 @@ document.addEventListener('DOMContentLoaded', () => {
     ui.downloadRiskCsvBtn?.addEventListener('click', downloadRiskCsv);
     ui.downloadUsersCsvBtn?.addEventListener('click', downloadUsersCsv);
     ui.downloadActivityCsvBtn?.addEventListener('click', downloadActivityCsv);
+    ui.auditSamiraBtn?.addEventListener('click', auditSamiraRaysse);
+    ui.activityBody?.addEventListener('click', event => {
+        const action = event.target.dataset.action;
+        if (action === 'download-audit') {
+            downloadExamAuditCsv(event.target.dataset.examId);
+        }
+    });
 
     async function loadAdminData() {
         try {
@@ -88,6 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const rows = buildUserRows(users, usersById, exams);
             currentRows = rows;
             currentActivityRows = [];
+            currentActivityUser = null;
             renderMetrics(users, exams, rows);
             renderRiskRows(rows);
             renderUserRows(rows);
@@ -251,54 +261,48 @@ document.addEventListener('DOMContentLoaded', () => {
     async function reviewUserActivity(userId) {
         const row = currentRows.find(item => item.user.id === userId);
         if (!row) return;
+        currentActivityUser = row.user;
         ui.activitySummary.textContent = `Cargando actividad de ${displayName(row.user)}...`;
-        ui.activityBody.innerHTML = '<tr><td colspan="6" class="empty-state">Cargando actividad...</td></tr>';
+        ui.activityBody.innerHTML = '<tr><td colspan="7" class="empty-state">Cargando actividad...</td></tr>';
 
         try {
-            const [answersSnapshot, validQuestionTexts] = await Promise.all([
+            const [answersSnapshot, questionBank] = await Promise.all([
                 db.collection('exam_answers').where('user_id', '==', userId).get(),
-                loadQuestionTextsFromDatabase()
+                loadQuestionBank()
             ]);
+            const questionsById = new Map(questionBank.map(question => [question.id, question]));
             const answersByExam = new Map();
-            const obsoleteAnswerOperations = [];
             let answerCount = 0;
 
             answersSnapshot.forEach(doc => {
                 const answer = doc.data();
-                const answerText = normalizeForSearch(answer.question_text);
-                if (!answerText || !validQuestionTexts.has(answerText)) {
-                    obsoleteAnswerOperations.push({ type: 'delete', ref: doc.ref });
-                    return;
-                }
-
                 answerCount += 1;
                 const examId = answer.exam_id || 'sin_examen';
                 if (!answersByExam.has(examId)) answersByExam.set(examId, []);
-                answersByExam.get(examId).push(answer);
+                answersByExam.get(examId).push({ id: doc.id, ...answer });
             });
-            if (obsoleteAnswerOperations.length > 0) {
-                await commitOperationsInChunks(obsoleteAnswerOperations);
-            }
 
             const exams = [...row.exams].sort(
                 (left, right) => timestampToMillis(right.finished_at) - timestampToMillis(left.finished_at)
             );
             ui.activitySummary.textContent =
-                `${displayName(row.user)} · ${row.total} exámenes · ${answerCount} respuestas vigentes · ${obsoleteAnswerOperations.length} obsoletas eliminadas · ${row.exams24h} exámenes en 24 h.`;
+                `${displayName(row.user)} · ${row.total} exámenes · ${answerCount} respuestas registradas · ${row.exams24h} exámenes en 24 h.`;
 
             if (exams.length === 0) {
-                ui.activityBody.innerHTML = '<tr><td colspan="6" class="empty-state">Este usuario no tiene exámenes guardados.</td></tr>';
+                ui.activityBody.innerHTML = '<tr><td colspan="7" class="empty-state">Este usuario no tiene exámenes guardados.</td></tr>';
                 currentActivityRows = [];
                 updateAdminDownloadButtons();
                 return;
             }
 
             currentActivityRows = exams.map(exam => {
-                const answers = answersByExam.get(exam.id) || [];
-                return { exam, answers };
+                const answers = sortExamAnswers(exam, answersByExam.get(exam.id) || []);
+                const auditRows = buildExamAuditRows(exam, answers, questionsById);
+                return { exam, answers, auditRows };
             });
             ui.activityBody.innerHTML = exams.map(exam => {
-                const answers = answersByExam.get(exam.id) || [];
+                const activityRow = currentActivityRows.find(item => item.exam.id === exam.id);
+                const answers = activityRow?.answers || [];
                 const questionIds = answers.map(answer => answer.question_id).filter(Boolean);
                 return `
                     <tr>
@@ -311,6 +315,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             <strong>${answers.length}</strong>
                             <p class="admin-notes">${escapeHtml(questionIds.slice(0, 12).join(', ') || 'Sin detalle')}</p>
                         </td>
+                        <td>
+                            <button class="btn btn-secondary btn-compact" data-action="download-audit" data-exam-id="${escapeHtml(exam.id)}" type="button" ${activityRow?.auditRows?.length ? '' : 'disabled'}>
+                                Auditoría CSV
+                            </button>
+                        </td>
                     </tr>
                 `;
             }).join('');
@@ -318,8 +327,9 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('No se pudo cargar la actividad del usuario:', error);
             ui.activitySummary.textContent = `No se pudo cargar la actividad de ${displayName(row.user)}.`;
-            ui.activityBody.innerHTML = '<tr><td colspan="6" class="empty-state">Error al cargar actividad.</td></tr>';
+            ui.activityBody.innerHTML = '<tr><td colspan="7" class="empty-state">Error al cargar actividad.</td></tr>';
             currentActivityRows = [];
+            currentActivityUser = null;
             updateAdminDownloadButtons();
         }
     }
@@ -869,6 +879,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (ui.downloadRiskCsvBtn) ui.downloadRiskCsvBtn.disabled = riskyRows.length === 0;
         if (ui.downloadUsersCsvBtn) ui.downloadUsersCsvBtn.disabled = currentRows.length === 0;
         if (ui.downloadActivityCsvBtn) ui.downloadActivityCsvBtn.disabled = currentActivityRows.length === 0;
+        if (ui.auditSamiraBtn) ui.auditSamiraBtn.disabled = currentRows.length === 0;
     }
 
     function downloadRiskCsv() {
@@ -914,6 +925,78 @@ document.addEventListener('DOMContentLoaded', () => {
         downloadCsv(`actividad-${formatDateSlug(new Date())}.csv`, rows);
     }
 
+    function downloadExamAuditCsv(examId) {
+        const row = currentActivityRows.find(item => item.exam.id === examId);
+        if (!row) return;
+
+        const userSlug = slugify(currentActivityUser ? displayName(currentActivityUser) : 'usuario');
+        const dateSlug = slugify(formatTimestamp(row.exam.finished_at));
+        downloadCsv(`auditoria-${userSlug}-${dateSlug}-${examId}.csv`, row.auditRows);
+    }
+
+    function auditSamiraRaysse() {
+        const samira = currentRows.find(row => {
+            const haystack = normalizeForSearch(`${displayName(row.user)} ${row.user.email || ''}`);
+            return haystack.includes('samira raysse') || haystack.includes('samira');
+        });
+        if (!samira) {
+            alert('No he encontrado a Samira Raysse en la lista de usuarios cargada.');
+            return;
+        }
+        reviewUserActivity(samira.user.id);
+    }
+
+    function sortExamAnswers(exam, answers) {
+        const order = new Map((exam.question_ids || []).map((id, index) => [String(id), index]));
+        return [...answers].sort((left, right) => {
+            const leftOrder = order.has(String(left.question_id)) ? order.get(String(left.question_id)) : 9999;
+            const rightOrder = order.has(String(right.question_id)) ? order.get(String(right.question_id)) : 9999;
+            return leftOrder - rightOrder ||
+                String(left.question_id || '').localeCompare(String(right.question_id || ''), 'es', { numeric: true });
+        });
+    }
+
+    function buildExamAuditRows(exam, answers, questionsById) {
+        const answersByQuestion = new Map(answers.map(answer => [String(answer.question_id), answer]));
+        const questionIds = Array.isArray(exam.question_ids) && exam.question_ids.length > 0
+            ? exam.question_ids.map(String)
+            : answers.map(answer => String(answer.question_id || ''));
+
+        return questionIds.map((questionId, index) => {
+            const answer = answersByQuestion.get(questionId) || { question_id: questionId, answered: false };
+            const bankQuestion = questionsById.get(String(answer.question_id));
+            const options = Array.isArray(answer.options) && answer.options.length > 0
+                ? answer.options
+                : (bankQuestion?.options || []);
+            const selectedOption = options.find(option => option.key === answer.selected_answer);
+            const correctOption = options.find(option => option.key === (answer.correct_answer || bankQuestion?.correct_answer));
+
+            return {
+                examen_id: exam.id,
+                fecha: formatTimestamp(exam.finished_at),
+                usuario: currentActivityUser ? displayName(currentActivityUser) : '',
+                email: currentActivityUser?.email || '',
+                numero: index + 1,
+                codigo: answer.question_id || '',
+                tarea: answer.task_number || bankQuestion?.task_number || '',
+                enunciado: answer.question_text || bankQuestion?.question_text || '',
+                opcion_a: optionText(options, 'a'),
+                opcion_b: optionText(options, 'b'),
+                opcion_c: optionText(options, 'c'),
+                respuesta_correcta_letra: answer.correct_answer || bankQuestion?.correct_answer || '',
+                respuesta_correcta_texto: correctOption ? correctOption.text : '',
+                respuesta_samira_letra: answer.selected_answer || '',
+                respuesta_samira_texto: selectedOption ? selectedOption.text : '',
+                respondida: answer.answered === true ? 'Sí' : 'No',
+                resultado: answer.correct === true ? 'Acierto' : answer.answered === true ? 'Fallo' : 'Sin responder'
+            };
+        });
+    }
+
+    function optionText(options, key) {
+        return (options.find(option => option.key === key)?.text) || '';
+    }
+
     function riskLabel(risk) {
         if (risk === 'danger') return 'Crítico';
         if (risk === 'watch') return 'Vigilar';
@@ -946,6 +1029,10 @@ document.addEventListener('DOMContentLoaded', () => {
         return date.toISOString().slice(0, 10);
     }
 
+    function slugify(value) {
+        return normalizeForSearch(value).replace(/\s+/g, '-').slice(0, 60) || 'sin-datos';
+    }
+
     function setManualCheckStatus(text, state) {
         ui.manualCheckStatus.textContent = text;
         ui.manualCheckStatus.className = `status-badge status-${state}`;
@@ -954,7 +1041,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function setForbiddenTables() {
         ui.riskBody.innerHTML = '<tr><td colspan="6" class="empty-state">No tienes permiso para ver este panel.</td></tr>';
         ui.usersBody.innerHTML = '<tr><td colspan="8" class="empty-state">No tienes permiso para ver usuarios.</td></tr>';
-        ui.activityBody.innerHTML = '<tr><td colspan="6" class="empty-state">No tienes permiso para ver actividad.</td></tr>';
+        ui.activityBody.innerHTML = '<tr><td colspan="7" class="empty-state">No tienes permiso para ver actividad.</td></tr>';
     }
 
     function setStatus(text, state) {

@@ -265,6 +265,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     question_id: question.id,
                     question_text: String(question.question_text || ''),
                     task_number: Number(question.task_number || 0),
+                    options: Array.isArray(question.options)
+                        ? question.options.map(option => ({
+                            key: option.key,
+                            text: String(option.text || '')
+                        }))
+                        : [],
                     selected_answer: selectedKey,
                     correct_answer: question.correct_answer,
                     answered,
