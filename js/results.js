@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ? `APTO: ${summary.correct} de 25 aciertos`
         : `NO APTO: ${summary.correct} de 25 aciertos`;
     resultTitle.className = passed ? 'result-title passed' : 'result-title failed';
+    renderSaveDiagnostic();
 
     const body = document.getElementById('tabla-preguntas-cuerpo');
     body.innerHTML = questions.map((question, index) => {
@@ -76,6 +77,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function formatOption(option) {
         return option ? `${option.key.toUpperCase()}) ${option.text}` : 'No disponible';
+    }
+
+    function renderSaveDiagnostic() {
+        const target = document.getElementById('save-diagnostic');
+        if (!target) return;
+
+        const rawDiagnostic = sessionStorage.getItem('lastExamSaveError');
+        if (!rawDiagnostic) return;
+
+        try {
+            const diagnostic = JSON.parse(rawDiagnostic);
+            target.style.display = 'block';
+            target.innerHTML = `
+                <strong>Diagnóstico de guardado en la nube</strong>
+                <dl>
+                    <dt>Punto</dt><dd>${escapeHtml(diagnostic.checkpoint || 'No disponible')}</dd>
+                    <dt>Código</dt><dd>${escapeHtml(diagnostic.code || 'No disponible')}</dd>
+                    <dt>Mensaje</dt><dd>${escapeHtml(diagnostic.message || 'No disponible')}</dd>
+                    <dt>Examen</dt><dd>${escapeHtml(diagnostic.exam_id || 'No disponible')}</dd>
+                    <dt>Usuario</dt><dd>${escapeHtml(diagnostic.email || diagnostic.user_id || 'No disponible')}</dd>
+                    <dt>Hora</dt><dd>${escapeHtml(diagnostic.timestamp || 'No disponible')}</dd>
+                </dl>
+            `;
+        } catch (error) {
+            target.style.display = 'block';
+            target.textContent = `No se pudo leer el diagnóstico de guardado: ${rawDiagnostic}`;
+        }
     }
 
     function getSimpleExplanation(question, correctOption) {

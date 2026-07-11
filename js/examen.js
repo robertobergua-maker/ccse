@@ -57,6 +57,8 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             examQuestions = buildOfficialExam(allQuestions, selectionStats);
             userAnswers = {};
+            sessionStorage.removeItem('lastExamSaveError');
+            sessionStorage.removeItem('lastExamStatsSaveError');
             renderExam(examQuestions);
             startTimer(EXAM_DURATION_SECONDS);
         } catch (error) {
