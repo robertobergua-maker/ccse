@@ -221,9 +221,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const examRef = db.collection('exams').doc();
-            const batch = db.batch();
+            const examBatch = db.batch();
+            const statsBatch = db.batch();
+            let hasStatsWrites = false;
 
-            batch.set(examRef, {
+            examBatch.set(examRef, {
                 user_id: currentUser.uid,
                 finished_at: firebase.firestore.FieldValue.serverTimestamp(),
                 score_correct: result.correct,
@@ -245,12 +247,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 const answerRef = db.collection('exam_answers')
                     .doc(`${examRef.id}_${question.id}`);
 
-                batch.set(answerRef, {
+                examBatch.set(answerRef, {
                     user_id: currentUser.uid,
                     exam_id: examRef.id,
                     question_id: question.id,
-                    question_text: question.question_text,
-                    task_number: question.task_number,
+                    question_text: String(question.question_text || ''),
+                    task_number: Number(question.task_number || 0),
                     selected_answer: selectedKey,
                     correct_answer: question.correct_answer,
                     answered,
@@ -261,11 +263,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (answered) {
                     const statRef = db.collection('user_question_stats')
                         .doc(`${currentUser.uid}_${question.id}`);
-                    batch.set(statRef, {
+                    statsBatch.set(statRef, {
                         user_id: currentUser.uid,
                         question_id: question.id,
-                        question_text: question.question_text,
-                        task_number: question.task_number,
+                        question_text: String(question.question_text || ''),
+                        task_number: Number(question.task_number || 0),
                         total_attempts: firebase.firestore.FieldValue.increment(1),
                         total_correct: firebase.firestore.FieldValue.increment(correct ? 1 : 0),
                         total_incorrect: firebase.firestore.FieldValue.increment(correct ? 0 : 1),
@@ -273,10 +275,18 @@ document.addEventListener('DOMContentLoaded', () => {
                         last_answer: selectedKey,
                         last_answered_at: firebase.firestore.FieldValue.serverTimestamp()
                     }, { merge: true });
+                    hasStatsWrites = true;
                 }
             });
 
-            await batch.commit();
+            await examBatch.commit();
+            if (hasStatsWrites) {
+                try {
+                    await statsBatch.commit();
+                } catch (statsError) {
+                    console.warn('El examen se guardó, pero no se pudieron actualizar las estadísticas:', statsError);
+                }
+            }
         } catch (error) {
             console.error('No se pudieron guardar los resultados:', error);
             alert('El examen se ha corregido, pero no se pudo guardar en la nube. Revisa tu conexión.');
