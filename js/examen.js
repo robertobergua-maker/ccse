@@ -41,6 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!userId) {
                 throw new Error('No se pudo identificar al usuario para personalizar el examen');
             }
+            await assertUserCanSaveExam(userId);
 
             const [allQuestions, selectionStats] = await Promise.all([
                 loadQuestionBank(),
@@ -226,6 +227,8 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             saveCheckpoint = 'refrescar token';
             await currentUser.getIdToken(true);
+            saveCheckpoint = 'comprobar usuario';
+            await assertUserCanSaveExam(currentUser.uid);
 
             const examRef = db.collection('exams').doc();
             examId = examRef.id;
@@ -351,6 +354,15 @@ document.addEventListener('DOMContentLoaded', () => {
             email: currentUser?.email || '',
             timestamp: new Date().toISOString()
         };
+    }
+
+    async function assertUserCanSaveExam(userId) {
+        const profileDoc = await db.collection('users').doc(userId).get();
+        if (profileDoc.exists && profileDoc.data()?.blocked === true) {
+            const error = new Error('Este usuario está bloqueado por el administrador. Desbloquéalo desde el panel admin para poder guardar exámenes.');
+            error.code = 'usuario-bloqueado';
+            throw error;
+        }
     }
 
     function startTimer(duration) {
