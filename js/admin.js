@@ -8,6 +8,13 @@ document.addEventListener('DOMContentLoaded', () => {
         exams7dWatch: 30,
         exams7dDanger: 70
     };
+    const DB_EXPORT_COLLECTIONS = [
+        { id: 'users', label: 'Usuarios' },
+        { id: 'questions', label: 'Preguntas' },
+        { id: 'exams', label: 'Exámenes' },
+        { id: 'exam_answers', label: 'Respuestas de exámenes' },
+        { id: 'user_question_stats', label: 'Estadísticas por pregunta' }
+    ];
 
     const auth = firebase.auth();
     const db = firebase.firestore();
@@ -31,6 +38,11 @@ document.addEventListener('DOMContentLoaded', () => {
         activitySummary: document.getElementById('activity-summary'),
         activityBody: document.getElementById('activity-body'),
         auditSamiraBtn: document.getElementById('audit-samira-btn'),
+        databaseExportCollection: document.getElementById('database-export-collection'),
+        databaseExportJsonBtn: document.getElementById('database-export-json-btn'),
+        databaseExportCsvBtn: document.getElementById('database-export-csv-btn'),
+        databaseExportStatus: document.getElementById('database-export-status'),
+        databaseExportSummary: document.getElementById('database-export-summary'),
         downloadRiskCsvBtn: document.getElementById('download-risk-csv'),
         downloadUsersCsvBtn: document.getElementById('download-users-csv'),
         downloadActivityCsvBtn: document.getElementById('download-activity-csv'),
@@ -70,6 +82,8 @@ document.addEventListener('DOMContentLoaded', () => {
     ui.downloadUsersCsvBtn?.addEventListener('click', downloadUsersCsv);
     ui.downloadActivityCsvBtn?.addEventListener('click', downloadActivityCsv);
     ui.auditSamiraBtn?.addEventListener('click', auditSamiraRaysse);
+    ui.databaseExportJsonBtn?.addEventListener('click', () => exportDatabase('json'));
+    ui.databaseExportCsvBtn?.addEventListener('click', () => exportDatabase('csv'));
     ui.activityBody?.addEventListener('click', event => {
         const action = event.target.dataset.action;
         if (action === 'download-audit') {
@@ -103,6 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
             renderUserRows(rows);
             updateAdminDownloadButtons();
             setStatus('Activo', 'online');
+            setDatabaseExportStatus('Listo', 'online');
         } catch (error) {
             console.error('No se pudo cargar el panel admin:', error);
             ui.summary.textContent = 'No se pudo cargar el panel administrador.';
@@ -934,6 +949,69 @@ document.addEventListener('DOMContentLoaded', () => {
         downloadCsv(`auditoria-${userSlug}-${dateSlug}-${examId}.csv`, row.auditRows);
     }
 
+    async function exportDatabase(format) {
+        if (!adminUser) return alert('Esta exportación solo está disponible para el administrador.');
+
+        const selected = ui.databaseExportCollection?.value || 'all';
+        const collections = selected === 'all'
+            ? DB_EXPORT_COLLECTIONS
+            : DB_EXPORT_COLLECTIONS.filter(collection => collection.id === selected);
+
+        if (collections.length === 0) return alert('Selecciona una colección válida.');
+
+        setDatabaseExportStatus('Exportando...', 'online');
+        setDatabaseExportButtonsDisabled(true);
+        try {
+            const exported = {};
+            for (const collection of collections) {
+                exported[collection.id] = await loadCollectionForExport(collection.id);
+            }
+
+            const totalDocs = Object.values(exported).reduce((total, rows) => total + rows.length, 0);
+            const dateSlug = formatDateSlug(new Date());
+
+            if (format === 'json') {
+                downloadJson(
+                    selected === 'all' ? `bbdd-completa-${dateSlug}.json` : `${selected}-${dateSlug}.json`,
+                    {
+                        exported_at: new Date().toISOString(),
+                        exported_by: adminUser.email,
+                        collections: exported
+                    }
+                );
+            } else if (selected === 'all') {
+                Object.entries(exported).forEach(([collectionId, rows]) => {
+                    downloadCsv(`${collectionId}-${dateSlug}.csv`, rows);
+                });
+            } else {
+                downloadCsv(`${selected}-${dateSlug}.csv`, exported[selected]);
+            }
+
+            setDatabaseExportStatus('Exportado', 'online');
+            ui.databaseExportSummary.textContent =
+                `Exportadas ${collections.length} colecciones y ${totalDocs} documentos.`;
+        } catch (error) {
+            console.error('No se pudo exportar la BBDD:', error);
+            setDatabaseExportStatus('Error', 'offline');
+            ui.databaseExportSummary.textContent =
+                `No se pudo exportar la BBDD: ${error.message || error}.`;
+        } finally {
+            setDatabaseExportButtonsDisabled(false);
+        }
+    }
+
+    async function loadCollectionForExport(collectionId) {
+        const snapshot = await db.collection(collectionId).get();
+        const rows = [];
+        snapshot.forEach(doc => {
+            rows.push({
+                id: doc.id,
+                ...serializeForExport(doc.data())
+            });
+        });
+        return rows;
+    }
+
     function auditSamiraRaysse() {
         const samira = currentRows.find(row => {
             const haystack = normalizeForSearch(`${displayName(row.user)} ${row.user.email || ''}`);
@@ -1004,11 +1082,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function downloadCsv(fileName, rows) {
-        if (rows.length === 0) return;
-        const headers = Object.keys(rows[0]);
+        const normalizedRows = rows.map(row => flattenForCsv(row));
+        const headers = [...normalizedRows.reduce((keys, row) => {
+            Object.keys(row).forEach(key => keys.add(key));
+            return keys;
+        }, new Set())];
+        if (headers.length === 0) headers.push('sin_datos');
         const csv = [
             headers.join(','),
-            ...rows.map(row => headers.map(header => csvCell(row[header])).join(','))
+            ...normalizedRows.map(row => headers.map(header => csvCell(row[header])).join(','))
         ].join('\r\n');
         const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8' });
         const url = URL.createObjectURL(blob);
@@ -1019,6 +1101,45 @@ document.addEventListener('DOMContentLoaded', () => {
         link.click();
         link.remove();
         URL.revokeObjectURL(url);
+    }
+
+    function downloadJson(fileName, data) {
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+    }
+
+    function serializeForExport(value) {
+        if (value === null || value === undefined) return value;
+        if (typeof value?.toDate === 'function') return value.toDate().toISOString();
+        if (Array.isArray(value)) return value.map(item => serializeForExport(item));
+        if (typeof value === 'object') {
+            return Object.entries(value).reduce((accumulator, [key, item]) => {
+                accumulator[key] = serializeForExport(item);
+                return accumulator;
+            }, {});
+        }
+        return value;
+    }
+
+    function flattenForCsv(row, prefix = '') {
+        return Object.entries(row || {}).reduce((accumulator, [key, value]) => {
+            const column = prefix ? `${prefix}.${key}` : key;
+            if (Array.isArray(value)) {
+                accumulator[column] = JSON.stringify(value);
+            } else if (value && typeof value === 'object') {
+                Object.assign(accumulator, flattenForCsv(value, column));
+            } else {
+                accumulator[column] = value ?? '';
+            }
+            return accumulator;
+        }, {});
     }
 
     function csvCell(value) {
@@ -1038,10 +1159,24 @@ document.addEventListener('DOMContentLoaded', () => {
         ui.manualCheckStatus.className = `status-badge status-${state}`;
     }
 
+    function setDatabaseExportStatus(text, state) {
+        if (!ui.databaseExportStatus) return;
+        ui.databaseExportStatus.textContent = text;
+        ui.databaseExportStatus.className = `status-badge status-${state}`;
+    }
+
+    function setDatabaseExportButtonsDisabled(disabled) {
+        if (ui.databaseExportJsonBtn) ui.databaseExportJsonBtn.disabled = disabled;
+        if (ui.databaseExportCsvBtn) ui.databaseExportCsvBtn.disabled = disabled;
+        if (ui.databaseExportCollection) ui.databaseExportCollection.disabled = disabled;
+    }
+
     function setForbiddenTables() {
         ui.riskBody.innerHTML = '<tr><td colspan="6" class="empty-state">No tienes permiso para ver este panel.</td></tr>';
         ui.usersBody.innerHTML = '<tr><td colspan="8" class="empty-state">No tienes permiso para ver usuarios.</td></tr>';
         ui.activityBody.innerHTML = '<tr><td colspan="7" class="empty-state">No tienes permiso para ver actividad.</td></tr>';
+        setDatabaseExportStatus('Sin permiso', 'offline');
+        setDatabaseExportButtonsDisabled(true);
     }
 
     function setStatus(text, state) {

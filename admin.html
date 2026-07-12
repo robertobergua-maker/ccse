@@ -37,6 +37,29 @@
                 </div>
             </section>
 
+            <section class="admin-section" aria-labelledby="database-export-title">
+                <div class="section-heading">
+                    <div>
+                        <h2 id="database-export-title">Exportar BBDD</h2>
+                        <p class="muted">Descarga colecciones completas de Firestore para auditoría o copia de seguridad.</p>
+                    </div>
+                    <span id="database-export-status" class="status-badge">Pendiente</span>
+                </div>
+                <div class="admin-upload">
+                    <select id="database-export-collection" aria-label="Colección a exportar">
+                        <option value="all">Toda la BBDD</option>
+                        <option value="users">Usuarios</option>
+                        <option value="questions">Preguntas</option>
+                        <option value="exams">Exámenes</option>
+                        <option value="exam_answers">Respuestas de exámenes</option>
+                        <option value="user_question_stats">Estadísticas por pregunta</option>
+                    </select>
+                    <button id="database-export-json-btn" class="btn btn-primary" type="button">Exportar JSON</button>
+                    <button id="database-export-csv-btn" class="btn btn-secondary" type="button">Exportar CSV</button>
+                </div>
+                <p id="database-export-summary" class="muted">Solo disponible para el administrador.</p>
+            </section>
+
             <section class="admin-section" aria-labelledby="manual-check-title">
                 <div class="section-heading">
                     <div>
@@ -144,6 +167,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <script src="js/firebase-config.js"></script>
     <script src="js/auth.js?v=20260710-1"></script>
-    <script src="js/admin.js?v=20260711-1"></script>
+    <script src="js/admin.js?v=20260712-1"></script>
 </body>
 </html>
