@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
         4: { type: 'multiple_choice', options: 3 },
         5: { type: 'multiple_choice', options: 3 }
     };
+    const ENABLE_OPENAI_EXPLANATIONS = false;
 
     const auth = firebase.auth();
     const db = firebase.firestore();
@@ -26,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            renderReview(review);
+            renderReview(review, user);
         } catch (error) {
             console.error('No se pudo cargar la auditoría del examen:', error);
             alert(`No se pudo cargar la auditoría del examen: ${error.message}`);
@@ -97,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    function renderReview(review) {
+    function renderReview(review, user) {
         const { questions, userAnswers, summary, passingScore, totalQuestions } = review;
         const answered = summary.correct + summary.incorrect;
 
@@ -117,6 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const body = document.getElementById('tabla-preguntas-cuerpo');
         body.innerHTML = questions.map((question, index) => renderQuestionRow(question, index, userAnswers[index] ?? null)).join('');
+        enhanceMistakeExplanations(questions, userAnswers, user);
     }
 
     function renderQuestionRow(question, index, selectedKey) {
@@ -145,7 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>
                     <strong>${escapeHtml(question.question_text)}</strong>
                     <div class="answer-note">Correcta: ${escapeHtml(formatOption(correctOption))}</div>
-                    <div class="audit-note">${escapeHtml(result.explanation)}</div>
+                    <div id="explanation-${index}" class="audit-note">${escapeHtml(result.explanation)}</div>
                 </td>
                 <td>${escapeHtml(selectedOption ? formatOption(selectedOption) : '-')}</td>
                 <td>${state}</td>
@@ -172,7 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return {
                 stateLabel: 'No respondida',
                 stateClass: 'no-respondidas',
-                explanation: `No elegiste una respuesta. ${baseExplanation}`
+                explanation: `No marcaste ninguna opción. Lee la pregunta despacio y busca el dato principal. ${baseExplanation}`
             };
         }
 
@@ -181,7 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return {
             stateLabel: 'Incorrecta',
             stateClass: 'mal',
-            explanation: `Elegiste ${selectedText}, pero la respuesta correcta es ${correctText}. ${baseExplanation}`
+            explanation: `Marcaste ${selectedText}. Esa opción no encaja con el dato oficial de la pregunta. La respuesta correcta es ${correctText}. ${baseExplanation}`
         };
     }
 
@@ -228,6 +230,81 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
+    async function enhanceMistakeExplanations(questions, userAnswers, user) {
+        if (!ENABLE_OPENAI_EXPLANATIONS) return;
+
+        const token = await user.getIdToken();
+        await Promise.allSettled(questions.map(async (question, index) => {
+            const selectedKey = userAnswers[index] ?? null;
+            if (selectedKey === question.correct_answer) return;
+
+            const target = document.getElementById(`explanation-${index}`);
+            if (!target) return;
+
+            const selectedOption = question.options.find(option => option.key === selectedKey);
+            const correctOption = question.options.find(option => option.key === question.correct_answer);
+            const fallback = target.textContent;
+            const cacheKey = buildExplanationCacheKey(question, selectedKey);
+            const cached = sessionStorage.getItem(cacheKey);
+            if (cached) {
+                target.textContent = cached;
+                return;
+            }
+
+            target.textContent = 'Generando explicación sencilla...';
+            try {
+                const explanation = await requestOpenAIExplanation(question, selectedOption, correctOption, selectedKey, token);
+                sessionStorage.setItem(cacheKey, explanation);
+                target.textContent = explanation;
+            } catch (error) {
+                console.warn('No se pudo mejorar la explicación con OpenAI:', error);
+                target.textContent = fallback;
+            }
+        }));
+    }
+
+    async function requestOpenAIExplanation(question, selectedOption, correctOption, selectedKey, token) {
+        const endpoint = getFunctionsEndpoint('explainExamMistake');
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                question: question.question_text,
+                options: question.options,
+                selectedAnswer: selectedOption ? formatOption(selectedOption) : '',
+                correctAnswer: formatOption(correctOption),
+                wasUnanswered: selectedKey === null
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`La función respondió ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (!data.explanation) {
+            throw new Error('La función no devolvió explicación.');
+        }
+        return data.explanation;
+    }
+
+    function getFunctionsEndpoint(functionName) {
+        const projectId = firebase.app().options.projectId;
+        return `https://us-central1-${projectId}.cloudfunctions.net/${functionName}`;
+    }
+
+    function buildExplanationCacheKey(question, selectedKey) {
+        return [
+            'ai-explanation',
+            question.id || normalizeForCache(question.question_text),
+            selectedKey || 'sin-respuesta',
+            question.correct_answer || ''
+        ].join(':');
+    }
+
     function renderSaveDiagnostic() {
         const target = document.getElementById('save-diagnostic');
         if (!target) return;
@@ -269,58 +346,58 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (question.question_type === 'true_false') {
             if (question.correct_answer === 'a') {
-                return `La frase es verdadera. Puedes recordarla así: ${prompt}.`;
+                return `La frase es verdadera. Esto significa que la idea de la pregunta sí es correcta: ${prompt}.`;
             }
-            return `La frase es falsa. No debes tomar como correcto lo que dice: "${prompt}".`;
+            return `La frase es falsa. Esto significa que la idea de la pregunta no es correcta: "${prompt}".`;
         }
 
         const howNamed = prompt.match(/^Cómo se (llama|llaman) (.+)$/i);
         if (howNamed) {
             const verb = howNamed[1].toLowerCase();
-            return `${capitalize(howNamed[2])} se ${verb} ${lowercaseFirst(answer)}.`;
+            return `La pregunta pide un nombre. ${capitalize(howNamed[2])} se ${verb} ${lowercaseFirst(answer)}.`;
         }
 
         const who = prompt.match(/^Quién(?:es)? (.+)$/i);
         if (who) {
-            return `${answer} ${lowercaseFirst(who[1])}.`;
+            return `La pregunta pide una persona o institución. La respuesta correcta es ${answer}.`;
         }
 
         const where = prompt.match(/^Dónde (está|están|vive|viven|se encuentra|se encuentran) (.+)$/i);
         if (where) {
-            return `${capitalize(where[2])} ${where[1].toLowerCase()} ${lowercaseFirst(answer)}.`;
+            return `La pregunta pide un lugar. La respuesta correcta es ${answer}.`;
         }
 
         const whatIs = prompt.match(/^Cuál es (.+)$/i);
         if (whatIs) {
-            return `${capitalize(whatIs[1])} es ${lowercaseFirst(answer)}.`;
+            return `La pregunta pide identificar el dato correcto. La respuesta es ${answer}.`;
         }
 
         const howManyExist = prompt.match(/^Cuánt(?:os|as) (.+?) hay (.+)$/i);
         if (howManyExist) {
-            return `${capitalize(howManyExist[2])} hay ${lowercaseFirst(answer)} ${howManyExist[1].toLowerCase()}.`;
+            return `La pregunta pide una cantidad. El número correcto es ${answer}.`;
         }
 
         const howManyHas = prompt.match(/^Cuánt(?:os|as) (.+?) tiene (.+)$/i);
         if (howManyHas) {
-            return `${capitalize(howManyHas[2])} tiene ${lowercaseFirst(answer)} ${howManyHas[1].toLowerCase()}.`;
+            return `La pregunta pide una cantidad. El número correcto es ${answer}.`;
         }
 
         const whichOne = prompt.match(
             /^Cuál de (?:estos|estas|los siguientes|las siguientes) .+? (se .+|es .+|tiene .+|está .+|permite .+)$/i
         );
         if (whichOne) {
-            return `${answer} ${lowercaseFirst(whichOne[1])}.`;
+            return `Entre las opciones, la única que encaja es ${answer}.`;
         }
 
         if (/^Cómo /i.test(prompt)) {
-            return `La forma correcta es ${lowercaseFirst(answer)}.`;
+            return `La forma correcta es ${answer}.`;
         }
 
         if (/…$/.test(question.question_text.trim())) {
-            return `${capitalize(prompt)} ${lowercaseFirst(answer)}.`;
+            return `La frase se completa con ${answer}.`;
         }
 
-        return `La respuesta correcta es ${answer}. Esta es la idea que debes recordar para esta pregunta.`;
+        return `La respuesta correcta es ${answer}. Ese es el dato importante que debes recordar.`;
     }
 
     function sortExamAnswers(exam, answers) {
@@ -353,6 +430,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!value) return value;
         if (/^[A-ZÁÉÍÓÚÑ]{2,}\b/.test(value)) return value;
         return value.charAt(0).toLowerCase() + value.slice(1);
+    }
+
+    function normalizeForCache(value) {
+        return String(value || '')
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/-+/g, '-')
+            .slice(0, 80);
     }
 
     function escapeHtml(value) {

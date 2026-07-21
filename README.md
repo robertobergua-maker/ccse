@@ -17,7 +17,9 @@ Aplicación web con simulacros basados en las 300 preguntas del Manual CCSE 2025
   preguntas más falladas por el alumno.
 - Cada usuario puede auditar todos sus exámenes guardados desde el historial,
   revisando la coherencia entre enunciado, opciones, respuesta marcada y
-  solución correcta. Los fallos se explican en español.
+  solución correcta. Los fallos se explican en español sencillo y, si la Cloud
+  Function `explainExamMistake` está configurada con `OPENAI_API_KEY`, se
+  mejoran con OpenAI para que sean más fáciles de entender.
 
 ## Modelo de datos
 
