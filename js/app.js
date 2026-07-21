@@ -143,7 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (exams.length === 0) {
             setExamHistorySummary('No hay simulacros guardados todavía.');
             ui.examHistoryBody.innerHTML =
-                '<tr><td colspan="5" class="empty-state">Aún no hay exámenes guardados.</td></tr>';
+                '<tr><td colspan="6" class="empty-state">Aún no hay exámenes guardados.</td></tr>';
             return;
         }
 
@@ -162,6 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td><strong>${correct}/${total}</strong></td>
                     <td>${exam.score_incorrect || 0}</td>
                     <td>${exam.score_unanswered || 0}</td>
+                    <td><a class="btn btn-secondary btn-compact" href="results.html?examId=${encodeURIComponent(exam.id)}">Revisar</a></td>
                 </tr>
             `;
         }).join('');
@@ -171,7 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!ui.examHistoryBody) return;
         setExamHistorySummary('Revisa la conexión o los permisos de Firestore.');
         ui.examHistoryBody.innerHTML =
-            '<tr><td colspan="5" class="empty-state">No se pudo cargar el registro de exámenes.</td></tr>';
+            '<tr><td colspan="6" class="empty-state">No se pudo cargar el registro de exámenes.</td></tr>';
     }
 
     function setStatus(text, state) {

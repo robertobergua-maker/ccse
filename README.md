@@ -11,6 +11,12 @@ Aplicación web con simulacros basados en las 300 preguntas del Manual CCSE 2025
 - Tarea 3: 2 preguntas.
 - Tarea 4: 3 preguntas.
 - Tarea 5: 7 preguntas.
+- La selección mantiene el reparto oficial por tareas y valida el formato:
+  tareas 1, 3, 4 y 5 con tres opciones; tarea 2 de verdadero/falso con dos opciones.
+- Dentro de cada tarea se priorizan las preguntas que menos han salido y las
+  preguntas más falladas por el alumno.
+- Cada examen guardado puede revisarse desde el historial. Samira Raysse ve las
+  explicaciones de revisión en francés.
 
 ## Modelo de datos
 

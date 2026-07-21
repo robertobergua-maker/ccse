@@ -1,5 +1,14 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const OFFICIAL_DISTRIBUTION = { 1: 10, 2: 3, 3: 2, 4: 3, 5: 7 };
+    const OFFICIAL_TASK_RULES = {
+        1: { amount: 10, type: 'multiple_choice', options: 3 },
+        2: { amount: 3, type: 'true_false', options: 2 },
+        3: { amount: 2, type: 'multiple_choice', options: 3 },
+        4: { amount: 3, type: 'multiple_choice', options: 3 },
+        5: { amount: 7, type: 'multiple_choice', options: 3 }
+    };
+    const OFFICIAL_DISTRIBUTION = Object.fromEntries(
+        Object.entries(OFFICIAL_TASK_RULES).map(([task, rule]) => [task, rule.amount])
+    );
     const EXAM_DURATION_SECONDS = 45 * 60;
     const PASSING_SCORE = 15;
     const UNSEEN_PRIORITY = 0.18;
@@ -90,9 +99,20 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        Object.entries(OFFICIAL_DISTRIBUTION).forEach(([task, required]) => {
+        Object.entries(OFFICIAL_TASK_RULES).forEach(([task, rule]) => {
             const available = questions.filter(question => question.task_number === Number(task)).length;
-            if (available < required) {
+            const invalid = questions.filter(question =>
+                question.task_number === Number(task)
+                && (
+                    question.question_type !== rule.type
+                    || !Array.isArray(question.options)
+                    || question.options.length !== rule.options
+                )
+            );
+            if (invalid.length > 0) {
+                throw new Error(`La tarea ${task} contiene preguntas que no respetan el formato oficial`);
+            }
+            if (available < rule.amount) {
                 throw new Error(`No hay suficientes preguntas para la tarea ${task}`);
             }
         });
@@ -151,11 +171,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function buildOfficialExam(questions, selectionStats) {
-        return Object.entries(OFFICIAL_DISTRIBUTION).flatMap(([task, amount]) => {
+        return Object.entries(OFFICIAL_TASK_RULES).flatMap(([task, rule]) => {
             const taskQuestions = questions.filter(
                 question => question.task_number === Number(task)
             );
-            return weightedSample(taskQuestions, amount, selectionStats);
+            return weightedSample(taskQuestions, rule.amount, selectionStats);
         });
     }
 
@@ -268,6 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     question_id: question.id,
                     question_text: String(question.question_text || ''),
                     task_number: Number(question.task_number || 0),
+                    question_type: String(question.question_type || ''),
                     options: Array.isArray(question.options)
                         ? question.options.map(option => ({
                             key: option.key,
