@@ -1,4 +1,12 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const OFFICIAL_TASK_RULES = {
+        1: { type: 'multiple_choice', options: 3 },
+        2: { type: 'true_false', options: 2 },
+        3: { type: 'multiple_choice', options: 3 },
+        4: { type: 'multiple_choice', options: 3 },
+        5: { type: 'multiple_choice', options: 3 }
+    };
+
     const auth = firebase.auth();
     const db = firebase.firestore();
     const params = new URLSearchParams(window.location.search);
@@ -8,10 +16,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!user) return;
 
         try {
-            const profile = await loadUserProfile(user);
-            const reviewLanguage = getReviewLanguage(user, profile);
             const review = examId
-                ? await loadSavedExamReview(examId)
+                ? await loadSavedExamReview(examId, user.uid)
                 : loadRecentExamReview();
 
             if (!review) {
@@ -20,10 +26,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            renderReview(review, reviewLanguage);
+            renderReview(review);
         } catch (error) {
-            console.error('No se pudo cargar la revisión del examen:', error);
-            alert(`No se pudo cargar la revisión del examen: ${error.message}`);
+            console.error('No se pudo cargar la auditoría del examen:', error);
+            alert(`No se pudo cargar la auditoría del examen: ${error.message}`);
             window.location.href = 'dashboard.html';
         }
     });
@@ -42,18 +48,26 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    async function loadSavedExamReview(id) {
+    async function loadSavedExamReview(id, userId) {
         const examDoc = await db.collection('exams').doc(id).get();
         if (!examDoc.exists) {
             throw new Error('El examen no existe o no tienes permiso para verlo.');
         }
 
         const exam = { id: examDoc.id, ...examDoc.data() };
+        if (exam.user_id && exam.user_id !== userId) {
+            throw new Error('Este examen pertenece a otro usuario.');
+        }
         const answersSnapshot = await db.collection('exam_answers')
-            .where('exam_id', '==', id)
+            .where('user_id', '==', userId)
             .get();
         const answers = [];
-        answersSnapshot.forEach(doc => answers.push({ id: doc.id, ...doc.data() }));
+        answersSnapshot.forEach(doc => {
+            const answer = { id: doc.id, ...doc.data() };
+            if (answer.exam_id === id) {
+                answers.push(answer);
+            }
+        });
         const orderedAnswers = sortExamAnswers(exam, answers);
         const questions = orderedAnswers.map(answer => ({
             id: answer.question_id,
@@ -83,41 +97,11 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    async function loadUserProfile(user) {
-        try {
-            const doc = await db.collection('users').doc(user.uid).get();
-            return doc.exists ? doc.data() : null;
-        } catch (error) {
-            console.warn('No se pudo cargar el perfil del usuario para la revisión:', error);
-            return null;
-        }
-    }
-
-    function getReviewLanguage(user, profile) {
-        const configuredLanguage = String(
-            profile?.review_language || profile?.preferred_review_language || profile?.language || ''
-        ).toLowerCase();
-        if (configuredLanguage.startsWith('fr')) return 'fr';
-        return isSamiraUser(user, profile) ? 'fr' : 'es';
-    }
-
-    function isSamiraUser(user, profile) {
-        const identity = normalizeForMatch([
-            user?.displayName,
-            user?.email,
-            profile?.name,
-            profile?.displayName,
-            profile?.email
-        ].filter(Boolean).join(' '));
-        return identity.includes('samira') && (identity.includes('raysse') || identity.includes('samira'));
-    }
-
-    function renderReview(review, language) {
+    function renderReview(review) {
         const { questions, userAnswers, summary, passingScore, totalQuestions } = review;
         const answered = summary.correct + summary.incorrect;
-        const labels = getLabels(language);
 
-        document.documentElement.lang = language === 'fr' ? 'fr' : 'es';
+        document.documentElement.lang = 'es';
         document.getElementById('res-respondadas').textContent = answered;
         document.getElementById('res-no-respondidas').textContent = summary.unanswered;
         document.getElementById('res-bien').textContent = summary.correct;
@@ -126,96 +110,122 @@ document.addEventListener('DOMContentLoaded', () => {
         const resultTitle = document.getElementById('result-title');
         const passed = summary.correct >= passingScore;
         resultTitle.textContent = passed
-            ? `${labels.passed}: ${summary.correct} de ${totalQuestions} ${labels.correctCount}`
-            : `${labels.failed}: ${summary.correct} de ${totalQuestions} ${labels.correctCount}`;
+            ? `APTO: ${summary.correct} de ${totalQuestions} aciertos`
+            : `NO APTO: ${summary.correct} de ${totalQuestions} aciertos`;
         resultTitle.className = passed ? 'result-title passed' : 'result-title failed';
         renderSaveDiagnostic();
 
         const body = document.getElementById('tabla-preguntas-cuerpo');
-        body.innerHTML = questions.map((question, index) => {
-            const selectedKey = userAnswers[index] ?? null;
-            const selectedOption = question.options.find(option => option.key === selectedKey);
-            const correctOption = question.options.find(
-                option => option.key === question.correct_answer
-            );
-            const correctAnswerText = formatOption(correctOption, language);
-            const explanation = getSimpleExplanation(question, correctOption, language);
-            let stateLabel = labels.unanswered;
-            let stateClass = 'no-respondidas';
-            let simpleExplanation = labels.unansweredExplanation(explanation);
-
-            if (selectedKey === question.correct_answer) {
-                stateLabel = labels.correct;
-                stateClass = 'bien';
-                simpleExplanation = labels.correctExplanation(explanation);
-            } else if (selectedKey !== null) {
-                stateLabel = labels.incorrect;
-                stateClass = 'mal';
-                simpleExplanation = labels.incorrectExplanation(explanation);
-            }
-
-            const state = `
-                <span
-                    class="result-with-help"
-                    tabindex="0"
-                    aria-describedby="help-${index}"
-                    title="${escapeHtml(simpleExplanation)}"
-                >
-                    <span class="badge ${stateClass}">${stateLabel}</span>
-                    <span id="help-${index}" class="simple-tooltip" role="tooltip">
-                        ${escapeHtml(simpleExplanation)}
-                    </span>
-                </span>
-            `;
-
-            return `
-                <tr>
-                    <td class="center-text">${index + 1}</td>
-                    <td>
-                        <strong>${escapeHtml(question.question_text)}</strong>
-                        <div class="answer-note">${labels.correctAnswer}: ${escapeHtml(correctAnswerText)}</div>
-                    </td>
-                    <td>${escapeHtml(selectedOption ? formatOption(selectedOption, language) : labels.noAnswerSymbol)}</td>
-                    <td>${state}</td>
-                </tr>
-            `;
-        }).join('');
+        body.innerHTML = questions.map((question, index) => renderQuestionRow(question, index, userAnswers[index] ?? null)).join('');
     }
 
-    function getLabels(language) {
-        if (language === 'fr') {
+    function renderQuestionRow(question, index, selectedKey) {
+        const selectedOption = question.options.find(option => option.key === selectedKey);
+        const correctOption = question.options.find(option => option.key === question.correct_answer);
+        const result = buildAnswerResult(question, selectedKey, selectedOption, correctOption);
+        const audit = auditQuestionCoherence(question, selectedKey, selectedOption, correctOption);
+
+        const state = `
+            <span
+                class="result-with-help"
+                tabindex="0"
+                aria-describedby="help-${index}"
+                title="${escapeHtml(result.explanation)}"
+            >
+                <span class="badge ${result.stateClass}">${result.stateLabel}</span>
+                <span id="help-${index}" class="simple-tooltip" role="tooltip">
+                    ${escapeHtml(result.explanation)}
+                </span>
+            </span>
+        `;
+
+        return `
+            <tr>
+                <td class="center-text">${index + 1}</td>
+                <td>
+                    <strong>${escapeHtml(question.question_text)}</strong>
+                    <div class="answer-note">Correcta: ${escapeHtml(formatOption(correctOption))}</div>
+                    <div class="audit-note">${escapeHtml(result.explanation)}</div>
+                </td>
+                <td>${escapeHtml(selectedOption ? formatOption(selectedOption) : '-')}</td>
+                <td>${state}</td>
+                <td>
+                    <span class="badge ${audit.ok ? 'audit-ok' : 'audit-warning'}">${audit.ok ? 'Coherente' : 'Revisar'}</span>
+                    <div class="audit-note ${audit.ok ? '' : 'audit-warning'}">${escapeHtml(audit.message)}</div>
+                </td>
+            </tr>
+        `;
+    }
+
+    function buildAnswerResult(question, selectedKey, selectedOption, correctOption) {
+        const baseExplanation = getSpanishExplanation(question, correctOption);
+
+        if (selectedKey === question.correct_answer) {
             return {
-                passed: 'APTE',
-                failed: 'NON APTE',
-                correctCount: 'bonnes réponses',
-                correct: 'Correcte',
-                incorrect: 'Incorrecte',
-                unanswered: 'Sans réponse',
-                correctAnswer: 'Réponse correcte',
-                noAnswerSymbol: '-',
-                correctExplanation: explanation => `Très bien. ${explanation}`,
-                incorrectExplanation: explanation => `Ta réponse n'est pas correcte. ${explanation}`,
-                unansweredExplanation: explanation => `Tu n'as pas choisi de réponse. ${explanation}`
+                stateLabel: 'Correcta',
+                stateClass: 'bien',
+                explanation: `Muy bien. ${baseExplanation}`
+            };
+        }
+
+        if (selectedKey === null) {
+            return {
+                stateLabel: 'No respondida',
+                stateClass: 'no-respondidas',
+                explanation: `No elegiste una respuesta. ${baseExplanation}`
+            };
+        }
+
+        const selectedText = selectedOption ? formatOption(selectedOption) : `opción ${String(selectedKey).toUpperCase()}`;
+        const correctText = formatOption(correctOption);
+        return {
+            stateLabel: 'Incorrecta',
+            stateClass: 'mal',
+            explanation: `Elegiste ${selectedText}, pero la respuesta correcta es ${correctText}. ${baseExplanation}`
+        };
+    }
+
+    function auditQuestionCoherence(question, selectedKey, selectedOption, correctOption) {
+        const issues = [];
+        const rule = OFFICIAL_TASK_RULES[Number(question.task_number)];
+
+        if (!cleanSentence(question.question_text)) {
+            issues.push('falta el enunciado');
+        }
+        if (!Array.isArray(question.options) || question.options.length === 0) {
+            issues.push('no hay opciones registradas');
+        }
+        if (!correctOption) {
+            issues.push('la respuesta correcta guardada no coincide con ninguna opción');
+        }
+        if (selectedKey !== null && !selectedOption) {
+            issues.push('la respuesta elegida no coincide con ninguna opción guardada');
+        }
+        if (rule && question.question_type !== rule.type) {
+            issues.push(`la tarea ${question.task_number} debería ser de tipo ${rule.type}`);
+        }
+        if (rule && Array.isArray(question.options) && question.options.length !== rule.options) {
+            issues.push(`la tarea ${question.task_number} debería tener ${rule.options} opciones`);
+        }
+
+        if (issues.length > 0) {
+            return {
+                ok: false,
+                message: `Hay que revisar este registro: ${issues.join('; ')}.`
+            };
+        }
+
+        if (selectedKey === question.correct_answer) {
+            return {
+                ok: true,
+                message: 'La pregunta, la opción marcada y la solución guardada son coherentes.'
             };
         }
 
         return {
-            passed: 'APTO',
-            failed: 'NO APTO',
-            correctCount: 'aciertos',
-            correct: 'Correcta',
-            incorrect: 'Incorrecta',
-            unanswered: 'No respondida',
-            correctAnswer: 'Correcta',
-            noAnswerSymbol: '-',
-            correctExplanation: explanation => `¡Muy bien! ${explanation}`,
-            incorrectExplanation: explanation => `Tu respuesta no es correcta. ${explanation}`,
-            unansweredExplanation: explanation => `No elegiste una respuesta. ${explanation}`
+            ok: true,
+            message: 'La pregunta y sus opciones son coherentes; el fallo se debe a que la opción marcada no era la correcta.'
         };
-    }
-
-    function formatOption(option) {
-        return option ? `${String(option.key).toUpperCase()}) ${option.text}` : 'No disponible';
     }
 
     function renderSaveDiagnostic() {
@@ -243,71 +253,6 @@ document.addEventListener('DOMContentLoaded', () => {
             target.style.display = 'block';
             target.textContent = `No se pudo leer el diagnóstico de guardado: ${rawDiagnostic}`;
         }
-    }
-
-    function getSimpleExplanation(question, correctOption, language) {
-        if (language === 'fr') {
-            return getFrenchExplanation(question, correctOption);
-        }
-        return getSpanishExplanation(question, correctOption);
-    }
-
-    function getFrenchExplanation(question, correctOption) {
-        if (question.explanation_fr) return question.explanation_fr;
-
-        const answer = cleanSentence(correctOption?.text || 'Non disponible');
-        const prompt = cleanSentence(question.question_text)
-            .replace(/^¿/, '')
-            .replace(/\?$/, '')
-            .replace(/…$/, '')
-            .trim();
-
-        if (question.question_type === 'true_false') {
-            if (question.correct_answer === 'a') {
-                return `L'affirmation est vraie. L'idée à retenir est: ${prompt}.`;
-            }
-            return `L'affirmation est fausse. Il ne faut donc pas considérer comme correcte l'idée suivante: ${prompt}.`;
-        }
-
-        const howNamed = prompt.match(/^Cómo se (llama|llaman) (.+)$/i);
-        if (howNamed) {
-            return `La bonne réponse est ${lowercaseFirst(answer)}: c'est le nom à retenir pour ${howNamed[2].toLowerCase()}.`;
-        }
-
-        const who = prompt.match(/^Quién(?:es)? (.+)$/i);
-        if (who) {
-            return `${answer} est la réponse correcte pour cette question sur qui ${lowercaseFirst(who[1])}.`;
-        }
-
-        const where = prompt.match(/^Dónde (está|están|vive|viven|se encuentra|se encuentran) (.+)$/i);
-        if (where) {
-            return `La localisation correcte est ${lowercaseFirst(answer)}. C'est ce qu'il faut retenir pour ${where[2].toLowerCase()}.`;
-        }
-
-        const whatIs = prompt.match(/^Cuál es (.+)$/i);
-        if (whatIs) {
-            return `La bonne réponse est ${lowercaseFirst(answer)} pour identifier ${whatIs[1].toLowerCase()}.`;
-        }
-
-        const howManyExist = prompt.match(/^Cuánt(?:os|as) (.+?) hay (.+)$/i);
-        if (howManyExist) {
-            return `La quantité correcte est ${lowercaseFirst(answer)}. C'est le nombre à retenir.`;
-        }
-
-        const howManyHas = prompt.match(/^Cuánt(?:os|as) (.+?) tiene (.+)$/i);
-        if (howManyHas) {
-            return `La quantité correcte est ${lowercaseFirst(answer)}. C'est le nombre à retenir.`;
-        }
-
-        if (/^Cómo /i.test(prompt)) {
-            return `La formulation correcte est ${lowercaseFirst(answer)}.`;
-        }
-
-        if (/…$/.test(question.question_text.trim())) {
-            return `La phrase se complète avec ${lowercaseFirst(answer)}.`;
-        }
-
-        return `La réponse correcte est ${answer}. C'est l'idée principale à mémoriser pour cette question.`;
     }
 
     function getSpanishExplanation(question, correctOption) {
@@ -392,8 +337,12 @@ document.addEventListener('DOMContentLoaded', () => {
         return Array.isArray(answer.options) && answer.options.length === 2 ? 'true_false' : 'multiple_choice';
     }
 
+    function formatOption(option) {
+        return option ? `${String(option.key).toUpperCase()}) ${option.text}` : 'No disponible';
+    }
+
     function cleanSentence(value) {
-        return String(value).trim().replace(/[.\s]+$/, '');
+        return String(value || '').trim().replace(/[.\s]+$/, '');
     }
 
     function capitalize(value) {
@@ -404,16 +353,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!value) return value;
         if (/^[A-ZÁÉÍÓÚÑ]{2,}\b/.test(value)) return value;
         return value.charAt(0).toLowerCase() + value.slice(1);
-    }
-
-    function normalizeForMatch(value) {
-        return String(value || '')
-            .toLowerCase()
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '')
-            .replace(/[^a-z0-9]+/g, ' ')
-            .replace(/\s+/g, ' ')
-            .trim();
     }
 
     function escapeHtml(value) {

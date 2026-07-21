@@ -37,7 +37,6 @@ document.addEventListener('DOMContentLoaded', () => {
         usersBody: document.getElementById('users-body'),
         activitySummary: document.getElementById('activity-summary'),
         activityBody: document.getElementById('activity-body'),
-        auditSamiraBtn: document.getElementById('audit-samira-btn'),
         databaseExportCollection: document.getElementById('database-export-collection'),
         databaseExportJsonBtn: document.getElementById('database-export-json-btn'),
         databaseExportCsvBtn: document.getElementById('database-export-csv-btn'),
@@ -81,7 +80,6 @@ document.addEventListener('DOMContentLoaded', () => {
     ui.downloadRiskCsvBtn?.addEventListener('click', downloadRiskCsv);
     ui.downloadUsersCsvBtn?.addEventListener('click', downloadUsersCsv);
     ui.downloadActivityCsvBtn?.addEventListener('click', downloadActivityCsv);
-    ui.auditSamiraBtn?.addEventListener('click', auditSamiraRaysse);
     ui.databaseExportJsonBtn?.addEventListener('click', () => exportDatabase('json'));
     ui.databaseExportCsvBtn?.addEventListener('click', () => exportDatabase('csv'));
     ui.activityBody?.addEventListener('click', event => {
@@ -894,7 +892,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (ui.downloadRiskCsvBtn) ui.downloadRiskCsvBtn.disabled = riskyRows.length === 0;
         if (ui.downloadUsersCsvBtn) ui.downloadUsersCsvBtn.disabled = currentRows.length === 0;
         if (ui.downloadActivityCsvBtn) ui.downloadActivityCsvBtn.disabled = currentActivityRows.length === 0;
-        if (ui.auditSamiraBtn) ui.auditSamiraBtn.disabled = currentRows.length === 0;
     }
 
     function downloadRiskCsv() {
@@ -1012,18 +1009,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return rows;
     }
 
-    function auditSamiraRaysse() {
-        const samira = currentRows.find(row => {
-            const haystack = normalizeForSearch(`${displayName(row.user)} ${row.user.email || ''}`);
-            return haystack.includes('samira raysse') || haystack.includes('samira');
-        });
-        if (!samira) {
-            alert('No he encontrado a Samira Raysse en la lista de usuarios cargada.');
-            return;
-        }
-        reviewUserActivity(samira.user.id);
-    }
-
     function sortExamAnswers(exam, answers) {
         const order = new Map((exam.question_ids || []).map((id, index) => [String(id), index]));
         return [...answers].sort((left, right) => {
@@ -1063,8 +1048,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 opcion_c: optionText(options, 'c'),
                 respuesta_correcta_letra: answer.correct_answer || bankQuestion?.correct_answer || '',
                 respuesta_correcta_texto: correctOption ? correctOption.text : '',
-                respuesta_samira_letra: answer.selected_answer || '',
-                respuesta_samira_texto: selectedOption ? selectedOption.text : '',
+                respuesta_usuario_letra: answer.selected_answer || '',
+                respuesta_usuario_texto: selectedOption ? selectedOption.text : '',
                 respondida: answer.answered === true ? 'Sí' : 'No',
                 resultado: answer.correct === true ? 'Acierto' : answer.answered === true ? 'Fallo' : 'Sin responder'
             };

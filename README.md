@@ -15,8 +15,9 @@ Aplicación web con simulacros basados en las 300 preguntas del Manual CCSE 2025
   tareas 1, 3, 4 y 5 con tres opciones; tarea 2 de verdadero/falso con dos opciones.
 - Dentro de cada tarea se priorizan las preguntas que menos han salido y las
   preguntas más falladas por el alumno.
-- Cada examen guardado puede revisarse desde el historial. Samira Raysse ve las
-  explicaciones de revisión en francés.
+- Cada usuario puede auditar todos sus exámenes guardados desde el historial,
+  revisando la coherencia entre enunciado, opciones, respuesta marcada y
+  solución correcta. Los fallos se explican en español.
 
 ## Modelo de datos
 

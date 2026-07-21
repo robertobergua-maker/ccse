@@ -147,8 +147,8 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        setExamHistorySummary(`Mostrando ${Math.min(exams.length, 20)} de ${exams.length} simulacros guardados.`);
-        ui.examHistoryBody.innerHTML = exams.slice(0, 20).map(exam => {
+        setExamHistorySummary(`Mostrando ${exams.length} simulacro${exams.length === 1 ? '' : 's'} guardado${exams.length === 1 ? '' : 's'}.`);
+        ui.examHistoryBody.innerHTML = exams.map(exam => {
             const correct = exam.score_correct || 0;
             const total = exam.total_questions || 25;
             const passed = exam.passed === true;
@@ -162,7 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td><strong>${correct}/${total}</strong></td>
                     <td>${exam.score_incorrect || 0}</td>
                     <td>${exam.score_unanswered || 0}</td>
-                    <td><a class="btn btn-secondary btn-compact" href="results.html?examId=${encodeURIComponent(exam.id)}">Revisar</a></td>
+                    <td><a class="btn btn-secondary btn-compact" href="results.html?examId=${encodeURIComponent(exam.id)}">Auditar</a></td>
                 </tr>
             `;
         }).join('');
