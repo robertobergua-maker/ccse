@@ -15,11 +15,9 @@ Aplicación web con simulacros basados en las 300 preguntas del Manual CCSE 2025
   tareas 1, 3, 4 y 5 con tres opciones; tarea 2 de verdadero/falso con dos opciones.
 - Dentro de cada tarea se priorizan las preguntas que menos han salido y las
   preguntas más falladas por el alumno.
-- Cada usuario puede auditar todos sus exámenes guardados desde el historial,
-  revisando la coherencia entre enunciado, opciones, respuesta marcada y
-  solución correcta. Los fallos se explican en español sencillo y, si la Cloud
-  Function `explainExamMistake` está configurada con `OPENAI_API_KEY`, se
-  mejoran con OpenAI para que sean más fáciles de entender.
+- Cada usuario puede revisar todos sus exámenes guardados desde el historial.
+  La revisión muestra solo los fallos y usa `explicacion_facil` para explicar
+  el concepto con lenguaje claro.
 
 ## Modelo de datos
 
@@ -31,6 +29,8 @@ Cada documento se importa desde `preguntas.json` y contiene:
 - `question_text`: enunciado.
 - `options`: lista de objetos `{ key, text }`.
 - `correct_answer`: clave de la opción correcta.
+- `explicacion_facil`: explicación pedagógica en español sencillo para revisar
+  fallos, pensada para alumnos extranjeros de nivel A2-B1.
 - `question_type`, `task_number`, `topic`, `active` y `source`.
 
 ### `exams/{examId}`

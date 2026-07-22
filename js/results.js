@@ -1,13 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const OFFICIAL_TASK_RULES = {
-        1: { type: 'multiple_choice', options: 3 },
-        2: { type: 'true_false', options: 2 },
-        3: { type: 'multiple_choice', options: 3 },
-        4: { type: 'multiple_choice', options: 3 },
-        5: { type: 'multiple_choice', options: 3 }
-    };
-    const ENABLE_OPENAI_EXPLANATIONS = false;
-
     const auth = firebase.auth();
     const db = firebase.firestore();
     const params = new URLSearchParams(window.location.search);
@@ -27,10 +18,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            renderReview(review, user);
+            const questionBank = await loadQuestionBank();
+            enrichReviewQuestions(review, questionBank);
+            renderReview(review);
         } catch (error) {
-            console.error('No se pudo cargar la auditoría del examen:', error);
-            alert(`No se pudo cargar la auditoría del examen: ${error.message}`);
+            console.error('No se pudo cargar la revisión del examen:', error);
+            alert(`No se pudo cargar la revisión del examen: ${error.message}`);
             window.location.href = 'dashboard.html';
         }
     });
@@ -59,16 +52,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (exam.user_id && exam.user_id !== userId) {
             throw new Error('Este examen pertenece a otro usuario.');
         }
+
         const answersSnapshot = await db.collection('exam_answers')
             .where('user_id', '==', userId)
             .get();
         const answers = [];
         answersSnapshot.forEach(doc => {
             const answer = { id: doc.id, ...doc.data() };
-            if (answer.exam_id === id) {
-                answers.push(answer);
-            }
+            if (answer.exam_id === id) answers.push(answer);
         });
+
         const orderedAnswers = sortExamAnswers(exam, answers);
         const questions = orderedAnswers.map(answer => ({
             id: answer.question_id,
@@ -76,7 +69,8 @@ document.addEventListener('DOMContentLoaded', () => {
             task_number: answer.task_number,
             options: answer.options || [],
             correct_answer: answer.correct_answer,
-            question_type: inferQuestionType(answer)
+            question_type: inferQuestionType(answer),
+            explicacion_facil: answer.explicacion_facil || ''
         }));
         const userAnswers = {};
         orderedAnswers.forEach((answer, index) => {
@@ -98,9 +92,62 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    function renderReview(review, user) {
+    async function loadQuestionBank() {
+        const localQuestions = await loadLocalQuestionBank();
+
+        try {
+            const snapshot = await db.collection('questions').get();
+            const questions = [];
+            snapshot.forEach(doc => questions.push({ id: doc.id, ...doc.data() }));
+            if (questions.length > 0) {
+                const localById = new Map(localQuestions.map(question => [String(question.id), question]));
+                return new Map(questions.map(question => {
+                    const local = localById.get(String(question.id)) || {};
+                    return [
+                        String(question.id),
+                        {
+                            ...local,
+                            ...question,
+                            explicacion_facil: question.explicacion_facil || local.explicacion_facil || ''
+                        }
+                    ];
+                }));
+            }
+        } catch (error) {
+            console.warn('No se pudo cargar questions desde Firestore. Se usará preguntas.json.', error);
+        }
+
+        return new Map(localQuestions.map(question => [String(question.id), question]));
+    }
+
+    async function loadLocalQuestionBank() {
+        const response = await fetch('preguntas.json', { cache: 'no-store' });
+        if (!response.ok) throw new Error(`No se pudo cargar el banco (${response.status})`);
+        const questions = await response.json();
+        return questions;
+    }
+
+    function enrichReviewQuestions(review, questionBank) {
+        review.questions = review.questions.map(question => {
+            const bankQuestion = questionBank.get(String(question.id));
+            if (!bankQuestion) return question;
+
+            return {
+                ...bankQuestion,
+                ...question,
+                options: question.options?.length ? question.options : bankQuestion.options,
+                correct_answer: question.correct_answer || bankQuestion.correct_answer,
+                explicacion_facil: question.explicacion_facil || bankQuestion.explicacion_facil || ''
+            };
+        });
+    }
+
+    function renderReview(review) {
         const { questions, userAnswers, summary, passingScore, totalQuestions } = review;
         const answered = summary.correct + summary.incorrect;
+        const mistakes = questions
+            .map((question, index) => ({ question, index, selectedKey: userAnswers[index] ?? null }))
+            .filter(item => item.selectedKey !== item.question.correct_answer);
 
         document.documentElement.lang = 'es';
         document.getElementById('res-respondadas').textContent = answered;
@@ -116,193 +163,69 @@ document.addEventListener('DOMContentLoaded', () => {
         resultTitle.className = passed ? 'result-title passed' : 'result-title failed';
         renderSaveDiagnostic();
 
-        const body = document.getElementById('tabla-preguntas-cuerpo');
-        body.innerHTML = questions.map((question, index) => renderQuestionRow(question, index, userAnswers[index] ?? null)).join('');
-        enhanceMistakeExplanations(questions, userAnswers, user);
+        const reviewTitle = document.getElementById('review-title');
+        if (reviewTitle) {
+            reviewTitle.textContent = mistakes.length === 0
+                ? 'Sin fallos que revisar'
+                : `Revisión de fallos (${mistakes.length})`;
+        }
+
+        const body = document.getElementById('mistakes-review');
+        if (mistakes.length === 0) {
+            body.innerHTML = `
+                <section class="empty-review">
+                    <h3>No hay respuestas incorrectas.</h3>
+                    <p>Has respondido correctamente todas las preguntas del examen.</p>
+                </section>
+            `;
+            return;
+        }
+
+        body.innerHTML = mistakes.map(item => renderMistakeCard(item)).join('');
     }
 
-    function renderQuestionRow(question, index, selectedKey) {
+    function renderMistakeCard({ question, index, selectedKey }) {
         const selectedOption = question.options.find(option => option.key === selectedKey);
         const correctOption = question.options.find(option => option.key === question.correct_answer);
-        const result = buildAnswerResult(question, selectedKey, selectedOption, correctOption);
-        const audit = auditQuestionCoherence(question, selectedKey, selectedOption, correctOption);
-
-        const state = `
-            <span
-                class="result-with-help"
-                tabindex="0"
-                aria-describedby="help-${index}"
-                title="${escapeHtml(result.explanation)}"
-            >
-                <span class="badge ${result.stateClass}">${result.stateLabel}</span>
-                <span id="help-${index}" class="simple-tooltip" role="tooltip">
-                    ${escapeHtml(result.explanation)}
-                </span>
-            </span>
-        `;
+        const explanation = getEasyExplanation(question, correctOption);
 
         return `
-            <tr>
-                <td class="center-text">${index + 1}</td>
-                <td>
+            <section class="mistake-card">
+                <div class="mistake-heading">
+                    <span class="question-number">Pregunta ${index + 1}</span>
                     <strong>${escapeHtml(question.question_text)}</strong>
-                    <div class="answer-note">Correcta: ${escapeHtml(formatOption(correctOption))}</div>
-                    <div id="explanation-${index}" class="audit-note">${escapeHtml(result.explanation)}</div>
-                </td>
-                <td>${escapeHtml(selectedOption ? formatOption(selectedOption) : '-')}</td>
-                <td>${state}</td>
-                <td>
-                    <span class="badge ${audit.ok ? 'audit-ok' : 'audit-warning'}">${audit.ok ? 'Coherente' : 'Revisar'}</span>
-                    <div class="audit-note ${audit.ok ? '' : 'audit-warning'}">${escapeHtml(audit.message)}</div>
-                </td>
-            </tr>
+                </div>
+
+                <div class="answer-comparison">
+                    <div class="answer-box answer-wrong">
+                        <span class="answer-label">Tu respuesta</span>
+                        <p>${escapeHtml(selectedOption ? formatOption(selectedOption) : 'No respondiste esta pregunta.')}</p>
+                    </div>
+                    <div class="answer-box answer-right">
+                        <span class="answer-label">Respuesta correcta</span>
+                        <p>${escapeHtml(formatOption(correctOption))}</p>
+                    </div>
+                </div>
+
+                <div class="why-box">
+                    <span class="why-title">¿Por qué?</span>
+                    <p>${escapeHtml(explanation)}</p>
+                </div>
+            </section>
         `;
     }
 
-    function buildAnswerResult(question, selectedKey, selectedOption, correctOption) {
-        const baseExplanation = getSpanishExplanation(question, correctOption);
+    function getEasyExplanation(question, correctOption) {
+        const stored = String(question.explicacion_facil || '').trim();
+        if (stored) return stored;
 
-        if (selectedKey === question.correct_answer) {
-            return {
-                stateLabel: 'Correcta',
-                stateClass: 'bien',
-                explanation: `Muy bien. ${baseExplanation}`
-            };
+        const answer = cleanSentence(correctOption?.text || 'No disponible');
+        if (question.question_type === 'true_false') {
+            return question.correct_answer === 'a'
+                ? 'La frase de la pregunta es correcta. Lee la idea completa y recuerda que esa información forma parte del contenido oficial del examen.'
+                : 'La frase de la pregunta no es correcta. En las preguntas de verdadero o falso, hay que fijarse en una palabra que cambia el sentido de toda la frase.';
         }
-
-        if (selectedKey === null) {
-            return {
-                stateLabel: 'No respondida',
-                stateClass: 'no-respondidas',
-                explanation: `No marcaste ninguna opción. Lee la pregunta despacio y busca el dato principal. ${baseExplanation}`
-            };
-        }
-
-        const selectedText = selectedOption ? formatOption(selectedOption) : `opción ${String(selectedKey).toUpperCase()}`;
-        const correctText = formatOption(correctOption);
-        return {
-            stateLabel: 'Incorrecta',
-            stateClass: 'mal',
-            explanation: `Marcaste ${selectedText}. Esa opción no encaja con el dato oficial de la pregunta. La respuesta correcta es ${correctText}. ${baseExplanation}`
-        };
-    }
-
-    function auditQuestionCoherence(question, selectedKey, selectedOption, correctOption) {
-        const issues = [];
-        const rule = OFFICIAL_TASK_RULES[Number(question.task_number)];
-
-        if (!cleanSentence(question.question_text)) {
-            issues.push('falta el enunciado');
-        }
-        if (!Array.isArray(question.options) || question.options.length === 0) {
-            issues.push('no hay opciones registradas');
-        }
-        if (!correctOption) {
-            issues.push('la respuesta correcta guardada no coincide con ninguna opción');
-        }
-        if (selectedKey !== null && !selectedOption) {
-            issues.push('la respuesta elegida no coincide con ninguna opción guardada');
-        }
-        if (rule && question.question_type !== rule.type) {
-            issues.push(`la tarea ${question.task_number} debería ser de tipo ${rule.type}`);
-        }
-        if (rule && Array.isArray(question.options) && question.options.length !== rule.options) {
-            issues.push(`la tarea ${question.task_number} debería tener ${rule.options} opciones`);
-        }
-
-        if (issues.length > 0) {
-            return {
-                ok: false,
-                message: `Hay que revisar este registro: ${issues.join('; ')}.`
-            };
-        }
-
-        if (selectedKey === question.correct_answer) {
-            return {
-                ok: true,
-                message: 'La pregunta, la opción marcada y la solución guardada son coherentes.'
-            };
-        }
-
-        return {
-            ok: true,
-            message: 'La pregunta y sus opciones son coherentes; el fallo se debe a que la opción marcada no era la correcta.'
-        };
-    }
-
-    async function enhanceMistakeExplanations(questions, userAnswers, user) {
-        if (!ENABLE_OPENAI_EXPLANATIONS) return;
-
-        const token = await user.getIdToken();
-        await Promise.allSettled(questions.map(async (question, index) => {
-            const selectedKey = userAnswers[index] ?? null;
-            if (selectedKey === question.correct_answer) return;
-
-            const target = document.getElementById(`explanation-${index}`);
-            if (!target) return;
-
-            const selectedOption = question.options.find(option => option.key === selectedKey);
-            const correctOption = question.options.find(option => option.key === question.correct_answer);
-            const fallback = target.textContent;
-            const cacheKey = buildExplanationCacheKey(question, selectedKey);
-            const cached = sessionStorage.getItem(cacheKey);
-            if (cached) {
-                target.textContent = cached;
-                return;
-            }
-
-            target.textContent = 'Generando explicación sencilla...';
-            try {
-                const explanation = await requestOpenAIExplanation(question, selectedOption, correctOption, selectedKey, token);
-                sessionStorage.setItem(cacheKey, explanation);
-                target.textContent = explanation;
-            } catch (error) {
-                console.warn('No se pudo mejorar la explicación con OpenAI:', error);
-                target.textContent = fallback;
-            }
-        }));
-    }
-
-    async function requestOpenAIExplanation(question, selectedOption, correctOption, selectedKey, token) {
-        const endpoint = getFunctionsEndpoint('explainExamMistake');
-        const response = await fetch(endpoint, {
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                question: question.question_text,
-                options: question.options,
-                selectedAnswer: selectedOption ? formatOption(selectedOption) : '',
-                correctAnswer: formatOption(correctOption),
-                wasUnanswered: selectedKey === null
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error(`La función respondió ${response.status}`);
-        }
-
-        const data = await response.json();
-        if (!data.explanation) {
-            throw new Error('La función no devolvió explicación.');
-        }
-        return data.explanation;
-    }
-
-    function getFunctionsEndpoint(functionName) {
-        const projectId = firebase.app().options.projectId;
-        return `https://us-central1-${projectId}.cloudfunctions.net/${functionName}`;
-    }
-
-    function buildExplanationCacheKey(question, selectedKey) {
-        return [
-            'ai-explanation',
-            question.id || normalizeForCache(question.question_text),
-            selectedKey || 'sin-respuesta',
-            question.correct_answer || ''
-        ].join(':');
+        return `La idea importante de esta pregunta es ${lowercaseFirst(answer)}. Repasa el enunciado y relaciónalo con esa idea para recordarlo mejor.`;
     }
 
     function renderSaveDiagnostic() {
@@ -332,74 +255,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function getSpanishExplanation(question, correctOption) {
-        if (question.explanation_simple) {
-            return question.explanation_simple;
-        }
-
-        const answer = cleanSentence(correctOption?.text || 'No disponible');
-        const prompt = cleanSentence(question.question_text)
-            .replace(/^¿/, '')
-            .replace(/\?$/, '')
-            .replace(/…$/, '')
-            .trim();
-
-        if (question.question_type === 'true_false') {
-            if (question.correct_answer === 'a') {
-                return `La frase es verdadera. Esto significa que la idea de la pregunta sí es correcta: ${prompt}.`;
-            }
-            return `La frase es falsa. Esto significa que la idea de la pregunta no es correcta: "${prompt}".`;
-        }
-
-        const howNamed = prompt.match(/^Cómo se (llama|llaman) (.+)$/i);
-        if (howNamed) {
-            const verb = howNamed[1].toLowerCase();
-            return `La pregunta pide un nombre. ${capitalize(howNamed[2])} se ${verb} ${lowercaseFirst(answer)}.`;
-        }
-
-        const who = prompt.match(/^Quién(?:es)? (.+)$/i);
-        if (who) {
-            return `La pregunta pide una persona o institución. La respuesta correcta es ${answer}.`;
-        }
-
-        const where = prompt.match(/^Dónde (está|están|vive|viven|se encuentra|se encuentran) (.+)$/i);
-        if (where) {
-            return `La pregunta pide un lugar. La respuesta correcta es ${answer}.`;
-        }
-
-        const whatIs = prompt.match(/^Cuál es (.+)$/i);
-        if (whatIs) {
-            return `La pregunta pide identificar el dato correcto. La respuesta es ${answer}.`;
-        }
-
-        const howManyExist = prompt.match(/^Cuánt(?:os|as) (.+?) hay (.+)$/i);
-        if (howManyExist) {
-            return `La pregunta pide una cantidad. El número correcto es ${answer}.`;
-        }
-
-        const howManyHas = prompt.match(/^Cuánt(?:os|as) (.+?) tiene (.+)$/i);
-        if (howManyHas) {
-            return `La pregunta pide una cantidad. El número correcto es ${answer}.`;
-        }
-
-        const whichOne = prompt.match(
-            /^Cuál de (?:estos|estas|los siguientes|las siguientes) .+? (se .+|es .+|tiene .+|está .+|permite .+)$/i
-        );
-        if (whichOne) {
-            return `Entre las opciones, la única que encaja es ${answer}.`;
-        }
-
-        if (/^Cómo /i.test(prompt)) {
-            return `La forma correcta es ${answer}.`;
-        }
-
-        if (/…$/.test(question.question_text.trim())) {
-            return `La frase se completa con ${answer}.`;
-        }
-
-        return `La respuesta correcta es ${answer}. Ese es el dato importante que debes recordar.`;
-    }
-
     function sortExamAnswers(exam, answers) {
         const order = new Map((exam.question_ids || []).map((id, index) => [String(id), index]));
         return [...answers].sort((left, right) => {
@@ -422,24 +277,10 @@ document.addEventListener('DOMContentLoaded', () => {
         return String(value || '').trim().replace(/[.\s]+$/, '');
     }
 
-    function capitalize(value) {
-        return value ? value.charAt(0).toUpperCase() + value.slice(1) : value;
-    }
-
     function lowercaseFirst(value) {
         if (!value) return value;
         if (/^[A-ZÁÉÍÓÚÑ]{2,}\b/.test(value)) return value;
         return value.charAt(0).toLowerCase() + value.slice(1);
-    }
-
-    function normalizeForCache(value) {
-        return String(value || '')
-            .toLowerCase()
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '')
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/-+/g, '-')
-            .slice(0, 80);
     }
 
     function escapeHtml(value) {

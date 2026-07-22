@@ -289,6 +289,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     question_text: String(question.question_text || ''),
                     task_number: Number(question.task_number || 0),
                     question_type: String(question.question_type || ''),
+                    explicacion_facil: String(question.explicacion_facil || ''),
                     options: Array.isArray(question.options)
                         ? question.options.map(option => ({
                             key: option.key,

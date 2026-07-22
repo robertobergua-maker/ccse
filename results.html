@@ -24,22 +24,7 @@
         .mal { background-color: #e53e3e; }
         .card span { display: block; font-size: 32px; margin-top: 5px; }
 
-        /* Bloque 2: Tabla agrupada */
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; box-shadow: 0 4px 6px rgba(0,0,0,0.04); border-radius: 8px; overflow: visible; }
-        th, td { padding: 14px; border: 1px solid #e2e8f0; text-align: left; }
-        th { background-color: #edf2f7; color: #4a5568; font-weight: 600; }
-        tr:hover { background-color: #f7fafc; }
-        
         .badge { padding: 5px 10px; border-radius: 4px; color: white; font-size: 12px; font-weight: bold; display: inline-block; }
-        .center-text { text-align: center; }
-        .badge.no-respondidas { background: #718096; }
-        .badge.bien { background: #38a169; }
-        .badge.mal { background: #e53e3e; }
-        .answer-note { color: #4a5568; font-size: 13px; margin-top: 8px; }
-        .audit-note { color: #2d3748; font-size: 13px; line-height: 1.45; margin-top: 8px; }
-        .audit-note.audit-warning { color: #975a16; }
-        .badge.audit-ok { background: #2b6cb0; }
-        .badge.audit-warning { background: #dd6b20; }
         .result-title { padding: 16px; border-radius: 8px; border: 0; }
         .result-title.passed { color: #276749; background: #f0fff4; }
         .result-title.failed { color: #9b2c2c; background: #fff5f5; }
@@ -48,43 +33,28 @@
         .save-diagnostic dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 12px; margin: 0; font-size: 14px; }
         .save-diagnostic dt { font-weight: 700; }
         .save-diagnostic dd { margin: 0; overflow-wrap: anywhere; }
-        .result-with-help { display: inline-block; position: relative; outline: none; }
-        .result-with-help .badge { cursor: help; }
-        .simple-tooltip {
-            position: absolute;
-            z-index: 20;
-            left: 50%;
-            top: calc(100% + 10px);
-            width: 250px;
-            transform: translateX(-50%) translateY(-5px);
-            padding: 10px 12px;
-            border-radius: 7px;
-            background: #1f2937;
-            color: #fff;
-            font-size: 13px;
-            font-weight: normal;
-            line-height: 1.4;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.18);
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
-            transition: opacity .15s ease, transform .15s ease;
-        }
-        .simple-tooltip::after {
-            content: "";
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            border: 6px solid transparent;
-            border-bottom-color: #1f2937;
-        }
-        .result-with-help:hover .simple-tooltip,
-        .result-with-help:focus .simple-tooltip,
-        .result-with-help:focus-within .simple-tooltip {
-            opacity: 1;
-            visibility: visible;
-            transform: translateX(-50%) translateY(0);
+        .mistakes-review { display: grid; gap: 16px; margin-top: 16px; }
+        .mistake-card { background: white; border: 1px solid #dbe4ef; border-left: 5px solid #e53e3e; border-radius: 8px; padding: 18px; box-shadow: 0 4px 6px rgba(0,0,0,0.04); }
+        .mistake-heading { display: grid; gap: 8px; margin-bottom: 14px; }
+        .question-number { color: #718096; font-size: 13px; font-weight: 700; text-transform: uppercase; }
+        .mistake-heading strong { color: #1a365d; font-size: 17px; line-height: 1.35; }
+        .answer-comparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 12px 0; }
+        .answer-box { border-radius: 8px; padding: 12px 14px; }
+        .answer-box p { margin: 6px 0 0; line-height: 1.4; }
+        .answer-wrong { background: #fff5f5; border: 1px solid #fed7d7; color: #742a2a; }
+        .answer-right { background: #f0fff4; border: 1px solid #c6f6d5; color: #22543d; }
+        .answer-label, .why-title { display: block; font-size: 12px; font-weight: 800; letter-spacing: .02em; text-transform: uppercase; }
+        .why-box { background: #f8fafc; border: 1px solid #dbe4ef; border-radius: 8px; padding: 14px; margin-top: 12px; }
+        .why-box p { margin: 8px 0 0; line-height: 1.58; color: #2d3748; font-size: 15px; }
+        .empty-review { background: white; border: 1px solid #c6f6d5; border-left: 5px solid #38a169; border-radius: 8px; padding: 18px; }
+        .empty-review h3 { margin: 0 0 8px; color: #22543d; }
+        .empty-review p { margin: 0; color: #4a5568; }
+        @media (max-width: 720px) {
+            header { align-items: flex-start; gap: 10px; padding: 14px 18px; }
+            .container { margin: 20px auto; padding: 0 14px; }
+            .card { min-width: 130px; padding: 16px; }
+            .answer-comparison { grid-template-columns: 1fr; }
+            .mistake-card { padding: 15px; }
         }
     </style>
 </head>
@@ -105,23 +75,12 @@
             <div class="card mal">Incorrectas <span id="res-mal">0</span></div>
         </div>
 
-        <h2>Auditoría del examen</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th style="width: 5%" class="center-text">Nº</th>
-                    <th style="width: 43%">Pregunta</th>
-                    <th style="width: 22%">Tu respuesta</th>
-                    <th style="width: 15%">Resultado</th>
-                    <th style="width: 20%">Coherencia</th>
-                </tr>
-            </thead>
-            <tbody id="tabla-preguntas-cuerpo">
-                <tr>
-                    <td colspan="5" style="text-align: center; color: #718096; font-style: italic;">Cargando resultados…</td>
-                </tr>
-            </tbody>
-        </table>
+        <h2 id="review-title">Revisión de fallos</h2>
+        <div id="mistakes-review" class="mistakes-review">
+            <section class="empty-review">
+                <p>Cargando revisión…</p>
+            </section>
+        </div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
@@ -129,6 +88,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <script src="js/firebase-config.js"></script>
     <script src="js/auth.js?v=20260710-1"></script>
-    <script src="js/results.js?v=20260721-3"></script>
+    <script src="js/results.js?v=20260722-1"></script>
 </body>
 </html>
