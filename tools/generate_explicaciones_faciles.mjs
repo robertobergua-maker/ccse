@@ -4,6 +4,7 @@ const INPUT_PATH = process.argv[2] || 'preguntas.json';
 const OUTPUT_PATH = process.argv[3] || INPUT_PATH;
 const MODEL = process.env.OPENAI_MODEL || 'gpt-5';
 const BATCH_SIZE = Number(process.env.EXPLANATION_BATCH_SIZE || 8);
+const FORCE = process.argv.includes('--force') || process.env.EXPLANATION_FORCE === '1';
 
 const apiKey = process.env.OPENAI_API_KEY;
 if (!apiKey) {
@@ -12,9 +13,11 @@ if (!apiKey) {
 }
 
 const questions = JSON.parse(await fs.readFile(INPUT_PATH, 'utf8'));
-const pending = questions.filter(question => !String(question.explicacion_facil || '').trim());
+const pending = FORCE
+    ? questions
+    : questions.filter(question => !String(question.explicacion_facil || '').trim());
 
-console.log(`Preguntas: ${questions.length}. Pendientes: ${pending.length}.`);
+console.log(`Preguntas: ${questions.length}. A generar: ${pending.length}. Modo force: ${FORCE ? 'sí' : 'no'}.`);
 
 for (let index = 0; index < pending.length; index += BATCH_SIZE) {
     const batch = pending.slice(index, index + BATCH_SIZE);
@@ -55,17 +58,18 @@ async function requestExplanations(batch) {
                         {
                             type: 'input_text',
                             text: [
-                                'Eres profesor de la prueba CCSE para personas extranjeras.',
-                                'Escribe explicaciones en español muy sencillo, nivel A2-B1.',
-                                'Usa frases cortas y naturales.',
-                                'No uses lenguaje jurídico o administrativo difícil.',
-                                'No copies literalmente la respuesta correcta.',
-                                'No inventes información fuera de la pregunta, sus opciones y el contenido oficial que la pregunta evalúa.',
-                                'Si hay una institución, explica qué hace en palabras sencillas.',
-                                'Si hay una fecha o una ley, explica por qué es importante.',
-                                'Si hay geografía, sitúa el lugar de forma breve.',
-                                'Cada explicación debe ayudar a recordar la respuesta.',
-                                'Longitud: 40 a 90 palabras.',
+                                'Eres profesor de la prueba CCSE para personas extranjeras adultas.',
+                                'Escribe en español muy sencillo, nivel A2-B1.',
+                                'La explicación debe enseñar la idea, no repetir la opción correcta.',
+                                'Usa frases cortas, vocabulario común y ejemplos de vida diaria cuando ayuden.',
+                                'Explica por qué la respuesta correcta tiene sentido y por qué las otras opciones pueden confundir.',
+                                'Si hay una institución, di qué hace con palabras sencillas.',
+                                'Si hay una fecha, norma o documento, explica para qué sirve o por qué importa.',
+                                'Si hay geografía, ayuda a situar el lugar sin meter datos innecesarios.',
+                                'No uses lenguaje jurídico difícil.',
+                                'No inventes datos fuera de la pregunta, sus opciones y el contenido oficial que evalúa.',
+                                'No empieces con frases genéricas como "Esta pregunta comprueba un dato concreto".',
+                                'Longitud: 55 a 110 palabras.',
                                 'Devuelve SOLO JSON válido con esta forma: [{"id":"...","explicacion_facil":"..."}].'
                             ].join(' ')
                         }
@@ -132,7 +136,7 @@ function cleanExplanation(value) {
 function isValidExplanation(value) {
     if (!value) return false;
     const words = value.split(/\s+/).filter(Boolean);
-    return words.length >= 25 && words.length <= 120;
+    return words.length >= 40 && words.length <= 130;
 }
 
 function validateAll(values) {

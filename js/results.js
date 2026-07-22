@@ -108,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         {
                             ...local,
                             ...question,
-                            explicacion_facil: question.explicacion_facil || local.explicacion_facil || ''
+                            explicacion_facil: local.explicacion_facil || question.explicacion_facil || ''
                         }
                     ];
                 }));
@@ -137,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ...question,
                 options: question.options?.length ? question.options : bankQuestion.options,
                 correct_answer: question.correct_answer || bankQuestion.correct_answer,
-                explicacion_facil: question.explicacion_facil || bankQuestion.explicacion_facil || ''
+                explicacion_facil: bankQuestion.explicacion_facil || question.explicacion_facil || ''
             };
         });
     }
@@ -147,7 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const answered = summary.correct + summary.incorrect;
         const mistakes = questions
             .map((question, index) => ({ question, index, selectedKey: userAnswers[index] ?? null }))
-            .filter(item => item.selectedKey !== item.question.correct_answer);
+            .filter(item => item.selectedKey !== null && item.selectedKey !== item.question.correct_answer);
 
         document.documentElement.lang = 'es';
         document.getElementById('res-respondadas').textContent = answered;
