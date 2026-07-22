@@ -42,6 +42,46 @@ header h1 {
     color: #005a9e;
 }
 
+.version-assurance {
+    align-items: center;
+    background: #ecfdf3;
+    border: 1px solid #abefc6;
+    border-radius: 8px;
+    color: #067647;
+    display: inline-flex;
+    gap: 10px;
+    margin-top: 12px;
+    padding: 9px 12px;
+}
+
+.version-assurance::before {
+    align-items: center;
+    background: #17b26a;
+    border-radius: 50%;
+    color: #fff;
+    content: "\2713";
+    display: inline-flex;
+    flex: 0 0 22px;
+    font-size: 0.86rem;
+    font-weight: 900;
+    height: 22px;
+    justify-content: center;
+    line-height: 1;
+    width: 22px;
+}
+
+.version-assurance strong {
+    display: block;
+    font-size: 0.92rem;
+    line-height: 1.2;
+}
+
+.version-assurance span {
+    display: block;
+    font-size: 0.78rem;
+    line-height: 1.35;
+}
+
 main {
     padding: 10px 0;
 }
@@ -585,6 +625,10 @@ footer {
     }
     header h1 {
         font-size: 1.5em;
+    }
+    .version-assurance {
+        width: 100%;
+        box-sizing: border-box;
     }
     .cta-buttons {
         flex-direction: column;
