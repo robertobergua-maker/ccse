@@ -12,16 +12,15 @@
     }
 
     document.addEventListener('DOMContentLoaded', function () {
-        const container = document.querySelector('.container') || document.body;
-        const existingFooter = container.querySelector('footer');
-        const lastModified = document.createElement(existingFooter ? 'p' : 'footer');
+        const headerContent = document.querySelector('header > div') || document.querySelector('header') || document.body;
+        const lastModified = document.createElement('p');
         lastModified.className = 'last-modified';
-        lastModified.textContent = 'Ultima modificacion: ' + formatLastModified(document.lastModified);
+        lastModified.textContent = 'Última modificación: ' + formatLastModified(document.lastModified);
         lastModified.style.color = '#667085';
         lastModified.style.fontSize = '0.85rem';
-        lastModified.style.marginTop = '16px';
-        lastModified.style.textAlign = 'center';
+        lastModified.style.fontWeight = '600';
+        lastModified.style.margin = '6px 0 0';
 
-        (existingFooter || container).appendChild(lastModified);
+        headerContent.appendChild(lastModified);
     });
 }());

@@ -28,6 +28,7 @@
         .result-title { padding: 16px; border-radius: 8px; border: 0; }
         .result-title.passed { color: #276749; background: #f0fff4; }
         .result-title.failed { color: #9b2c2c; background: #fff5f5; }
+        .review-intro { color: #4a5568; font-size: 15px; line-height: 1.5; margin: -8px 0 18px; }
         .save-diagnostic { display: none; margin: 16px 0; padding: 14px 16px; border: 1px solid #feb2b2; border-radius: 8px; background: #fff5f5; color: #742a2a; }
         .save-diagnostic strong { display: block; margin-bottom: 8px; }
         .save-diagnostic dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 12px; margin: 0; font-size: 14px; }
@@ -67,6 +68,7 @@
 
     <div class="container">
         <h2 id="result-title" class="result-title">Resultado del examen</h2>
+        <p class="review-intro">Auditoría de fallos con explicaciones sencillas para estudiantes extranjeros.</p>
         <div id="save-diagnostic" class="save-diagnostic" aria-live="polite"></div>
         <div class="resumen-container">
             <div class="card respondidas">Respondidas <span id="res-respondadas">0</span></div>
@@ -75,7 +77,7 @@
             <div class="card mal">Incorrectas <span id="res-mal">0</span></div>
         </div>
 
-        <h2 id="review-title">Revisión de fallos</h2>
+        <h2 id="review-title">Auditoría de fallos explicada</h2>
         <div id="mistakes-review" class="mistakes-review">
             <section class="empty-review">
                 <p>Cargando revisión…</p>
@@ -88,7 +90,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <script src="js/firebase-config.js"></script>
     <script src="js/auth.js?v=20260710-1"></script>
-    <script src="js/results.js?v=20260722-1"></script>
+    <script src="js/results.js?v=20260722-2"></script>
     <script src="js/last-modified.js?v=20260722-1"></script>
 </body>
 </html>

@@ -162,7 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td><strong>${correct}/${total}</strong></td>
                     <td>${exam.score_incorrect || 0}</td>
                     <td>${exam.score_unanswered || 0}</td>
-                    <td><a class="btn btn-secondary btn-compact" href="results.html?examId=${encodeURIComponent(exam.id)}">Revisar fallos</a></td>
+                    <td><a class="btn btn-secondary btn-compact" href="results.html?examId=${encodeURIComponent(exam.id)}">Auditoría explicada</a></td>
                 </tr>
             `;
         }).join('');

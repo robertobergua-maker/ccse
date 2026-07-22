@@ -167,7 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (reviewTitle) {
             reviewTitle.textContent = mistakes.length === 0
                 ? 'Sin fallos que revisar'
-                : `Revisión de fallos (${mistakes.length})`;
+                : `Auditoría de fallos explicada (${mistakes.length})`;
         }
 
         const body = document.getElementById('mistakes-review');
@@ -208,7 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
 
                 <div class="why-box">
-                    <span class="why-title">¿Por qué?</span>
+                    <span class="why-title">Explicación sencilla</span>
                     <p>${escapeHtml(explanation)}</p>
                 </div>
             </section>
