@@ -62,13 +62,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
             visibleRows = questions.map(question => {
                 const stat = statsByQuestion.get(question.id) || {};
+                let lastFailedAt = stat.last_failed_at || null;
+                if (!lastFailedAt && stat.last_correct === false && stat.last_answered_at) {
+                    lastFailedAt = stat.last_answered_at;
+                }
+
                 return {
                     question,
                     attempts: stat.total_attempts || 0,
                     correct: stat.total_correct || 0,
                     incorrect: stat.total_incorrect || 0,
                     lastCorrect: typeof stat.last_correct === 'boolean' ? stat.last_correct : null,
-                    lastAnswer: stat.last_answer || null
+                    lastAnswer: stat.last_answer || null,
+                    lastFailedAt: lastFailedAt
                 };
             }).filter(matchesFilter);
 
@@ -157,17 +163,34 @@ document.addEventListener('DOMContentLoaded', () => {
             const correctOption = getOption(row.question, row.question.correct_answer);
             const lastOption = getOption(row.question, row.lastAnswer);
             const questionText = getContextualQuestionText(row.question, correctOption);
+
+            const isFailed = row.lastCorrect === false || (activeFilter === 'falladas' && row.incorrect > 0);
+            const explanation = isFailed ? getEasyExplanation(row.question, correctOption) : '';
+
+            const explanationBox = isFailed ? `
+                <div class="why-box">
+                    <span class="why-title">Auditoría explicada</span>
+                    <p>${escapeHtml(explanation)}</p>
+                </div>
+            ` : '';
+
             const answerContext = `
                 <div class="question-context">
                     <span class="answer-correct">Correcta: ${escapeHtml(formatOption(correctOption))}</span>
                     ${lastOption ? `<span>Tu última respuesta: ${escapeHtml(formatOption(lastOption))}</span>` : ''}
+                    ${explanationBox}
                 </div>
             `;
+
             let result = '<span class="result-badge result-pending">Sin responder</span>';
             if (row.lastCorrect === true) {
                 result = '<span class="result-badge result-correct">Acierto</span>';
             } else if (row.lastCorrect === false) {
-                result = '<span class="result-badge result-wrong">Fallo</span>';
+                const dateText = row.lastFailedAt ? formatDate(row.lastFailedAt) : null;
+                result = `
+                    <span class="result-badge result-wrong">Fallo</span>
+                    ${dateText ? `<div class="last-failed-badge" title="Fecha del último fallo">📅 ${escapeHtml(dateText)}</div>` : ''}
+                `;
             }
 
             return `
@@ -336,6 +359,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function csvCell(value) {
         return `"${String(value ?? '').replace(/"/g, '""')}"`;
+    }
+
+    function getEasyExplanation(question, correctOption) {
+        const stored = String(question.explicacion_facil || '').trim();
+        if (stored) return stored;
+
+        const answer = cleanSentence(correctOption?.text || 'No disponible');
+        if (question.question_type === 'true_false') {
+            return question.correct_answer === 'a'
+                ? 'La frase de la pregunta es correcta. Lee la idea completa y recuerda que esa información forma parte del contenido oficial del examen.'
+                : 'La frase de la pregunta no es correcta. En las preguntas de verdadero o falso, hay que fijarse en una palabra que cambia el sentido de toda la frase.';
+        }
+        return `La idea importante de esta pregunta es ${lowercaseFirst(answer)}. Repasa el enunciado y relaciónalo con esa idea para recordarlo mejor.`;
+    }
+
+    function formatDate(timestamp) {
+        if (!timestamp) return 'No disponible';
+        let millis = 0;
+        if (typeof timestamp.toMillis === 'function') millis = timestamp.toMillis();
+        else if (timestamp.seconds) millis = timestamp.seconds * 1000;
+        else if (typeof timestamp === 'number') millis = timestamp;
+        else if (timestamp instanceof Date) millis = timestamp.getTime();
+        else if (typeof timestamp === 'string') millis = new Date(timestamp).getTime();
+
+        if (!millis || isNaN(millis)) return 'No disponible';
+
+        return new Intl.DateTimeFormat('es-ES', {
+            dateStyle: 'short',
+            timeStyle: 'short'
+        }).format(new Date(millis));
     }
 
     function formatDateSlug(date) {

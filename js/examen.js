@@ -58,12 +58,11 @@ document.addEventListener('DOMContentLoaded', () => {
             ]);
             validateQuestionBank(allQuestions);
             selectionContext = {
-                strategy: 'per_user_weighted_v1',
-                stats_source: 'exam_answers',
+                strategy: 'cervantes_weighted_v2',
+                priority_order: ['most_failed', 'least_seen', 'oldest_answered'],
+                stats_source: 'user_question_stats',
                 stats_user_id: userId,
-                stats_count: selectionStats.size,
-                unseen_priority: UNSEEN_PRIORITY,
-                wrong_priority: WRONG_PRIORITY
+                stats_count: selectionStats.size
             };
             examQuestions = buildOfficialExam(allQuestions, selectionStats);
             userAnswers = {};
@@ -147,21 +146,41 @@ document.addEventListener('DOMContentLoaded', () => {
         const stats = new Map();
 
         try {
-            const snapshot = await db.collection('exam_answers')
+            const snapshot = await db.collection('user_question_stats')
                 .where('user_id', '==', userId)
                 .get();
 
             snapshot.forEach(doc => {
-                const answer = doc.data();
-                const questionId = answer.question_id;
+                const data = doc.data();
+                const questionId = data.question_id;
                 if (!questionId) return;
 
-                const current = stats.get(questionId) || { appearances: 0, wrong: 0 };
-                current.appearances += 1;
-                if (answer.answered === true && answer.correct === false) {
-                    current.wrong += 1;
+                let lastAnsweredMs = 0;
+                if (data.last_answered_at) {
+                    if (typeof data.last_answered_at.toMillis === 'function') {
+                        lastAnsweredMs = data.last_answered_at.toMillis();
+                    } else if (data.last_answered_at.seconds) {
+                        lastAnsweredMs = data.last_answered_at.seconds * 1000;
+                    }
                 }
-                stats.set(questionId, current);
+
+                let lastFailedMs = 0;
+                if (data.last_failed_at) {
+                    if (typeof data.last_failed_at.toMillis === 'function') {
+                        lastFailedMs = data.last_failed_at.toMillis();
+                    } else if (data.last_failed_at.seconds) {
+                        lastFailedMs = data.last_failed_at.seconds * 1000;
+                    }
+                } else if (data.last_correct === false && lastAnsweredMs > 0) {
+                    lastFailedMs = lastAnsweredMs;
+                }
+
+                stats.set(questionId, {
+                    appearances: data.total_attempts || 0,
+                    wrong: data.total_incorrect || 0,
+                    lastAnsweredMs: lastAnsweredMs,
+                    lastFailedMs: lastFailedMs
+                });
             });
         } catch (error) {
             console.warn('No se pudo cargar la ponderación de preguntas. Se usará sorteo uniforme.', error);
@@ -180,6 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function weightedSample(questions, amount, selectionStats) {
+        const now = Date.now();
         const maxAppearances = Math.max(
             0,
             ...questions.map(question => getQuestionStats(selectionStats, question.id).appearances)
@@ -188,9 +208,21 @@ document.addEventListener('DOMContentLoaded', () => {
         return questions
             .map(question => {
                 const stats = getQuestionStats(selectionStats, question.id);
-                const lessSeenBoost = Math.max(0, maxAppearances - stats.appearances) * UNSEEN_PRIORITY;
-                const wrongBoost = stats.wrong * WRONG_PRIORITY;
-                const weight = 1 + Math.min(lessSeenBoost, 1.8) + Math.min(wrongBoost, 1.2);
+
+                // Prioridad 1: Las más falladas por el usuario
+                const wrongScore = stats.wrong * 100;
+
+                // Prioridad 2: Las que menos han salido en sus exámenes
+                const unseenScore = (maxAppearances - stats.appearances) * 10;
+
+                // Prioridad 3: Las que hace más tiempo que no salen (o nunca han salido)
+                let daysSinceLast = 365;
+                if (stats.lastAnsweredMs > 0) {
+                    daysSinceLast = Math.max(0, (now - stats.lastAnsweredMs) / (1000 * 60 * 60 * 24));
+                }
+                const timeScore = Math.min(daysSinceLast, 365) * 0.05;
+
+                const weight = 1 + wrongScore + unseenScore + timeScore;
 
                 return {
                     question,
@@ -203,7 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function getQuestionStats(selectionStats, questionId) {
-        return selectionStats.get(questionId) || { appearances: 0, wrong: 0 };
+        return selectionStats.get(questionId) || { appearances: 0, wrong: 0, lastAnsweredMs: 0, lastFailedMs: 0 };
     }
 
     function renderExam(questions) {
@@ -306,7 +338,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (answered) {
                     const statRef = db.collection('user_question_stats')
                         .doc(`${currentUser.uid}_${question.id}`);
-                    statsBatch.set(statRef, {
+                    const statUpdate = {
                         user_id: currentUser.uid,
                         question_id: question.id,
                         question_text: String(question.question_text || ''),
@@ -317,7 +349,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         last_correct: correct,
                         last_answer: selectedKey,
                         last_answered_at: firebase.firestore.FieldValue.serverTimestamp()
-                    }, { merge: true });
+                    };
+                    if (!correct) {
+                        statUpdate.last_failed_at = firebase.firestore.FieldValue.serverTimestamp();
+                    }
+                    statsBatch.set(statRef, statUpdate, { merge: true });
                     hasStatsWrites = true;
                 }
             });
