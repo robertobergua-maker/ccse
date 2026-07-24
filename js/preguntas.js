@@ -129,22 +129,36 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function loadQuestionBank() {
+        const localQuestions = await loadLocalQuestionBank();
+
         try {
             const snapshot = await db.collection('questions').get();
             const questions = [];
             snapshot.forEach(doc => questions.push({ id: doc.id, ...doc.data() }));
             if (questions.length > 0) {
-                return sortQuestions(questions.filter(question => question.active !== false));
+                const localById = new Map(localQuestions.map(question => [String(question.id), question]));
+                return sortQuestions(questions.map(question => {
+                    const local = localById.get(String(question.id)) || {};
+                    return {
+                        ...local,
+                        ...question,
+                        explicacion_facil: local.explicacion_facil || question.explicacion_facil || ''
+                    };
+                }).filter(question => question.active !== false));
             }
         } catch (error) {
             console.warn('No se pudo cargar questions desde Firestore. Se usará preguntas.json.', error);
         }
 
+        return sortQuestions(localQuestions.filter(question => question.active !== false));
+    }
+
+    async function loadLocalQuestionBank() {
         const response = await fetch('preguntas.json', { cache: 'no-store' });
         if (!response.ok) {
             throw new Error(`No se pudo cargar el banco (${response.status})`);
         }
-        return sortQuestions((await response.json()).filter(question => question.active !== false));
+        return await response.json();
     }
 
     function sortQuestions(questions) {
