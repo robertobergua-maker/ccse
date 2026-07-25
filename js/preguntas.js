@@ -84,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('No se pudo cargar el detalle:', error);
             ui.summary.textContent = 'No se pudo cargar el detalle.';
-            ui.body.innerHTML = '<tr><td colspan="7" class="empty-state">Error al cargar los datos.</td></tr>';
+            ui.body.innerHTML = '<tr><td colspan="8" class="empty-state">Error al cargar los datos.</td></tr>';
         }
     });
 
@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 sortState = {
                     key,
-                    direction: ['attempts', 'correct', 'incorrect', 'task'].includes(key)
+                    direction: ['attempts', 'correct', 'incorrect', 'task', 'lastFailed'].includes(key)
                         ? 'desc'
                         : 'asc'
                 };
@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (activeFilter === 'respondidas') return row.attempts > 0;
         if (activeFilter === 'no-respondidas') return row.attempts === 0;
         if (activeFilter === 'acertadas') return row.lastCorrect === true;
-        if (activeFilter === 'falladas') return row.lastCorrect === false;
+        if (activeFilter === 'falladas') return row.incorrect > 0;
         return true;
     }
 
@@ -169,7 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderRows(rows) {
         if (rows.length === 0) {
-            ui.body.innerHTML = '<tr><td colspan="7" class="empty-state">No hay preguntas en esta categoría.</td></tr>';
+            ui.body.innerHTML = '<tr><td colspan="8" class="empty-state">No hay preguntas en esta categoría.</td></tr>';
             return;
         }
 
@@ -177,6 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const correctOption = getOption(row.question, row.question.correct_answer);
             const lastOption = getOption(row.question, row.lastAnswer);
             const questionText = getContextualQuestionText(row.question, correctOption);
+            const lastFailedText = row.lastFailedAt ? formatDate(row.lastFailedAt) : '';
 
             const isFailed = row.lastCorrect === false || (activeFilter === 'falladas' && row.incorrect > 0);
             const explanation = isFailed ? getEasyExplanation(row.question, correctOption) : '';
@@ -200,10 +201,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (row.lastCorrect === true) {
                 result = '<span class="result-badge result-correct">Acierto</span>';
             } else if (row.lastCorrect === false) {
-                const dateText = row.lastFailedAt ? formatDate(row.lastFailedAt) : null;
                 result = `
                     <span class="result-badge result-wrong">Fallo</span>
-                    ${dateText ? `<div class="last-failed-badge" title="Fecha del último fallo">📅 ${escapeHtml(dateText)}</div>` : ''}
+                    ${lastFailedText ? `<div class="last-failed-badge" title="Fecha del último fallo">📅 ${escapeHtml(lastFailedText)}</div>` : ''}
                 `;
             }
 
@@ -218,6 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td>${row.attempts}</td>
                     <td>${row.correct}</td>
                     <td>${row.incorrect}</td>
+                    <td>${lastFailedText ? escapeHtml(lastFailedText) : '<span class="muted">-</span>'}</td>
                     <td>${result}</td>
                 </tr>
             `;
@@ -258,6 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 veces_respondida: row.attempts,
                 aciertos: row.correct,
                 fallos: row.incorrect,
+                fecha_ultimo_fallo: row.lastFailedAt ? formatDate(row.lastFailedAt) : '',
                 ultimo_resultado: result,
                 respuesta_correcta: formatOption(correctOption),
                 ultima_respuesta: lastOption ? formatOption(lastOption) : ''
@@ -273,6 +275,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (key === 'task') return row.question.task_number;
         if (key === 'correct') return row.correct;
         if (key === 'incorrect') return row.incorrect;
+        if (key === 'lastFailed') return timestampToMillis(row.lastFailedAt);
         if (key === 'result') {
             if (row.lastCorrect === true) return 2;
             if (row.lastCorrect === false) return 1;
@@ -389,7 +392,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function formatDate(timestamp) {
-        if (!timestamp) return 'No disponible';
+        const millis = timestampToMillis(timestamp);
+        if (!millis) return 'No disponible';
+
+        return new Intl.DateTimeFormat('es-ES', {
+            dateStyle: 'short',
+            timeStyle: 'short'
+        }).format(new Date(millis));
+    }
+
+    function timestampToMillis(timestamp) {
+        if (!timestamp) return 0;
         let millis = 0;
         if (typeof timestamp.toMillis === 'function') millis = timestamp.toMillis();
         else if (timestamp.seconds) millis = timestamp.seconds * 1000;
@@ -397,12 +410,7 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (timestamp instanceof Date) millis = timestamp.getTime();
         else if (typeof timestamp === 'string') millis = new Date(timestamp).getTime();
 
-        if (!millis || isNaN(millis)) return 'No disponible';
-
-        return new Intl.DateTimeFormat('es-ES', {
-            dateStyle: 'short',
-            timeStyle: 'short'
-        }).format(new Date(millis));
+        return !millis || isNaN(millis) ? 0 : millis;
     }
 
     function formatDateSlug(date) {

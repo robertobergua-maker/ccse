@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const answered = stats.length;
             const correct = stats.filter(stat => stat.last_correct === true).length;
-            const wrong = stats.filter(stat => stat.last_correct === false).length;
+            const wrong = stats.filter(stat => (stat.total_incorrect || 0) > 0).length;
 
             ui.answered.textContent = answered;
             ui.unanswered.textContent = Math.max(activeQuestionIds.size - answered, 0);
