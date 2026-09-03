@@ -58,6 +58,16 @@ service cloud.firestore {
           .hasOnly(["used", "used_by_uid", "used_by_email", "used_at"]);
     }
 
+    function canReadInviteCode() {
+      return resource.data.used == false
+        || (
+          signedIn()
+          && resource.data.used == true
+          && resource.data.used_by_uid == request.auth.uid
+          && resource.data.used_by_email == request.auth.token.email
+        );
+    }
+
     function hasClaimedInviteCodeForNewUser(userId) {
       return request.resource.data.invite_code is string
         && getAfter(/databases/$(database)/documents/invite_codes/$(request.resource.data.invite_code)).data.used == true
@@ -126,7 +136,7 @@ service cloud.firestore {
     match /invite_codes/{codeId} {
       // Los visitantes solo pueden comprobar un código concreto, nunca listar la colección.
       // El usuario recién autenticado puede marcar su propio código como usado una sola vez.
-      allow get: if isAdmin() || resource.data.used == false;
+      allow get: if isAdmin() || canReadInviteCode();
       allow list: if isAdmin();
       allow create, delete: if isAdmin();
       allow update: if isAdmin() || canClaimInviteCode(codeId);

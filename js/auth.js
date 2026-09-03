@@ -29,6 +29,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const googleProvider = new firebase.auth.GoogleAuthProvider();
 
+    const PENDING_INVITE_KEY = 'ccse_pending_invite_code';
+
     let validatedInviteCode = null;
     let skipInvite = false;
 
@@ -90,6 +92,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const result = await validateInviteCode(raw);
                 if (result.ok) {
                     validatedInviteCode = raw;
+                    rememberPendingInviteCode(raw);
                     ui.inviteCodeInput.classList.add('valid');
                     setFeedback('✓ Código válido. Ahora elige cómo acceder.', 'ok');
                     lockAuthButtons(false);
@@ -111,6 +114,7 @@ document.addEventListener('DOMContentLoaded', function() {
         ui.skipCodeBtn.addEventListener('click', () => {
             skipInvite = true;
             validatedInviteCode = null;
+            forgetPendingInviteCode();
             unlockExistingUserLogin();
             setFeedback('Puedes iniciar sesión directamente si ya tienes cuenta.', 'ok');
             if (ui.inviteCodeInput) {
@@ -217,7 +221,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             registration.then(async ({ denied, newUser, profile: newProfile }) => {
                 if (denied) {
-                    if (newUser) {
+                    if (newUser && isRecentAuthUser(user)) {
                         await deleteDeniedAuthUser(user);
                     }
                     await auth.signOut().catch(console.error);
@@ -322,10 +326,12 @@ document.addEventListener('DOMContentLoaded', function() {
             if (userDoc.exists) return { denied: false, newUser: false, profile: null }; // ya registrado
 
             if (skipInvite) return { denied: true, newUser: true, profile: null };
-            if (!validatedInviteCode) return { denied: true, newUser: true, profile: null };
+            const inviteCode = validatedInviteCode || recallPendingInviteCode();
+            if (!inviteCode) return { denied: true, newUser: true, profile: null };
 
-            const profile = buildNewUserProfile(user, validatedInviteCode);
-            const created = await claimInviteAndCreateUser(validatedInviteCode, user, profile);
+            const profile = buildNewUserProfile(user, inviteCode);
+            const created = await claimInviteAndCreateUser(inviteCode, user, profile);
+            if (created) forgetPendingInviteCode();
             return {
                 denied: !created,
                 newUser: true,
@@ -367,7 +373,19 @@ document.addEventListener('DOMContentLoaded', function() {
             const codeRef = db.collection('invite_codes').doc(code);
             const userRef = db.collection('users').doc(user.uid);
             const doc = await codeRef.get();
-            if (!doc.exists || doc.data()?.used !== false) return false;
+            if (!doc.exists) return false;
+
+            const codeData = doc.data();
+            if (codeData?.used === true) {
+                const belongsToUser = codeData.used_by_uid === user.uid
+                    && codeData.used_by_email === user.email;
+                if (!belongsToUser) return false;
+
+                await userRef.set(profile);
+                return true;
+            }
+
+            if (codeData?.used !== false) return false;
 
             const batch = db.batch();
             batch.update(codeRef, {
@@ -486,6 +504,36 @@ document.addEventListener('DOMContentLoaded', function() {
             .trim()
             .toUpperCase()
             .replace(/[^A-Z0-9-]/g, '');
+    }
+
+    function rememberPendingInviteCode(code) {
+        try {
+            window.sessionStorage.setItem(PENDING_INVITE_KEY, code);
+        } catch (err) {
+            console.warn('No se pudo guardar el código pendiente:', err);
+        }
+    }
+
+    function recallPendingInviteCode() {
+        try {
+            return window.sessionStorage.getItem(PENDING_INVITE_KEY);
+        } catch (err) {
+            return null;
+        }
+    }
+
+    function forgetPendingInviteCode() {
+        try {
+            window.sessionStorage.removeItem(PENDING_INVITE_KEY);
+        } catch (err) {
+            console.warn('No se pudo limpiar el código pendiente:', err);
+        }
+    }
+
+    function isRecentAuthUser(user) {
+        const createdAt = Date.parse(user.metadata?.creationTime || '');
+        if (Number.isNaN(createdAt)) return false;
+        return Date.now() - createdAt < 5 * 60 * 1000;
     }
 
     /** Convierte códigos de error de Firebase Auth en mensajes legibles */
