@@ -170,7 +170,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Enviar con Enter en los campos de email/password
     [ui.emailInput, ui.passwordInput].forEach(input => {
         input?.addEventListener('keydown', e => {
-            if (e.key === 'Enter') ui.emailLoginBtn?.click();
+            if (e.key === 'Enter') {
+                if (validatedInviteCode && ui.emailRegisterBtn && !ui.emailRegisterBtn.disabled) {
+                    ui.emailRegisterBtn.click();
+                    return;
+                }
+                ui.emailLoginBtn?.click();
+            }
         });
     });
 
@@ -195,7 +201,9 @@ document.addEventListener('DOMContentLoaded', function() {
             auth.signInWithPopup(googleProvider)
                 .catch(error => {
                     console.error('Error durante el inicio de sesión con Google:', error);
-                    alert('No se pudo iniciar sesión con Google. Revisa tu conexión.');
+                    const message = friendlyAuthError(error, 'google');
+                    setFeedback(message, 'error');
+                    showEmailError(message);
                 });
         });
     }
@@ -537,7 +545,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /** Convierte códigos de error de Firebase Auth en mensajes legibles */
-    function friendlyAuthError(err) {
+    function friendlyAuthError(err, provider = 'email') {
         const map = {
             'auth/invalid-email':            'El correo no tiene un formato válido.',
             'auth/user-not-found':           'No existe una cuenta con ese correo.',
@@ -548,7 +556,11 @@ document.addEventListener('DOMContentLoaded', function() {
             'auth/too-many-requests':        'Demasiados intentos fallidos. Espera unos minutos.',
             'auth/network-request-failed':   'Sin conexión. Revisa tu red.',
             'auth/popup-closed-by-user':     'Se cerró la ventana de acceso.',
-            'auth/cancelled-popup-request':  'Se canceló la solicitud de acceso.'
+            'auth/cancelled-popup-request':  'Se canceló la solicitud de acceso.',
+            'auth/unauthorized-domain':      'Este dominio no está autorizado en Firebase Auth. Añade el dominio actual en Authentication > Settings > Authorized domains.',
+            'auth/operation-not-allowed':    provider === 'google'
+                ? 'Google no está activado en Firebase Auth. Actívalo en Authentication > Sign-in method > Google.'
+                : 'Correo y contraseña no está activado en Firebase Auth. Actívalo en Authentication > Sign-in method > Email/Password.'
         };
         return map[err.code] || `Error: ${err.message}`;
     }
