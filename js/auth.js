@@ -146,7 +146,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (ui.emailRegisterBtn) {
-        ui.emailRegisterBtn.addEventListener('click', async () => {
+        ui.emailRegisterBtn.addEventListener('click', event => {
+            event.preventDefault();
+
             const email    = ui.emailInput?.value.trim();
             const password = ui.passwordInput?.value;
             if (!validatedInviteCode) {
@@ -157,13 +159,30 @@ document.addEventListener('DOMContentLoaded', function() {
 
             setEmailButtonsLoading(true);
             clearEmailError();
-            try {
-                await auth.createUserWithEmailAndPassword(email, password);
-                // onAuthStateChanged se encarga del resto
-            } catch (err) {
-                showEmailError(friendlyAuthError(err));
-                setEmailButtonsLoading(false);
-            }
+
+            createUserWithEmailAndPassword(auth, email, password)
+                .then(credential => {
+                    const user = credential.user;
+                    const codeRef = db.collection('invite_codes').doc(validatedInviteCode);
+                    const userRef = db.collection('users').doc(user.uid);
+                    const profile = buildNewUserProfile(user, validatedInviteCode);
+
+                    return codeRef.update({
+                        used:           true,
+                        used_by_uid:    user.uid,
+                        used_by_email:  user.email,
+                        used_at:        firebase.firestore.FieldValue.serverTimestamp()
+                    }).then(() => setDoc(userRef, profile));
+                })
+                .then(() => {
+                    forgetPendingInviteCode();
+                    window.location.href = 'dashboard.html';
+                })
+                .catch(err => {
+                    console.error('Error durante el registro con invitación:', err);
+                    showEmailError(friendlyAuthError(err));
+                    setEmailButtonsLoading(false);
+                });
         });
     }
 
@@ -542,6 +561,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const createdAt = Date.parse(user.metadata?.creationTime || '');
         if (Number.isNaN(createdAt)) return false;
         return Date.now() - createdAt < 5 * 60 * 1000;
+    }
+
+    function createUserWithEmailAndPassword(authInstance, email, password) {
+        return authInstance.createUserWithEmailAndPassword(email, password);
+    }
+
+    function setDoc(docRef, data) {
+        return docRef.set(data);
     }
 
     /** Convierte códigos de error de Firebase Auth en mensajes legibles */

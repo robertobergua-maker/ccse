@@ -44,16 +44,13 @@ service cloud.firestore {
       return ownsStoredRecord() && ownsNewRecord() && keepsOwner() && (!isBlocked() || isAdmin());
     }
 
-    function canClaimInviteCode(codeId) {
+    function canClaimInviteCode() {
       return signedIn()
         && !exists(/databases/$(database)/documents/users/$(request.auth.uid))
         && resource.data.used == false
         && request.resource.data.used == true
         && request.resource.data.used_by_uid == request.auth.uid
         && request.resource.data.used_by_email == request.auth.token.email
-        && getAfter(/databases/$(database)/documents/users/$(request.auth.uid)).data.id == request.auth.uid
-        && getAfter(/databases/$(database)/documents/users/$(request.auth.uid)).data.email == request.auth.token.email
-        && getAfter(/databases/$(database)/documents/users/$(request.auth.uid)).data.invite_code == codeId
         && request.resource.data.diff(resource.data).affectedKeys()
           .hasOnly(["used", "used_by_uid", "used_by_email", "used_at"]);
     }
@@ -139,7 +136,7 @@ service cloud.firestore {
       allow get: if isAdmin() || canReadInviteCode();
       allow list: if isAdmin();
       allow create, delete: if isAdmin();
-      allow update: if isAdmin() || canClaimInviteCode(codeId);
+      allow update: if isAdmin() || canClaimInviteCode();
     }
 
     match /{document=**} {
