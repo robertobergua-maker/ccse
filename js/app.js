@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const auth = firebase.auth();
     const db = firebase.firestore();
 
     const ui = {
@@ -11,7 +10,10 @@ document.addEventListener('DOMContentLoaded', () => {
         wrong: document.getElementById('stat-falladas'),
         examHistorySummary: document.getElementById('exam-history-summary'),
         examHistoryBody: document.getElementById('exam-history-body'),
-        adminPanelLink: document.getElementById('admin-panel-link')
+        adminPanelLink: document.getElementById('admin-panel-link'),
+        loginLink: document.getElementById('login-link'),
+        logoutBtn: document.getElementById('logout-btn'),
+        guestBanner: document.getElementById('guest-banner')
     };
 
     if (ui.startExamBtn) {
@@ -20,12 +22,60 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    auth.onAuthStateChanged(async user => {
-        if (!user) return;
-        showAdminAccess(user);
-        loadProgress(user);
-        loadExamHistory(user);
+    document.addEventListener('authReady', ({ detail: { user, isGuest } }) => {
+        if (isGuest) {
+            // Invitado: mostrar login, ocultar logout
+            if (ui.loginLink) ui.loginLink.hidden = false;
+            if (ui.logoutBtn) ui.logoutBtn.hidden = true;
+            showGuestDashboard();
+        } else {
+            // Registrado: asegurar que no queda ningún rastro de modo invitado
+            if (ui.guestBanner) ui.guestBanner.hidden = true;
+            if (ui.loginLink)   ui.loginLink.hidden = true;
+            if (ui.logoutBtn)   ui.logoutBtn.hidden = false;
+            showAdminAccess(user);
+            loadProgress(user);
+            loadExamHistory(user);
+        }
     });
+
+    // ── Modo invitado ────────────────────────────────────────────────────────
+
+    function showGuestDashboard() {
+        // Mostrar banner
+        if (ui.guestBanner) ui.guestBanner.hidden = false;
+
+        // Mostrar estado vacío en métricas con clase visual de bloqueado
+        const locked = '<span class="stat-locked">—</span>';
+        if (ui.answered) ui.answered.innerHTML = locked;
+        if (ui.unanswered) ui.unanswered.innerHTML = locked;
+        if (ui.correct) ui.correct.innerHTML = locked;
+        if (ui.wrong) ui.wrong.innerHTML = locked;
+
+        setStatus('Modo invitado', 'offline');
+
+        // Historial vacío con mensaje orientativo
+        if (ui.examHistorySummary) {
+            ui.examHistorySummary.textContent = 'Inicia sesión para ver tu historial de simulacros.';
+        }
+        if (ui.examHistoryBody) {
+            ui.examHistoryBody.innerHTML = `
+                <tr class="locked-row">
+                    <td colspan="6" class="empty-state">
+                        Registra una cuenta para guardar tus exámenes y ver el historial aquí.
+                    </td>
+                </tr>`;
+        }
+
+        // Deshabilitar los enlaces de estadísticas para invitados
+        document.querySelectorAll('.stats-table a, .metric-link').forEach(el => {
+            el.removeAttribute('href');
+            el.style.cursor = 'default';
+            el.style.pointerEvents = 'none';
+        });
+    }
+
+    // ── Usuario registrado ───────────────────────────────────────────────────
 
     function showAdminAccess(user) {
         if (!ui.adminPanelLink) return;

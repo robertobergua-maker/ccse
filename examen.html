@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simulacro de Examen</title>
+    <link rel="stylesheet" href="css/style.css?v=20260903-1">
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background-color: #f5f7fb; color: #333; }
         header { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background-color: white; border-bottom: 1px solid #e2e8f0; }
@@ -38,6 +39,16 @@
     </header>
 
     <div class="container">
+        <div id="guest-banner" class="guest-banner" hidden style="margin:20px 20px 0;">
+            <span class="guest-banner-icon" aria-hidden="true">🔒</span>
+            <div class="guest-banner-body">
+                <strong>Modo invitado — examen sin guardar</strong>
+                <p>Puedes completar el examen y ver los resultados, pero no se guardará en ninguna cuenta.
+                   El sistema de preguntas adaptativo (que prioriza tus fallos) tampoco estará activo.</p>
+                <a href="login.html" class="btn-register">Crear cuenta para guardar resultados</a>
+            </div>
+        </div>
+
         <div class="info-bar">
             <span>Modo: Simulacro Oficial</span>
             <span>Tiempo restante: <span id="timer">45:00</span></span>
@@ -54,8 +65,8 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <script src="js/firebase-config.js"></script>
-    <script src="js/auth.js?v=20260710-1"></script>
-    <script src="js/examen.js?v=20260724-1"></script>
-    <script src="js/last-modified.js?v=20260722-1"></script>
+    <script src="js/auth.js?v=20260903-1"></script>
+    <script src="js/examen.js?v=20260903-1"></script>
+    <script src="js/last-modified.js?v=20260903-1"></script>
 </body>
 </html>

@@ -1,11 +1,125 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Acceso de Usuario - CCSE</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=20260903-1">
+    <style>
+        /* ── Código de invitación ── */
+        .invite-form { margin: 0 0 20px; }
+        .invite-form label {
+            display: block; font-weight: 700; font-size: 0.92rem;
+            color: #374151; margin-bottom: 8px;
+        }
+        .invite-input-row { display: flex; gap: 8px; }
+        .invite-input {
+            flex: 1; padding: 11px 14px; border: 1.5px solid #d1d5db;
+            border-radius: 8px; font-size: 1.05rem;
+            font-family: 'Courier New', monospace; letter-spacing: 0.12em;
+            text-transform: uppercase; color: #1a202c; outline: none;
+            transition: border-color 0.15s;
+        }
+        .invite-input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.12); }
+        .invite-input.valid   { border-color: #16a34a; background: #f0fdf4; }
+        .invite-input.invalid { border-color: #dc2626; background: #fef2f2; }
+        #validate-code-btn {
+            padding: 11px 18px; background: #f3f4f6; color: #374151;
+            border: 1.5px solid #d1d5db; border-radius: 8px;
+            font-size: 0.9rem; font-weight: 700; cursor: pointer;
+            white-space: nowrap; transition: background 0.15s;
+        }
+        #validate-code-btn:hover:not(:disabled) { background: #e5e7eb; }
+        #validate-code-btn:disabled { opacity: 0.5; cursor: default; }
+        .invite-feedback {
+            margin-top: 8px; font-size: 0.85rem; font-weight: 600; min-height: 1.2em;
+        }
+        .invite-feedback.ok    { color: #15803d; }
+        .invite-feedback.error { color: #dc2626; }
+
+        /* ── Tabs ── */
+        .auth-tabs {
+            display: flex; gap: 0; margin-bottom: 24px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        .auth-tab {
+            flex: 1; padding: 10px 0; background: none; border: none;
+            font-size: 0.95rem; font-weight: 700; color: #6b7280;
+            cursor: pointer; border-bottom: 3px solid transparent;
+            margin-bottom: -2px; transition: color 0.15s, border-color 0.15s;
+        }
+        .auth-tab.active { color: #2563eb; border-bottom-color: #2563eb; }
+        .auth-tab:hover:not(.active) { color: #374151; }
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        /* ── Campos de formulario ── */
+        .field { margin-bottom: 16px; }
+        .field label {
+            display: block; font-weight: 700; font-size: 0.88rem;
+            color: #374151; margin-bottom: 6px;
+        }
+        .field input {
+            width: 100%; padding: 11px 14px; border: 1.5px solid #d1d5db;
+            border-radius: 8px; font-size: 0.97rem; color: #1a202c;
+            outline: none; box-sizing: border-box; transition: border-color 0.15s;
+        }
+        .field input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.12); }
+
+        .form-error {
+            margin: 0 0 14px; padding: 10px 14px;
+            background: #fef2f2; border: 1px solid #fecaca;
+            border-radius: 8px; font-size: 0.88rem; color: #dc2626;
+            font-weight: 600; display: none;
+        }
+        .form-error.visible { display: block; }
+
+        .btn-full { width: 100%; margin-top: 4px; }
+
+        /* ── Separador ── */
+        .divider {
+            display: flex; align-items: center; gap: 12px;
+            margin: 22px 0; color: #9ca3af;
+            font-size: 0.82rem; font-weight: 600;
+        }
+        .divider::before, .divider::after {
+            content: ''; flex: 1; height: 1px; background: #e5e7eb;
+        }
+
+        /* ── Google btn ── */
+        .btn-google {
+            width: 100%; display: flex; align-items: center;
+            justify-content: center; gap: 10px;
+            background: #fff; color: #374151;
+            border: 1.5px solid #d1d5db; border-radius: 8px;
+            padding: 11px 18px; font-size: 0.97rem; font-weight: 700;
+            cursor: pointer; transition: background 0.15s, border-color 0.15s;
+        }
+        .btn-google:hover:not(:disabled) { background: #f9fafb; border-color: #9ca3af; }
+        .btn-google:disabled { opacity: 0.45; cursor: not-allowed; }
+        .btn-google svg { flex-shrink: 0; }
+
+        /* ── Nota usuarios existentes ── */
+        .existing-user-note {
+            margin-top: 16px; text-align: center;
+            font-size: 0.82rem; color: #6b7280;
+        }
+        .existing-user-note button {
+            background: none; border: none; color: #2563eb;
+            font-size: 0.82rem; font-weight: 700;
+            cursor: pointer; text-decoration: underline; padding: 0;
+        }
+
+        /* ── Toggle contraseña ── */
+        .field-pw { position: relative; }
+        .field-pw input { padding-right: 42px; }
+        .toggle-pw {
+            position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+            background: none; border: none; cursor: pointer;
+            color: #9ca3af; padding: 0; line-height: 1;
+        }
+        .toggle-pw:hover { color: #374151; }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -13,17 +127,97 @@
             <h1>Acceso a tu Panel de Estudio</h1>
         </header>
         <main>
-            <p>Regístrate o inicia sesión para guardar tu progreso y acceder a todas las funcionalidades.</p>
+            <p>Si es tu primera vez, introduce el código de invitación antes de registrarte.</p>
+
             <div id="auth-container">
-                <button id="google-login-btn" class="btn btn-primary">Acceder con Google</button>
+
+                <!-- Código de invitación (paso previo siempre visible) -->
+                <div id="invite-step" class="invite-form">
+                    <label for="invite-code-input">Código de invitación</label>
+                    <div class="invite-input-row">
+                        <input
+                            id="invite-code-input"
+                            class="invite-input"
+                            type="text"
+                            placeholder="SAM-XXXXXXXX"
+                            maxlength="12"
+                            autocomplete="off"
+                            spellcheck="false"
+                        >
+                        <button id="validate-code-btn" type="button" disabled>Validar</button>
+                    </div>
+                    <p id="invite-feedback" class="invite-feedback"></p>
+                </div>
+
+                <!-- Tabs: Correo / Google -->
+                <div class="auth-tabs" role="tablist">
+                    <button class="auth-tab active" role="tab" data-tab="email" aria-selected="true">
+                        Correo y contraseña
+                    </button>
+                    <button class="auth-tab" role="tab" data-tab="google" aria-selected="false">
+                        Acceder con Google
+                    </button>
+                </div>
+
+                <!-- Panel: correo/contraseña -->
+                <div id="tab-email" class="tab-panel active" role="tabpanel">
+                    <p id="email-form-error" class="form-error" role="alert"></p>
+
+                    <div class="field">
+                        <label for="email-input">Correo electrónico</label>
+                        <input id="email-input" type="email" autocomplete="email" placeholder="tu@correo.com">
+                    </div>
+
+                    <div class="field">
+                        <label for="password-input">Contraseña</label>
+                        <div class="field-pw">
+                            <input id="password-input" type="password" autocomplete="current-password" placeholder="Mínimo 6 caracteres">
+                            <button class="toggle-pw" type="button" aria-label="Mostrar/ocultar contraseña" data-target="password-input">
+                                👁
+                            </button>
+                        </div>
+                    </div>
+
+                    <button id="email-login-btn" class="btn btn-primary btn-full" type="button" disabled>
+                        Iniciar sesión
+                    </button>
+                    <button id="email-register-btn" class="btn btn-secondary btn-full" type="button" style="margin-top:10px" disabled>
+                        Registrarse con este correo
+                    </button>
+
+                    <div style="margin-top:12px; text-align:center">
+                        <button id="forgot-pw-btn" type="button" style="background:none;border:none;color:#2563eb;font-size:0.82rem;font-weight:700;cursor:pointer;text-decoration:underline;padding:0">
+                            ¿Olvidaste la contraseña?
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Panel: Google -->
+                <div id="tab-google" class="tab-panel" role="tabpanel">
+                    <button id="google-login-btn" class="btn-google" type="button" disabled>
+                        <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
+                            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                        </svg>
+                        Acceder con Google
+                    </button>
+                </div>
+
+                <p class="existing-user-note" style="margin-top:20px">
+                    ¿Ya tienes cuenta?
+                    <button id="skip-code-btn" type="button">Entrar sin código</button>
+                </p>
             </div>
         </main>
     </div>
+
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <script src="js/firebase-config.js"></script>
-    <script src="js/auth.js?v=20260710-1"></script>
-    <script src="js/last-modified.js?v=20260722-1"></script>
+    <script src="js/auth.js?v=20260903-1"></script>
+    <script src="js/last-modified.js?v=20260903-1"></script>
 </body>
 </html>

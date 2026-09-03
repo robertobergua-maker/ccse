@@ -3,25 +3,510 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Preparación Examen CCSE - Nacionalidad Española</title>
-    <link rel="stylesheet" href="css/style.css">
+    <title>Preparación CCSE — Nacionalidad Española</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: #f4f7fb;
+            color: #1a202c;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── NAV ── */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 32px;
+            background: #fff;
+            border-bottom: 1px solid #e2e8f0;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: #1a365d;
+            text-decoration: none;
+        }
+
+        .nav-brand .flag { font-size: 1.5rem; line-height: 1; }
+
+        .nav-actions { display: flex; gap: 10px; }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: background 0.15s, transform 0.1s;
+            white-space: nowrap;
+        }
+
+        .btn:active { transform: translateY(1px); }
+
+        .btn-primary {
+            background: #2563eb;
+            color: #fff;
+        }
+        .btn-primary:hover { background: #1d4ed8; }
+
+        .btn-outline {
+            background: transparent;
+            color: #2563eb;
+            border: 2px solid #2563eb;
+        }
+        .btn-outline:hover { background: #eff6ff; }
+
+        .btn-ghost {
+            background: transparent;
+            color: #4a5568;
+            border: 1px solid #e2e8f0;
+        }
+        .btn-ghost:hover { background: #f7fafc; }
+
+        .btn-lg {
+            padding: 14px 28px;
+            font-size: 1.05rem;
+            border-radius: 10px;
+        }
+
+        /* ── HERO ── */
+        .hero {
+            background: linear-gradient(135deg, #1a365d 0%, #2b6cb0 60%, #3182ce 100%);
+            color: #fff;
+            padding: 80px 24px 72px;
+            text-align: center;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.25);
+            border-radius: 999px;
+            padding: 6px 14px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            margin-bottom: 24px;
+        }
+
+        .hero h1 {
+            font-size: clamp(1.8rem, 4vw, 2.9rem);
+            font-weight: 900;
+            line-height: 1.15;
+            max-width: 760px;
+            margin: 0 auto 20px;
+        }
+
+        .hero h1 span {
+            color: #90cdf4;
+        }
+
+        .hero p {
+            font-size: clamp(1rem, 2vw, 1.15rem);
+            color: rgba(255,255,255,0.82);
+            max-width: 560px;
+            margin: 0 auto 36px;
+            line-height: 1.6;
+        }
+
+        .hero-cta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            justify-content: center;
+        }
+
+        .hero-note {
+            margin-top: 20px;
+            font-size: 0.82rem;
+            color: rgba(255,255,255,0.55);
+        }
+
+        /* ── STATS STRIP ── */
+        .stats-strip {
+            background: #fff;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 0;
+        }
+
+        .stat-item {
+            padding: 22px 40px;
+            text-align: center;
+            border-right: 1px solid #e2e8f0;
+        }
+
+        .stat-item:last-child { border-right: none; }
+
+        .stat-item strong {
+            display: block;
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: #1a365d;
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+
+        .stat-item span {
+            font-size: 0.82rem;
+            color: #718096;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        /* ── FEATURES ── */
+        .section {
+            max-width: 1080px;
+            margin: 0 auto;
+            padding: 64px 24px;
+        }
+
+        .section-label {
+            text-align: center;
+            font-size: 0.8rem;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: #2563eb;
+            margin-bottom: 12px;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: clamp(1.4rem, 3vw, 2rem);
+            font-weight: 900;
+            color: #1a202c;
+            margin-bottom: 12px;
+        }
+
+        .section-sub {
+            text-align: center;
+            color: #718096;
+            max-width: 520px;
+            margin: 0 auto 48px;
+            line-height: 1.6;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .feature-card {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 28px 26px;
+            transition: box-shadow 0.15s, transform 0.15s;
+        }
+
+        .feature-card:hover {
+            box-shadow: 0 8px 24px rgba(0,0,0,0.07);
+            transform: translateY(-2px);
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 16px;
+        }
+
+        .icon-blue  { background: #eff6ff; }
+        .icon-green { background: #f0fff4; }
+        .icon-amber { background: #fffbeb; }
+        .icon-purple{ background: #faf5ff; }
+        .icon-red   { background: #fff5f5; }
+        .icon-teal  { background: #e6fffa; }
+
+        .feature-card h3 {
+            font-size: 1rem;
+            font-weight: 800;
+            color: #1a202c;
+            margin-bottom: 8px;
+        }
+
+        .feature-card p {
+            font-size: 0.9rem;
+            color: #718096;
+            line-height: 1.6;
+        }
+
+        .feature-locked {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 10px;
+            font-size: 0.76rem;
+            font-weight: 700;
+            color: #b7791f;
+            background: #fefcbf;
+            border-radius: 999px;
+            padding: 3px 10px;
+        }
+
+        /* ── HOW IT WORKS ── */
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 32px;
+            counter-reset: steps;
+        }
+
+        .step {
+            text-align: center;
+            counter-increment: steps;
+        }
+
+        .step-number {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: #2563eb;
+            color: #fff;
+            font-size: 1.3rem;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+        }
+
+        .step h3 {
+            font-size: 1rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            color: #1a202c;
+        }
+
+        .step p {
+            font-size: 0.88rem;
+            color: #718096;
+            line-height: 1.6;
+        }
+
+        /* ── CTA BOTTOM ── */
+        .cta-bottom {
+            background: linear-gradient(135deg, #1a365d, #2b6cb0);
+            color: #fff;
+            text-align: center;
+            padding: 64px 24px;
+        }
+
+        .cta-bottom h2 {
+            font-size: clamp(1.4rem, 3vw, 2rem);
+            font-weight: 900;
+            margin-bottom: 12px;
+        }
+
+        .cta-bottom p {
+            color: rgba(255,255,255,0.75);
+            max-width: 480px;
+            margin: 0 auto 32px;
+            line-height: 1.6;
+        }
+
+        .cta-bottom .btn-primary {
+            background: #fff;
+            color: #1a365d;
+        }
+
+        .cta-bottom .btn-primary:hover { background: #ebf4ff; }
+
+        /* ── FOOTER ── */
+        footer {
+            background: #1a202c;
+            color: #718096;
+            text-align: center;
+            padding: 24px;
+            font-size: 0.84rem;
+            margin-top: auto;
+        }
+
+        footer a { color: #90cdf4; text-decoration: none; }
+        footer a:hover { text-decoration: underline; }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 640px) {
+            nav { padding: 14px 18px; }
+            .nav-brand span { display: none; }
+            .stat-item { padding: 18px 20px; border-right: none; border-bottom: 1px solid #e2e8f0; width: 50%; }
+            .stat-item:nth-child(odd) { border-right: 1px solid #e2e8f0; }
+            .hero { padding: 56px 18px 52px; }
+            .section { padding: 48px 18px; }
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Prueba de Conocimientos Constitucionales y Socioculturales de España (CCSE)</h1>
-        </header>
-        <main>
-            <p>Prepárate para la prueba de nacionalidad española con nuestros simulacros de examen.</p>
-            <div class="cta-buttons">
-                <a href="dashboard.html" class="btn btn-primary">Ir al Panel de Alumno</a>
-                <a href="login.html" class="btn btn-secondary">Iniciar Sesión / Registrarse</a>
-            </div>
-        </main>
-        <footer>
-            <p>Proyecto creado para la preparación del examen oficial.</p>
-        </footer>
+
+    <!-- NAV -->
+    <nav>
+        <a href="index.html" class="nav-brand">
+            <span class="flag">🇪🇸</span>
+            <span>Prepara tu CCSE</span>
+        </a>
+        <div class="nav-actions">
+            <a href="login.html" class="btn btn-ghost">Iniciar sesión</a>
+            <a href="dashboard.html" class="btn btn-primary">Empezar gratis</a>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero">
+        <div class="hero-badge">Simulacro de preparación para el examen CCSE</div>
+        <h1>Aprueba el <span>CCSE</span> a la primera</h1>
+        <p>Simulacros realistas con las 300 preguntas oficiales, auditoría de fallos explicada y sistema adaptativo que aprende de tus errores.</p>
+        <div class="hero-cta">
+            <a href="dashboard.html" class="btn btn-primary btn-lg">Comenzar ahora — es gratis</a>
+            <a href="login.html" class="btn btn-lg" style="background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(255,255,255,0.3);">
+                Iniciar sesión
+            </a>
+        </div>
+
+    </section>
+
+    <!-- STATS STRIP -->
+    <div class="stats-strip">
+        <div class="stat-item">
+            <strong>300</strong>
+            <span>preguntas oficiales</span>
+        </div>
+        <div class="stat-item">
+            <strong>5</strong>
+            <span>tareas del examen</span>
+        </div>
+        <div class="stat-item">
+            <strong>45 min</strong>
+            <span>duración real</span>
+        </div>
+        <div class="stat-item">
+            <strong>15/25</strong>
+            <span>aciertos para aprobar</span>
+        </div>
     </div>
-    <script src="js/last-modified.js?v=20260722-1"></script>
+
+    <!-- FEATURES -->
+    <div class="section">
+        <p class="section-label">Funcionalidades</p>
+        <h2 class="section-title">Todo lo que necesitas para aprobar</h2>
+        <p class="section-sub">Desde el primer simulacro hasta el último repaso, la plataforma se adapta a tu ritmo.</p>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon icon-blue">📝</div>
+                <h3>Simulacro oficial</h3>
+                <p>25 preguntas distribuidas en 5 tareas exactamente como en el examen real. Cronómetro de 45 minutos incluido.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon icon-red">🔍</div>
+                <h3>Auditoría de fallos</h3>
+                <p>Tras cada examen, revisión completa de tus errores con explicaciones sencillas para cada pregunta fallada.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon icon-green">📈</div>
+                <h3>Examen adaptativo</h3>
+                <p>El sistema prioriza las preguntas que más has fallado y las que llevas más tiempo sin ver.</p>
+                <span class="feature-locked">🔒 Requiere cuenta</span>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon icon-amber">📊</div>
+                <h3>Progreso detallado</h3>
+                <p>Estadísticas por pregunta: veces respondida, aciertos, fallos y fecha del último error.</p>
+                <span class="feature-locked">🔒 Requiere cuenta</span>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon icon-purple">🗂️</div>
+                <h3>Historial de exámenes</h3>
+                <p>Todos tus simulacros guardados con fecha, nota y acceso a la revisión detallada de cada uno.</p>
+                <span class="feature-locked">🔒 Requiere cuenta</span>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon icon-teal">📱</div>
+                <h3>Funciona en el móvil</h3>
+                <p>Diseño adaptado a pantallas pequeñas. Practica donde quieras, sin instalar nada.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- HOW IT WORKS -->
+    <div style="background:#fff; border-top:1px solid #e2e8f0; border-bottom:1px solid #e2e8f0;">
+        <div class="section">
+            <p class="section-label">Cómo funciona</p>
+            <h2 class="section-title">En tres pasos</h2>
+            <p class="section-sub">Empieza a practicar en menos de un minuto.</p>
+
+            <div class="steps-grid">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Inicia un simulacro</h3>
+                    <p>Pulsa "Comenzar examen". Recibirás 25 preguntas aleatorias del banco oficial con cronómetro real.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>Revisa tus errores</h3>
+                    <p>Al terminar verás tu nota, las preguntas falladas y una explicación sencilla de cada respuesta correcta.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Crea una cuenta (opcional)</h3>
+                    <p>Para guardar tu historial y activar el examen adaptativo que prioriza tus puntos débiles.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA BOTTOM -->
+    <section class="cta-bottom">
+        <h2>¿Listo para empezar?</h2>
+        <p>Haz tu primer simulacro ahora mismo, sin registro. Solo cuando quieras guardar tu progreso necesitarás una cuenta.</p>
+        <div style="display:flex; gap:14px; justify-content:center; flex-wrap:wrap;">
+            <a href="dashboard.html" class="btn btn-primary btn-lg">Hacer un simulacro gratis</a>
+            <a href="login.html" class="btn btn-lg" style="background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(255,255,255,0.3);">
+                Crear cuenta con Google
+            </a>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <p>Preparación no oficial para el examen CCSE del Instituto Cervantes &nbsp;·&nbsp; <a href="login.html">Acceder</a></p>
+        <p style="margin-top:8px">Desarrollado por <a href="https://samirarte.com" target="_blank" rel="noopener">Samirarte Digital</a></p>
+        <p style="margin-top:6px;font-size:0.75rem;opacity:0.5" id="last-modified-label"></p>
+    </footer>
+
+    <script src="js/last-modified.js?v=20260903-1"></script>
 </body>
 </html>

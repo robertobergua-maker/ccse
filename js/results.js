@@ -1,16 +1,19 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const auth = firebase.auth();
     const db = firebase.firestore();
     const params = new URLSearchParams(window.location.search);
     const examId = params.get('examId');
 
-    auth.onAuthStateChanged(async user => {
-        if (!user) return;
-
+    document.addEventListener('authReady', async ({ detail: { user, isGuest } }) => {
         try {
-            const review = examId
-                ? await loadSavedExamReview(examId, user.uid)
-                : loadRecentExamReview();
+            let review;
+
+            if (isGuest || !examId) {
+                // Modo invitado o resultados recién acabados: cargar desde sessionStorage
+                review = loadRecentExamReview();
+            } else {
+                // Usuario registrado con examId: cargar desde Firestore
+                review = await loadSavedExamReview(examId, user.uid);
+            }
 
             if (!review) {
                 alert('No hay un examen reciente para mostrar.');
@@ -20,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const questionBank = await loadQuestionBank();
             enrichReviewQuestions(review, questionBank);
-            renderReview(review);
+            renderReview(review, isGuest);
         } catch (error) {
             console.error('No se pudo cargar la revisión del examen:', error);
             alert(`No se pudo cargar la revisión del examen: ${error.message}`);
@@ -142,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function renderReview(review) {
+    function renderReview(review, isGuest) {
         const { questions, userAnswers, summary, passingScore, totalQuestions } = review;
         const answered = summary.correct + summary.incorrect;
         const mistakes = questions
@@ -162,6 +165,10 @@ document.addEventListener('DOMContentLoaded', () => {
             : `NO APTO: ${summary.correct} de ${totalQuestions} aciertos`;
         resultTitle.className = passed ? 'result-title passed' : 'result-title failed';
         renderSaveDiagnostic();
+
+        // Mostrar banner de invitado si aplica
+        const guestBanner = document.getElementById('guest-banner');
+        if (isGuest && guestBanner) guestBanner.hidden = false;
 
         const reviewTitle = document.getElementById('review-title');
         if (reviewTitle) {

@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const auth = firebase.auth();
     const db = firebase.firestore();
     const filter = new URLSearchParams(window.location.search).get('filtro') || 'todas';
     const validFilters = new Set(['todas', 'respondidas', 'no-respondidas', 'acertadas', 'falladas']);
@@ -18,7 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
         summary: document.getElementById('detail-summary'),
         body: document.getElementById('questions-body'),
         downloadCsvBtn: document.getElementById('download-questions-csv'),
-        sortButtons: [...document.querySelectorAll('.sort-button')]
+        sortButtons: [...document.querySelectorAll('.sort-button')],
+        guestBanner: document.getElementById('guest-banner')
     };
     let visibleRows = [];
     let displayedRows = [];
@@ -30,9 +30,75 @@ document.addEventListener('DOMContentLoaded', () => {
         link.classList.toggle('active', linkFilter === activeFilter);
     });
 
-    auth.onAuthStateChanged(async user => {
-        if (!user) return;
+    document.addEventListener('authReady', async ({ detail: { user, isGuest } }) => {
+        if (isGuest) {
+            await loadGuestQuestions();
+        } else {
+            await loadUserQuestions(user);
+        }
+    });
 
+    ui.sortButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const key = button.dataset.sort;
+            if (sortState.key === key) {
+                sortState.direction = sortState.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortState = {
+                    key,
+                    direction: ['attempts', 'correct', 'incorrect', 'task', 'lastFailed'].includes(key)
+                        ? 'desc'
+                        : 'asc'
+                };
+            }
+            sortAndRender();
+        });
+    });
+    ui.downloadCsvBtn?.addEventListener('click', downloadQuestionsCsv);
+
+    // ── Modo invitado ────────────────────────────────────────────────────────
+
+    async function loadGuestQuestions() {
+        if (ui.guestBanner) ui.guestBanner.hidden = false;
+
+        // Los filtros basados en historial no tienen sentido para invitados
+        const filtersRequiringHistory = ['respondidas', 'no-respondidas', 'acertadas', 'falladas'];
+        if (filtersRequiringHistory.includes(activeFilter)) {
+            ui.title.textContent = labels[activeFilter];
+            ui.summary.textContent = 'Inicia sesión para ver tu progreso por categoría.';
+            ui.body.innerHTML = `<tr><td colspan="8" class="empty-state">
+                Esta vista requiere una cuenta para mostrar tu historial de respuestas.
+            </td></tr>`;
+            if (ui.downloadCsvBtn) ui.downloadCsvBtn.disabled = true;
+            return;
+        }
+
+        try {
+            const questions = await loadQuestionBank();
+            // Sin stats: todas las métricas a cero
+            visibleRows = questions.map(question => ({
+                question,
+                attempts: 0,
+                correct: 0,
+                incorrect: 0,
+                lastCorrect: null,
+                lastAnswer: null,
+                lastFailedAt: null
+            }));
+            sortAndRender();
+            ui.summary.textContent =
+                `${visibleRows.length} pregunta${visibleRows.length === 1 ? '' : 's'}. ` +
+                `Tus estadísticas personales estarán disponibles tras registrarte.`;
+        } catch (error) {
+            console.error('No se pudo cargar el listado:', error);
+            ui.summary.textContent = 'No se pudo cargar el listado de preguntas.';
+            ui.body.innerHTML = '<tr><td colspan="8" class="empty-state">Error al cargar los datos.</td></tr>';
+        }
+    }
+
+    // ── Usuario registrado ───────────────────────────────────────────────────
+
+    async function loadUserQuestions(user) {
         try {
             const [questions, statsSnapshot] = await Promise.all([
                 loadQuestionBank(),
@@ -86,25 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ui.summary.textContent = 'No se pudo cargar el detalle.';
             ui.body.innerHTML = '<tr><td colspan="8" class="empty-state">Error al cargar los datos.</td></tr>';
         }
-    });
-
-    ui.sortButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const key = button.dataset.sort;
-            if (sortState.key === key) {
-                sortState.direction = sortState.direction === 'asc' ? 'desc' : 'asc';
-            } else {
-                sortState = {
-                    key,
-                    direction: ['attempts', 'correct', 'incorrect', 'task', 'lastFailed'].includes(key)
-                        ? 'desc'
-                        : 'asc'
-                };
-            }
-            sortAndRender();
-        });
-    });
-    ui.downloadCsvBtn?.addEventListener('click', downloadQuestionsCsv);
+    }
 
     function matchesFilter(row) {
         if (activeFilter === 'respondidas') return row.attempts > 0;

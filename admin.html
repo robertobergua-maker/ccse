@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel administrador - CCSE</title>
-    <link rel="stylesheet" href="css/style.css?v=20260710-5">
+    <link rel="stylesheet" href="css/style.css?v=20260903-1">
 </head>
 <body>
     <div class="container dashboard-container">
@@ -34,6 +34,89 @@
                     <div class="admin-card"><span>Exámenes</span><strong id="metric-exams">0</strong></div>
                     <div class="admin-card"><span>Últimas 24 h</span><strong id="metric-exams-24h">0</strong></div>
                     <div class="admin-card"><span>Alertas</span><strong id="metric-alerts">0</strong></div>
+                </div>
+            </section>
+
+            <!-- ── GESTIÓN DE CÓDIGOS (instituciones + cupones integrados) ── -->
+            <section class="admin-section" aria-labelledby="codes-mgmt-title">
+                <div class="section-heading">
+                    <div>
+                        <h2 id="codes-mgmt-title">Gestión de códigos de acceso</h2>
+                        <p id="codes-mgmt-summary" class="muted">Instituciones y cupones de un solo uso para autorizar registros.</p>
+                    </div>
+                    <span id="codes-mgmt-status" class="status-badge">Cargando…</span>
+                </div>
+
+                <!-- Vista principal: tarjetas por institución -->
+                <div id="codes-mgmt-main">
+
+                    <!-- Formulario nueva institución -->
+                    <div class="admin-upload" style="margin-bottom:20px">
+                        <input id="inst-prefix-input" type="text" maxlength="3" placeholder="Prefijo (ej. SAM)"
+                            style="width:130px;padding:10px;border:1px solid #d0d5dd;border-radius:8px;font-size:1rem;font-family:monospace;letter-spacing:.1em;text-transform:uppercase"
+                            aria-label="Prefijo de 3 letras">
+                        <input id="inst-name-input" type="text" maxlength="80" placeholder="Nombre de la institución"
+                            style="flex:1;min-width:200px;padding:10px;border:1px solid #d0d5dd;border-radius:8px;font-size:1rem"
+                            aria-label="Nombre de la institución">
+                        <button id="inst-save-btn" class="btn btn-primary" type="button">Añadir institución</button>
+                    </div>
+
+                    <!-- Tarjetas de instituciones -->
+                    <div id="inst-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:8px">
+                        <p class="muted">Cargando instituciones…</p>
+                    </div>
+                </div>
+
+                <!-- Vista de detalle de una institución (oculta por defecto) -->
+                <div id="codes-mgmt-detail" hidden>
+                    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap">
+                        <button id="codes-back-btn" class="btn btn-secondary btn-compact" type="button">← Volver</button>
+                        <div>
+                            <strong id="detail-inst-name" style="font-size:1.1rem"></strong>
+                            <span id="detail-inst-prefix" class="muted" style="margin-left:8px;font-family:monospace"></span>
+                        </div>
+                        <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
+                            <input id="detail-batch-count" type="number" min="1" max="100" value="10"
+                                style="width:70px;padding:8px;border:1px solid #d0d5dd;border-radius:8px;font-size:0.95rem;text-align:center"
+                                aria-label="Cantidad de códigos a generar">
+                            <button id="detail-generate-btn" class="btn btn-primary btn-compact" type="button">Generar códigos</button>
+                            <button id="detail-download-btn" class="btn btn-secondary btn-compact" type="button" disabled>Descargar disponibles .txt</button>
+                            <button id="detail-revoke-all-btn" class="btn btn-danger btn-compact" type="button" disabled>Revocar disponibles</button>
+                        </div>
+                    </div>
+
+                    <!-- Métricas de la institución seleccionada -->
+                    <div id="detail-metrics" class="admin-grid" style="margin-bottom:20px">
+                        <div class="admin-card"><span>Total generados</span><strong id="dm-total">—</strong></div>
+                        <div class="admin-card"><span>Disponibles</span><strong id="dm-available" style="color:#166534">—</strong></div>
+                        <div class="admin-card"><span>Usados</span><strong id="dm-used" style="color:#991b1b">—</strong></div>
+                        <div class="admin-card"><span>Último uso</span><strong id="dm-last-used" style="font-size:1rem">—</strong></div>
+                    </div>
+
+                    <!-- Filtros de la tabla de detalle -->
+                    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+                        <button class="detail-filter-btn btn btn-secondary btn-compact active" data-filter="all" type="button">Todos</button>
+                        <button class="detail-filter-btn btn btn-secondary btn-compact" data-filter="available" type="button">Disponibles</button>
+                        <button class="detail-filter-btn btn btn-secondary btn-compact" data-filter="used" type="button">Usados</button>
+                    </div>
+
+                    <div class="table-scroll">
+                        <table class="stats-table">
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Estado</th>
+                                    <th>Fecha creación</th>
+                                    <th>Fecha activación</th>
+                                    <th>Email usuario</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="detail-codes-body">
+                                <tr><td colspan="6" class="empty-state">Selecciona una institución para ver sus códigos.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
 
@@ -116,6 +199,7 @@
                             <tr>
                                 <th>Usuario</th>
                                 <th>Email</th>
+                                <th>Código activación</th>
                                 <th>Alta</th>
                                 <th>Último login</th>
                                 <th>Estado</th>
@@ -125,7 +209,7 @@
                             </tr>
                         </thead>
                         <tbody id="users-body">
-                            <tr><td colspan="8" class="empty-state">Cargando usuarios…</td></tr>
+                            <tr><td colspan="9" class="empty-state">Cargando usuarios…</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -165,8 +249,8 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <script src="js/firebase-config.js"></script>
-    <script src="js/auth.js?v=20260710-1"></script>
-    <script src="js/admin.js?v=20260721-1"></script>
-    <script src="js/last-modified.js?v=20260722-1"></script>
+    <script src="js/auth.js?v=20260903-1"></script>
+    <script src="js/admin.js?v=20260903-1"></script>
+    <script src="js/last-modified.js?v=20260903-1"></script>
 </body>
 </html>

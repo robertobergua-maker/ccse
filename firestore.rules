@@ -44,12 +44,36 @@ service cloud.firestore {
       return ownsStoredRecord() && ownsNewRecord() && keepsOwner() && (!isBlocked() || isAdmin());
     }
 
+    function canClaimInviteCode() {
+      return signedIn()
+        && !exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && resource.data.used == false
+        && request.resource.data.used == true
+        && request.resource.data.used_by_uid == request.auth.uid
+        && request.resource.data.used_by_email == request.auth.token.email
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(["used", "used_by_uid", "used_by_email", "used_at"]);
+    }
+
+    function hasClaimedInviteCodeForNewUser(userId) {
+      return request.resource.data.invite_code is string
+        && getAfter(/databases/$(database)/documents/invite_codes/$(request.resource.data.invite_code)).data.used == true
+        && getAfter(/databases/$(database)/documents/invite_codes/$(request.resource.data.invite_code)).data.used_by_uid == userId
+        && getAfter(/databases/$(database)/documents/invite_codes/$(request.resource.data.invite_code)).data.used_by_email == request.auth.token.email;
+    }
+
     match /users/{userId} {
       // Cada perfil solamente es visible y editable por su propio usuario.
       allow read: if isCurrentUser(userId) || isAdmin();
-      allow create: if isCurrentUser(userId)
-        && request.resource.data.id == userId
-        && !request.resource.data.keys().hasAny(["blocked", "blocked_at", "blocked_by", "blocked_reason"]);
+      allow create: if isAdmin()
+        || (
+          isCurrentUser(userId)
+          && request.resource.data.id == userId
+          && request.resource.data.email == request.auth.token.email
+          && hasClaimedInviteCodeForNewUser(userId)
+          && request.resource.data.keys().hasOnly(["id", "name", "email", "invite_code", "created_at", "last_login"])
+          && !request.resource.data.keys().hasAny(["blocked", "blocked_at", "blocked_by", "blocked_reason"])
+        );
       allow update: if isAdmin()
         || (
           isCurrentUser(userId)
@@ -62,8 +86,8 @@ service cloud.firestore {
     }
 
     match /questions/{questionId} {
-      // El banco es común, pero solo está disponible tras iniciar sesión.
-      allow read: if signedIn();
+      // El banco es público para que los invitados puedan practicar sin cuenta.
+      allow read: if true;
       allow write: if isAdmin();
     }
 
@@ -89,6 +113,20 @@ service cloud.firestore {
       allow update: if canUpdateOwnRecord()
         && request.resource.data.question_id == resource.data.question_id
         && statId == request.auth.uid + "_" + resource.data.question_id;
+    }
+
+    match /institutions/{institutionId} {
+      // Solo el admin puede leer y gestionar instituciones.
+      allow read, write: if isAdmin();
+    }
+
+    match /invite_codes/{codeId} {
+      // Los visitantes solo pueden comprobar un código concreto, nunca listar la colección.
+      // El usuario recién autenticado puede marcar su propio código como usado una sola vez.
+      allow get: if isAdmin() || resource.data.used == false;
+      allow list: if isAdmin();
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin() || canClaimInviteCode();
     }
 
     match /{document=**} {

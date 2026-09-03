@@ -1,10 +1,7 @@
 (function () {
     function formatLastModified(value) {
         const date = new Date(value);
-        if (Number.isNaN(date.getTime())) {
-            return 'fecha no disponible';
-        }
-
+        if (Number.isNaN(date.getTime())) return null;
         return new Intl.DateTimeFormat('es-ES', {
             dateStyle: 'short',
             timeStyle: 'short'
@@ -12,15 +9,11 @@
     }
 
     document.addEventListener('DOMContentLoaded', function () {
-        const headerContent = document.querySelector('header > div') || document.querySelector('header') || document.body;
-        const lastModified = document.createElement('p');
-        lastModified.className = 'last-modified';
-        lastModified.textContent = 'Última modificación: ' + formatLastModified(document.lastModified);
-        lastModified.style.color = '#667085';
-        lastModified.style.fontSize = '0.85rem';
-        lastModified.style.fontWeight = '600';
-        lastModified.style.margin = '6px 0 0';
+        // Solo actuar si existe el elemento destino explícito
+        const target = document.getElementById('last-modified-label');
+        if (!target) return;
 
-        headerContent.appendChild(lastModified);
+        const formatted = formatLastModified(document.lastModified);
+        if (formatted) target.textContent = 'v' + formatted;
     });
 }());

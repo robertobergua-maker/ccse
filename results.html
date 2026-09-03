@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Resultados del Examen</title>
+    <link rel="stylesheet" href="css/style.css?v=20260903-1">
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background-color: #f5f7fb; color: #333; }
         header { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background-color: white; border-bottom: 1px solid #e2e8f0; }
@@ -69,6 +70,16 @@
     <div class="container">
         <h2 id="result-title" class="result-title">Resultado del examen</h2>
         <p class="review-intro">Auditoría de fallos con explicaciones sencillas para estudiantes extranjeros.</p>
+
+        <div id="guest-banner" class="guest-banner" hidden>
+            <span class="guest-banner-icon" aria-hidden="true">🔒</span>
+            <div class="guest-banner-body">
+                <strong>Resultados no guardados — modo invitado</strong>
+                <p>Este examen no se ha guardado en ninguna cuenta. Al cerrar la página perderás estos resultados.</p>
+                <a href="login.html" class="btn-register">Crear cuenta para guardar tus exámenes</a>
+            </div>
+        </div>
+
         <div id="save-diagnostic" class="save-diagnostic" aria-live="polite"></div>
         <div class="resumen-container">
             <div class="card respondidas">Respondidas <span id="res-respondadas">0</span></div>
@@ -89,8 +100,8 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <script src="js/firebase-config.js"></script>
-    <script src="js/auth.js?v=20260710-1"></script>
-    <script src="js/results.js?v=20260722-3"></script>
-    <script src="js/last-modified.js?v=20260722-1"></script>
+    <script src="js/auth.js?v=20260903-1"></script>
+    <script src="js/results.js?v=20260903-1"></script>
+    <script src="js/last-modified.js?v=20260903-1"></script>
 </body>
 </html>

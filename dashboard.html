@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de alumno - CCSE</title>
-    <link rel="stylesheet" href="css/style.css?v=20260710-3">
+    <link rel="stylesheet" href="css/style.css?v=20260903-1">
 </head>
 <body>
     <div class="container dashboard-container">
@@ -15,11 +15,27 @@
             </div>
             <div class="header-actions">
                 <a id="admin-panel-link" class="btn btn-primary admin-only" href="admin.html" hidden>Panel admin</a>
+                <a id="login-link" class="btn btn-primary" href="login.html" hidden>Iniciar sesión</a>
                 <button id="logout-btn" class="btn btn-secondary">Cerrar sesión</button>
             </div>
         </header>
 
         <main>
+            <!-- Banner visible solo para invitados (hidden por defecto, JS lo muestra) -->
+            <div id="guest-banner" class="guest-banner" hidden>
+                <span class="guest-banner-icon" aria-hidden="true">🔒</span>
+                <div class="guest-banner-body">
+                    <strong>Estás usando el modo invitado</strong>
+                    <p>Puedes hacer simulacros de examen y ver tus resultados, pero sin una cuenta no podrás:</p>
+                    <ul>
+                        <li>Guardar tu historial de exámenes</li>
+                        <li>Ver tu progreso por pregunta</li>
+                        <li>Beneficiarte del sistema adaptativo que prioriza tus fallos</li>
+                    </ul>
+                    <a href="login.html" class="btn-register">Crear cuenta o iniciar sesión</a>
+                </div>
+            </div>
+
             <section aria-labelledby="progress-title">
                 <div class="section-heading">
                     <div>
@@ -102,8 +118,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <script src="js/firebase-config.js"></script>
-    <script src="js/auth.js?v=20260710-1"></script>
-    <script src="js/app.js?v=20260725-1"></script>
-    <script src="js/last-modified.js?v=20260722-1"></script>
+    <script src="js/auth.js?v=20260903-1"></script>
+    <script src="js/app.js?v=20260903-1"></script>
 </body>
 </html>

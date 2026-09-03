@@ -11,12 +11,10 @@ document.addEventListener('DOMContentLoaded', () => {
     );
     const EXAM_DURATION_SECONDS = 45 * 60;
     const PASSING_SCORE = 15;
-    const UNSEEN_PRIORITY = 0.18;
-    const WRONG_PRIORITY = 0.16;
 
-    const auth = firebase.auth();
     const db = firebase.firestore();
     let currentUser = null;
+    let isGuest = false;
     let examQuestions = [];
     let userAnswers = {};
     let selectionContext = null;
@@ -26,16 +24,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const ui = {
         examContainer: document.getElementById('exam-container'),
         submitExamBtn: document.getElementById('submit-exam-btn'),
-        timer: document.getElementById('timer')
+        timer: document.getElementById('timer'),
+        guestBanner: document.getElementById('guest-banner')
     };
 
-    auth.onAuthStateChanged(user => {
-        if (!user) {
-            window.location.href = 'login.html';
-            return;
+    document.addEventListener('authReady', ({ detail }) => {
+        currentUser = detail.user;
+        isGuest = detail.isGuest;
+
+        if (isGuest) {
+            if (ui.guestBanner) ui.guestBanner.hidden = false;
+            startGuestExam();
+        } else {
+            startNewExam(currentUser);
         }
-        currentUser = user;
-        startNewExam(user);
     });
 
     ui.submitExamBtn.addEventListener('click', () => {
@@ -43,6 +45,30 @@ document.addEventListener('DOMContentLoaded', () => {
             finishExam();
         }
     });
+
+    // ── Modo invitado ────────────────────────────────────────────────────────
+
+    async function startGuestExam() {
+        try {
+            const allQuestions = await loadQuestionBank();
+            validateQuestionBank(allQuestions);
+            selectionContext = { strategy: 'uniform_random', stats_source: 'none' };
+            // Sin stats personalizadas: sorteo uniforme
+            examQuestions = buildOfficialExam(allQuestions, new Map());
+            userAnswers = {};
+            sessionStorage.removeItem('lastExamSaveError');
+            sessionStorage.removeItem('lastExamStatsSaveError');
+            renderExam(examQuestions);
+            startTimer(EXAM_DURATION_SECONDS);
+        } catch (error) {
+            console.error('No se pudo iniciar el examen de invitado:', error);
+            ui.examContainer.innerHTML =
+                `<p class="error-message">${escapeHtml(error.message)}.</p>`;
+            ui.submitExamBtn.disabled = true;
+        }
+    }
+
+    // ── Usuario registrado ───────────────────────────────────────────────────
 
     async function startNewExam(user) {
         try {
@@ -270,9 +296,24 @@ document.addEventListener('DOMContentLoaded', () => {
         isFinishing = true;
         clearInterval(timerInterval);
         ui.submitExamBtn.disabled = true;
-        ui.submitExamBtn.textContent = 'Guardando resultados…';
 
         const result = calculateResult();
+
+        // Invitado: solo guardar en sessionStorage y mostrar resultados
+        if (isGuest) {
+            sessionStorage.setItem('examResults', JSON.stringify({
+                questions: examQuestions,
+                userAnswers,
+                summary: result,
+                passingScore: PASSING_SCORE
+            }));
+            window.location.href = 'results.html';
+            return;
+        }
+
+        // Usuario registrado: guardar en Firestore
+        ui.submitExamBtn.textContent = 'Guardando resultados…';
+
         let saveCheckpoint = 'inicio';
         let examId = '';
 
@@ -441,14 +482,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const minutes = String(Math.floor(secondsLeft / 60)).padStart(2, '0');
         const seconds = String(secondsLeft % 60).padStart(2, '0');
         ui.timer.textContent = `${minutes}:${seconds}`;
-    }
-
-    function shuffleArray(values) {
-        for (let index = values.length - 1; index > 0; index -= 1) {
-            const randomIndex = Math.floor(Math.random() * (index + 1));
-            [values[index], values[randomIndex]] = [values[randomIndex], values[index]];
-        }
-        return values;
     }
 
     function escapeHtml(value) {

@@ -91,9 +91,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function loadAdminData() {
         try {
-            const [usersSnapshot, examsSnapshot] = await Promise.all([
+            const [usersSnapshot, examsSnapshot, codesSnapshot] = await Promise.all([
                 db.collection('users').get(),
-                db.collection('exams').get()
+                db.collection('exams').get(),
+                db.collection('invite_codes').where('used', '==', true).get()
             ]);
             const users = [];
             const usersById = new Map();
@@ -106,7 +107,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const exams = [];
             examsSnapshot.forEach(doc => exams.push({ id: doc.id, ...doc.data() }));
 
-            const rows = buildUserRows(users, usersById, exams);
+            // Mapa uid → código de activación (desde invite_codes)
+            const activationCodeByUid = new Map();
+            codesSnapshot.forEach(doc => {
+                const d = doc.data();
+                if (d.used_by_uid) activationCodeByUid.set(d.used_by_uid, d.code);
+            });
+
+            const rows = buildUserRows(users, usersById, exams, activationCodeByUid);
             currentRows = rows;
             currentActivityRows = [];
             currentActivityUser = null;
@@ -121,11 +129,11 @@ document.addEventListener('DOMContentLoaded', () => {
             ui.summary.textContent = 'No se pudo cargar el panel administrador.';
             setStatus('Error', 'offline');
             ui.riskBody.innerHTML = '<tr><td colspan="6" class="empty-state">Error al cargar señales.</td></tr>';
-            ui.usersBody.innerHTML = '<tr><td colspan="8" class="empty-state">Error al cargar usuarios.</td></tr>';
+            ui.usersBody.innerHTML = '<tr><td colspan="9" class="empty-state">Error al cargar usuarios.</td></tr>';
         }
     }
 
-    function buildUserRows(users, usersById, exams) {
+    function buildUserRows(users, usersById, exams, activationCodeByUid = new Map()) {
         const rowsByUser = new Map();
         users.forEach(user => {
             rowsByUser.set(user.id, {
@@ -138,7 +146,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 failed: 0,
                 lastActivity: 0,
                 risk: 'ok',
-                notes: []
+                notes: [],
+                // Código de activación: primero del doc de usuario, luego del mapa de códigos
+                activationCode: user.invite_code || activationCodeByUid.get(user.id) || null
             });
         });
 
@@ -219,14 +229,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderUserRows(rows) {
         if (rows.length === 0) {
-            ui.usersBody.innerHTML = '<tr><td colspan="8" class="empty-state">No hay usuarios registrados.</td></tr>';
+            ui.usersBody.innerHTML = '<tr><td colspan="9" class="empty-state">No hay usuarios registrados.</td></tr>';
             updateAdminDownloadButtons();
             return;
         }
-        ui.usersBody.innerHTML = rows.map(row => `
+        ui.usersBody.innerHTML = rows.map(row => {
+            const codeCell = row.activationCode
+                ? `<code style="font-size:0.82rem;letter-spacing:.06em;font-weight:700">${escapeHtml(row.activationCode)}</code>`
+                : '<span class="muted">—</span>';
+            return `
             <tr>
                 <td><strong>${escapeHtml(displayName(row.user))}</strong></td>
                 <td>${escapeHtml(row.user.email || 'No disponible')}</td>
+                <td>${codeCell}</td>
                 <td>${escapeHtml(formatTimestamp(row.user.created_at))}</td>
                 <td>${escapeHtml(formatTimestamp(row.user.last_login))}</td>
                 <td>${userStatusBadge(row.user)}</td>
@@ -239,7 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </td>
             </tr>
-        `).join('');
+        `}).join('');
         updateAdminDownloadButtons();
     }
 
@@ -912,6 +927,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const rows = currentRows.map(row => ({
             usuario: displayName(row.user),
             email: row.user.email || '',
+            codigo_activacion: row.activationCode || '',
             alta: formatTimestamp(row.user.created_at),
             ultimo_login: formatTimestamp(row.user.last_login),
             estado: row.user.blocked === true ? 'Bloqueado' : 'Activo',
@@ -1199,5 +1215,462 @@ document.addEventListener('DOMContentLoaded', () => {
         const element = document.createElement('div');
         element.textContent = String(value);
         return element.innerHTML;
+    }
+
+    // ── GESTIÓN DE CÓDIGOS (instituciones + cupones) ─────────────────────────
+
+    // Estado compartido
+    let institutionsMap  = new Map();  // prefix → name
+    let allInviteCodes   = [];
+    let detailPrefix     = null;       // institución actualmente en el panel de detalle
+    let detailFilter     = 'all';      // 'all' | 'available' | 'used'
+
+    const codesMgmt = {
+        main:          document.getElementById('codes-mgmt-main'),
+        detail:        document.getElementById('codes-mgmt-detail'),
+        summary:       document.getElementById('codes-mgmt-summary'),
+        status:        document.getElementById('codes-mgmt-status'),
+        instCards:     document.getElementById('inst-cards'),
+        // Formulario nueva institución
+        prefixInput:   document.getElementById('inst-prefix-input'),
+        nameInput:     document.getElementById('inst-name-input'),
+        saveBtn:       document.getElementById('inst-save-btn'),
+        // Panel de detalle
+        backBtn:       document.getElementById('codes-back-btn'),
+        detailName:    document.getElementById('detail-inst-name'),
+        detailPrefix:  document.getElementById('detail-inst-prefix'),
+        generateBtn:   document.getElementById('detail-generate-btn'),
+        batchInput:    document.getElementById('detail-batch-count'),
+        downloadBtn:   document.getElementById('detail-download-btn'),
+        revokeAllBtn:  document.getElementById('detail-revoke-all-btn'),
+        codesBody:     document.getElementById('detail-codes-body'),
+        dmTotal:       document.getElementById('dm-total'),
+        dmAvailable:   document.getElementById('dm-available'),
+        dmUsed:        document.getElementById('dm-used'),
+        dmLastUsed:    document.getElementById('dm-last-used')
+    };
+
+    if (codesMgmt.saveBtn) {
+        // Normalizar prefijo
+        codesMgmt.prefixInput?.addEventListener('input', () => {
+            codesMgmt.prefixInput.value = codesMgmt.prefixInput.value
+                .toUpperCase().replace(/[^A-Z]/g, '').slice(0, 3);
+        });
+        codesMgmt.prefixInput?.addEventListener('keydown', e => {
+            if (e.key === 'Enter') codesMgmt.nameInput?.focus();
+        });
+        codesMgmt.nameInput?.addEventListener('keydown', e => {
+            if (e.key === 'Enter') codesMgmt.saveBtn.click();
+        });
+        codesMgmt.saveBtn.addEventListener('click', saveInstitution);
+
+        // Botones del panel de detalle
+        codesMgmt.backBtn?.addEventListener('click', showMainView);
+        codesMgmt.generateBtn?.addEventListener('click', generateCodesForDetail);
+        codesMgmt.downloadBtn?.addEventListener('click', downloadDetailCodesTxt);
+        codesMgmt.revokeAllBtn?.addEventListener('click', revokeAllAvailable);
+
+        // Filtros de la tabla de detalle
+        document.querySelectorAll('.detail-filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.detail-filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                detailFilter = btn.dataset.filter;
+                renderDetailTable();
+            });
+        });
+
+        // Delegación de eventos en la tabla de detalle
+        codesMgmt.codesBody?.addEventListener('click', async event => {
+            const action = event.target.dataset.action;
+            const codeId = event.target.dataset.codeId;
+            if (action === 'revoke' && codeId) await revokeOneCode(codeId);
+        });
+
+        // Delegación de eventos en tarjetas de instituciones
+        codesMgmt.instCards?.addEventListener('click', async event => {
+            const btn = event.target.closest('[data-action]');
+            if (!btn) return;
+            const { action, prefix, name, docId } = btn.dataset;
+            if (action === 'open-detail') openDetail(prefix);
+            if (action === 'edit-inst')   prefillInstForm(prefix, name);
+            if (action === 'delete-inst') await deleteInstitution(docId, prefix);
+        });
+
+        // Cargar todo al inicio
+        loadCodesMgmt();
+    }
+
+    // ── CARGA INICIAL ────────────────────────────────────────────────────────
+
+    async function loadCodesMgmt() {
+        setCodesMgmtStatus('Cargando…', 'online');
+        try {
+            const [instSnap, codesSnap] = await Promise.all([
+                db.collection('institutions').orderBy('prefix').get(),
+                db.collection('invite_codes').orderBy('created_at', 'desc').get()
+            ]);
+
+            if (await migrateLegacyInviteCodeIds(codesSnap.docs)) {
+                await loadCodesMgmt();
+                return;
+            }
+
+            institutionsMap = new Map();
+            const instRows = [];
+            instSnap.forEach(doc => {
+                const d = { id: doc.id, ...doc.data() };
+                institutionsMap.set(d.prefix, d.name);
+                instRows.push(d);
+            });
+
+            allInviteCodes = [];
+            codesSnap.forEach(doc => allInviteCodes.push({ id: doc.id, ...doc.data() }));
+
+            renderInstCards(instRows);
+            updateCodesMgmtSummary(instRows);
+
+            // Si hay un detalle abierto, refrescarlo
+            if (detailPrefix) renderDetailTable();
+
+        } catch (err) {
+            console.error('Error al cargar gestión de códigos:', err);
+            setCodesMgmtStatus('Error', 'offline');
+        }
+    }
+
+    async function migrateLegacyInviteCodeIds(docs) {
+        const legacyDocs = docs
+            .map(doc => ({ id: doc.id, ...doc.data() }))
+            .filter(code => {
+                const targetId = String(code.code || '');
+                return targetId && !targetId.includes('/') && code.id !== targetId;
+            });
+
+        if (legacyDocs.length === 0) return false;
+
+        for (let i = 0; i < legacyDocs.length; i += 225) {
+            const batch = db.batch();
+            legacyDocs.slice(i, i + 225).forEach(code => {
+                const data = { ...code };
+                delete data.id;
+                batch.set(db.collection('invite_codes').doc(code.code), data, { merge: true });
+                batch.delete(db.collection('invite_codes').doc(code.id));
+            });
+            await batch.commit();
+        }
+
+        console.info(`Códigos de invitación normalizados: ${legacyDocs.length}`);
+        return true;
+    }
+
+    // ── TARJETAS DE INSTITUCIONES ────────────────────────────────────────────
+
+    function renderInstCards(instRows) {
+        if (!codesMgmt.instCards) return;
+
+        // Instituciones sin registrar que tienen códigos
+        const knownPrefixes = new Set(instRows.map(r => r.prefix));
+        const unknownPrefixes = [...new Set(
+            allInviteCodes.map(getCodePrefix).filter(p => p && !knownPrefixes.has(p))
+        )];
+
+        const allGroups = [
+            ...instRows.map(r => ({ prefix: r.prefix, name: r.name, docId: r.id, registered: true, created_at: r.created_at })),
+            ...unknownPrefixes.map(p => ({ prefix: p, name: null, docId: null, registered: false }))
+        ];
+
+        if (allGroups.length === 0) {
+            codesMgmt.instCards.innerHTML =
+                '<p class="muted">No hay instituciones ni códigos todavía. Añade la primera institución.</p>';
+            return;
+        }
+
+        codesMgmt.instCards.innerHTML = allGroups.map(g => {
+            const codes  = allInviteCodes.filter(c => getCodePrefix(c) === g.prefix);
+            const total  = codes.length;
+            const used   = codes.filter(c => c.used).length;
+            const avail  = total - used;
+            const pct    = total > 0 ? Math.round((used / total) * 100) : 0;
+            const lastUsed = codes
+                .filter(c => c.used && c.used_at)
+                .map(c => timestampToMillis(c.used_at))
+                .sort((a, b) => b - a)[0] || 0;
+
+            const statusColor = avail === 0 && total > 0 ? '#991b1b' : avail > 0 ? '#166534' : '#667085';
+
+            return `
+                <div style="background:#fff;border:1px solid #e4e7ec;border-radius:12px;padding:18px 20px;display:flex;flex-direction:column;gap:10px">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+                        <div>
+                            <code style="font-size:1.1rem;font-weight:800;letter-spacing:.1em;color:#1a365d">${escapeHtml(g.prefix)}</code>
+                            <p style="margin:4px 0 0;font-size:0.9rem;color:#374151;font-weight:600">${g.name ? escapeHtml(g.name) : '<span style="color:#9ca3af;font-style:italic">Sin nombre registrado</span>'}</p>
+                        </div>
+                        <span style="font-size:1.5rem;font-weight:900;color:${statusColor}">${avail}</span>
+                    </div>
+
+                    <div style="display:flex;gap:12px;font-size:0.82rem;color:#667085">
+                        <span>Total: <strong>${total}</strong></span>
+                        <span>Usados: <strong style="color:#991b1b">${used}</strong></span>
+                        <span>Disponibles: <strong style="color:#166534">${avail}</strong></span>
+                    </div>
+
+                    ${total > 0 ? `
+                    <div style="height:6px;background:#f3f4f6;border-radius:999px;overflow:hidden">
+                        <div style="height:100%;width:${pct}%;background:#dc2626;border-radius:999px;transition:width .3s"></div>
+                    </div>
+                    <p style="font-size:0.75rem;color:#9ca3af;margin:0">${lastUsed ? 'Último uso: ' + escapeHtml(formatDate(lastUsed)) : 'Sin activaciones todavía'}</p>
+                    ` : '<p style="font-size:0.82rem;color:#9ca3af;margin:0">Sin códigos generados</p>'}
+
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+                        <button class="btn btn-primary btn-compact" data-action="open-detail" data-prefix="${escapeHtml(g.prefix)}" type="button">Gestionar</button>
+                        ${g.registered ? `
+                        <button class="btn btn-secondary btn-compact" data-action="edit-inst" data-prefix="${escapeHtml(g.prefix)}" data-name="${escapeHtml(g.name || '')}" type="button">Editar</button>
+                        <button class="btn btn-danger btn-compact" data-action="delete-inst" data-doc-id="${escapeHtml(g.docId)}" data-prefix="${escapeHtml(g.prefix)}" type="button">Eliminar</button>
+                        ` : `<span class="muted" style="font-size:0.8rem;align-self:center">No registrada</span>`}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function updateCodesMgmtSummary(instRows) {
+        const total  = allInviteCodes.length;
+        const used   = allInviteCodes.filter(c => c.used).length;
+        const avail  = total - used;
+        if (codesMgmt.summary) {
+            codesMgmt.summary.textContent =
+                `${instRows.length} institución${instRows.length !== 1 ? 'es' : ''} · ${total} código${total !== 1 ? 's' : ''} · ${avail} disponible${avail !== 1 ? 's' : ''}.`;
+        }
+        setCodesMgmtStatus(
+            `${avail} disponibles`,
+            avail > 0 ? 'online' : total > 0 ? 'offline' : 'online'
+        );
+    }
+
+    // ── PANEL DE DETALLE ─────────────────────────────────────────────────────
+
+    function openDetail(prefix) {
+        detailPrefix = prefix;
+        detailFilter = 'all';
+        document.querySelectorAll('.detail-filter-btn').forEach(b => {
+            b.classList.toggle('active', b.dataset.filter === 'all');
+        });
+
+        const name = institutionsMap.get(prefix) || prefix;
+        if (codesMgmt.detailName)   codesMgmt.detailName.textContent   = name;
+        if (codesMgmt.detailPrefix) codesMgmt.detailPrefix.textContent = `[${prefix}]`;
+
+        if (codesMgmt.main)   codesMgmt.main.hidden   = true;
+        if (codesMgmt.detail) codesMgmt.detail.hidden  = false;
+
+        renderDetailTable();
+    }
+
+    function showMainView() {
+        detailPrefix = null;
+        if (codesMgmt.main)   codesMgmt.main.hidden   = false;
+        if (codesMgmt.detail) codesMgmt.detail.hidden  = true;
+    }
+
+    function renderDetailTable() {
+        const codes = allInviteCodes.filter(c => getCodePrefix(c) === detailPrefix);
+
+        // Métricas
+        const total  = codes.length;
+        const used   = codes.filter(c => c.used).length;
+        const avail  = total - used;
+        const lastUsedMs = codes
+            .filter(c => c.used && c.used_at)
+            .map(c => timestampToMillis(c.used_at))
+            .sort((a, b) => b - a)[0] || 0;
+
+        if (codesMgmt.dmTotal)     codesMgmt.dmTotal.textContent     = total;
+        if (codesMgmt.dmAvailable) codesMgmt.dmAvailable.textContent = avail;
+        if (codesMgmt.dmUsed)      codesMgmt.dmUsed.textContent      = used;
+        if (codesMgmt.dmLastUsed)  codesMgmt.dmLastUsed.textContent  = lastUsedMs ? formatDate(lastUsedMs) : '—';
+
+        if (codesMgmt.downloadBtn)  codesMgmt.downloadBtn.disabled  = avail === 0;
+        if (codesMgmt.revokeAllBtn) codesMgmt.revokeAllBtn.disabled = avail === 0;
+
+        // Filtrar
+        let filtered = codes;
+        if (detailFilter === 'available') filtered = codes.filter(c => !c.used);
+        if (detailFilter === 'used')      filtered = codes.filter(c => c.used);
+
+        if (!codesMgmt.codesBody) return;
+
+        if (filtered.length === 0) {
+            const msg = detailFilter === 'available' ? 'No hay códigos disponibles.' :
+                        detailFilter === 'used'      ? 'No hay códigos usados.' :
+                        'No hay códigos para esta institución. Genera los primeros.';
+            codesMgmt.codesBody.innerHTML = `<tr><td colspan="6" class="empty-state">${msg}</td></tr>`;
+            return;
+        }
+
+        codesMgmt.codesBody.innerHTML = filtered.map(code => {
+            const statusBadge = code.used
+                ? `<span class="risk-badge risk-danger">Usado</span>`
+                : `<span class="risk-badge risk-ok">Disponible</span>`;
+            const createdAt   = code.created_at ? escapeHtml(formatDate(timestampToMillis(code.created_at))) : '—';
+            const activatedAt = code.used && code.used_at ? escapeHtml(formatDate(timestampToMillis(code.used_at))) : '—';
+            const userEmail   = code.used ? escapeHtml(code.used_by_email || code.used_by_uid || '—') : '—';
+            const revokeBtn   = !code.used
+                ? `<button class="btn btn-danger btn-compact" data-action="revoke" data-code-id="${escapeHtml(code.id)}" type="button">Revocar</button>`
+                : '';
+            return `
+                <tr>
+                    <td><code style="font-size:0.9rem;letter-spacing:.1em;font-weight:700">${escapeHtml(code.code)}</code></td>
+                    <td>${statusBadge}</td>
+                    <td>${createdAt}</td>
+                    <td>${activatedAt}</td>
+                    <td>${userEmail}</td>
+                    <td>${revokeBtn}</td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    // ── ACCIONES ─────────────────────────────────────────────────────────────
+
+    async function saveInstitution() {
+        const prefix = (codesMgmt.prefixInput?.value || '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 3);
+        const name   = (codesMgmt.nameInput?.value || '').trim();
+        if (!prefix || prefix.length < 2) return alert('El prefijo debe tener 2 o 3 letras.');
+        if (!name) return alert('Introduce el nombre de la institución.');
+
+        codesMgmt.saveBtn.disabled = true;
+        codesMgmt.saveBtn.textContent = 'Guardando…';
+        try {
+            await db.collection('institutions').doc(prefix).set(
+                { prefix, name, created_at: firebase.firestore.FieldValue.serverTimestamp(), created_by: adminUser?.email || 'admin' },
+                { merge: true }
+            );
+            if (codesMgmt.prefixInput) codesMgmt.prefixInput.value = '';
+            if (codesMgmt.nameInput)   codesMgmt.nameInput.value   = '';
+            await loadCodesMgmt();
+        } catch (err) {
+            console.error('No se pudo guardar la institución:', err);
+            alert('No se pudo guardar la institución. Revisa permisos o conexión.');
+        } finally {
+            codesMgmt.saveBtn.disabled = false;
+            codesMgmt.saveBtn.textContent = 'Añadir institución';
+        }
+    }
+
+    async function deleteInstitution(docId, prefix) {
+        if (!confirm(`¿Eliminar la institución "${prefix}"? Los códigos existentes no se borran.`)) return;
+        try {
+            await db.collection('institutions').doc(docId).delete();
+            await loadCodesMgmt();
+        } catch (err) {
+            alert('No se pudo eliminar la institución.');
+        }
+    }
+
+    function prefillInstForm(prefix, name) {
+        if (codesMgmt.prefixInput) codesMgmt.prefixInput.value = prefix;
+        if (codesMgmt.nameInput)   codesMgmt.nameInput.value   = name;
+        codesMgmt.prefixInput?.focus();
+    }
+
+    async function generateCodesForDetail() {
+        if (!detailPrefix) return;
+        const count = Math.min(Math.max(parseInt(codesMgmt.batchInput?.value || '10', 10) || 10, 1), 100);
+        const name  = institutionsMap.get(detailPrefix) || detailPrefix;
+        if (!confirm(`¿Generar ${count} código${count !== 1 ? 's' : ''} para "${name}" (${detailPrefix})?`)) return;
+
+        codesMgmt.generateBtn.disabled = true;
+        codesMgmt.generateBtn.textContent = 'Generando…';
+        try {
+            const batch = db.batch();
+            for (let i = 0; i < count; i++) {
+                const code = `${detailPrefix}-${generateRandomSuffix()}`;
+                const ref = db.collection('invite_codes').doc(code);
+                batch.set(ref, {
+                    code,
+                    prefix:     detailPrefix,
+                    used:       false,
+                    created_at: firebase.firestore.FieldValue.serverTimestamp(),
+                    created_by: adminUser?.email || 'admin'
+                });
+            }
+            await batch.commit();
+            await loadCodesMgmt();
+        } catch (err) {
+            console.error('Error al generar códigos:', err);
+            alert('No se pudieron generar los códigos.');
+        } finally {
+            codesMgmt.generateBtn.disabled = false;
+            codesMgmt.generateBtn.textContent = 'Generar códigos';
+        }
+    }
+
+    async function revokeOneCode(codeId) {
+        if (!confirm('¿Revocar este código?')) return;
+        try {
+            await db.collection('invite_codes').doc(codeId).delete();
+            await loadCodesMgmt();
+        } catch (err) {
+            alert('No se pudo revocar el código.');
+        }
+    }
+
+    async function revokeAllAvailable() {
+        const available = allInviteCodes.filter(c => getCodePrefix(c) === detailPrefix && !c.used);
+        if (available.length === 0) return;
+        if (!confirm(`¿Revocar los ${available.length} códigos disponibles de "${detailPrefix}"? Esta acción no se puede deshacer.`)) return;
+
+        codesMgmt.revokeAllBtn.disabled = true;
+        try {
+            const chunkSize = 450;
+            for (let i = 0; i < available.length; i += chunkSize) {
+                const batch = db.batch();
+                available.slice(i, i + chunkSize).forEach(c => {
+                    batch.delete(db.collection('invite_codes').doc(c.id));
+                });
+                await batch.commit();
+            }
+            await loadCodesMgmt();
+        } catch (err) {
+            alert('No se pudieron revocar todos los códigos.');
+        } finally {
+            codesMgmt.revokeAllBtn.disabled = false;
+        }
+    }
+
+    function downloadDetailCodesTxt() {
+        const available = allInviteCodes.filter(c => getCodePrefix(c) === detailPrefix && !c.used);
+        if (available.length === 0) return;
+        const fileName = `codigos-${detailPrefix.toLowerCase()}-${formatDateSlug(new Date())}.txt`;
+        const blob = new Blob([available.map(c => c.code).join('\n')], { type: 'text/plain;charset=utf-8' });
+        const url  = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url; link.download = fileName;
+        document.body.appendChild(link); link.click();
+        link.remove(); URL.revokeObjectURL(url);
+    }
+
+    // ── HELPERS ──────────────────────────────────────────────────────────────
+
+    function getCodePrefix(c) {
+        if (c.prefix) return c.prefix;
+        const m = String(c.code || '').match(/^([A-Z]{2,3})-/);
+        return m ? m[1] : null;
+    }
+
+    function generateRandomSuffix() {
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        let result = '';
+        const array = new Uint8Array(8);
+        crypto.getRandomValues(array);
+        array.forEach(byte => { result += chars[byte % chars.length]; });
+        return result;
+    }
+
+    function setCodesMgmtStatus(text, state) {
+        if (!codesMgmt.status) return;
+        codesMgmt.status.textContent = text;
+        codesMgmt.status.className   = `status-badge status-${state}`;
     }
 });
