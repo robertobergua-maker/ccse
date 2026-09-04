@@ -119,6 +119,18 @@
             color: #9ca3af; padding: 0; line-height: 1;
         }
         .toggle-pw:hover { color: #374151; }
+
+        /* ── Términos y condiciones ── */
+        .terms-row {
+            display: flex; align-items: flex-start; gap: 10px;
+            margin: 18px 0; padding: 12px 14px;
+            background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px;
+        }
+        .terms-row input[type="checkbox"] {
+            margin-top: 3px; width: 17px; height: 17px; flex-shrink: 0; cursor: pointer;
+        }
+        .terms-row label { font-size: 0.86rem; color: #374151; line-height: 1.4; cursor: pointer; }
+        .terms-row a { color: #2563eb; font-weight: 700; text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -147,6 +159,17 @@
                         <button id="validate-code-btn" type="button" disabled>Validar</button>
                     </div>
                     <p id="invite-feedback" class="invite-feedback"></p>
+                </div>
+
+                <!-- Términos y condiciones -->
+                <div class="terms-row">
+                    <input id="terms-checkbox" type="checkbox">
+                    <label for="terms-checkbox">
+                        He leído y acepto los
+                        <a href="legal.html" target="_blank" rel="noopener">Términos y Condiciones</a>
+                        y la Política de Privacidad, entendiendo que esta es una herramienta no oficial y sin
+                        garantías.
+                    </label>
                 </div>
 
                 <!-- Tabs: Correo / Google -->
@@ -217,7 +240,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <script src="js/firebase-config.js"></script>
-    <script src="js/auth.js?v=20260904-2"></script>
+    <script src="js/auth.js?v=20260904-5"></script>
     <script src="js/last-modified.js?v=20260903-3"></script>
 </body>
 </html>

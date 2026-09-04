@@ -26,8 +26,16 @@ document.addEventListener('DOMContentLoaded', () => {
         examContainer: document.getElementById('exam-container'),
         submitExamBtn: document.getElementById('submit-exam-btn'),
         timer: document.getElementById('timer'),
-        guestBanner: document.getElementById('guest-banner')
+        guestBanner: document.getElementById('guest-banner'),
+        consentGate: document.getElementById('consent-gate'),
+        examBody: document.getElementById('exam-body'),
+        examTermsCheckbox: document.getElementById('exam-terms-checkbox'),
+        startExamBtn: document.getElementById('start-exam-btn')
     };
+
+    // Se guarda para ejecutarse solo cuando el usuario acepta los términos
+    // en la pantalla de consentimiento (ver más abajo).
+    let pendingExamStart = null;
 
     document.addEventListener('authReady', ({ detail }) => {
         currentUser = detail.user;
@@ -35,11 +43,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (isGuest) {
             if (ui.guestBanner) ui.guestBanner.hidden = false;
-            startGuestExam();
+            pendingExamStart = startGuestExam;
         } else {
-            startNewExam(currentUser);
+            pendingExamStart = () => startNewExam(currentUser);
         }
     });
+
+    if (ui.examTermsCheckbox && ui.startExamBtn) {
+        ui.examTermsCheckbox.addEventListener('change', () => {
+            ui.startExamBtn.disabled = !ui.examTermsCheckbox.checked;
+        });
+    }
+
+    if (ui.startExamBtn) {
+        ui.startExamBtn.addEventListener('click', () => {
+            if (!ui.examTermsCheckbox?.checked || !pendingExamStart) return;
+            if (ui.consentGate) ui.consentGate.hidden = true;
+            if (ui.examBody) ui.examBody.hidden = false;
+            pendingExamStart();
+        });
+    }
 
     ui.submitExamBtn.addEventListener('click', () => {
         if (confirm('¿Quieres finalizar y corregir el examen?')) {

@@ -24,7 +24,9 @@ document.addEventListener('DOMContentLoaded', function() {
         inviteCodeInput:  document.getElementById('invite-code-input'),
         validateCodeBtn:  document.getElementById('validate-code-btn'),
         inviteFeedback:   document.getElementById('invite-feedback'),
-        skipCodeBtn:      document.getElementById('skip-code-btn')
+        skipCodeBtn:      document.getElementById('skip-code-btn'),
+        // Términos y condiciones
+        termsCheckbox:    document.getElementById('terms-checkbox')
     };
 
     const googleProvider = new firebase.auth.GoogleAuthProvider();
@@ -33,6 +35,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let validatedInviteCode = null;
     let skipInvite = false;
+    let termsAccepted = false;
 
     // ── TABS ─────────────────────────────────────────────────────────────────
 
@@ -110,6 +113,22 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // ── TÉRMINOS Y CONDICIONES ──────────────────────────────────────────────
+
+    if (ui.termsCheckbox) {
+        ui.termsCheckbox.addEventListener('change', () => {
+            termsAccepted = ui.termsCheckbox.checked;
+            // Recalcula qué botones deben quedar habilitados según el flujo actual.
+            if (skipInvite) {
+                unlockExistingUserLogin();
+            } else if (validatedInviteCode) {
+                lockAuthButtons(false);
+            } else {
+                lockAuthButtons(true);
+            }
+        });
+    }
+
     if (ui.skipCodeBtn) {
         ui.skipCodeBtn.addEventListener('click', () => {
             skipInvite = true;
@@ -148,6 +167,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (ui.emailRegisterBtn) {
         ui.emailRegisterBtn.addEventListener('click', async event => {
             event.preventDefault();
+
+            if (!termsAccepted) {
+                return showEmailError('Debes aceptar los Términos y Condiciones y la Política de Privacidad para registrarte.');
+            }
 
             const email    = ui.emailInput?.value.trim();
             const password = ui.passwordInput?.value;
@@ -203,6 +226,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (ui.googleLoginBtn) {
         ui.googleLoginBtn.addEventListener('click', () => {
+            if (!termsAccepted) {
+                const message = 'Debes aceptar los Términos y Condiciones y la Política de Privacidad para continuar.';
+                setFeedback(message, 'error');
+                showEmailError(message);
+                return;
+            }
             auth.signInWithPopup(googleProvider)
                 .catch(error => {
                     console.error('Error durante el inicio de sesión con Google:', error);
@@ -477,13 +506,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     /** Bloquea/desbloquea todos los botones de acceso */
     function lockAuthButtons(locked) {
-        if (ui.googleLoginBtn)   ui.googleLoginBtn.disabled   = locked;
+        // Registrarse y Google pueden crear una cuenta nueva, así que además exigen
+        // haber aceptado los Términos y Condiciones (checkbox `terms-checkbox`).
+        if (ui.googleLoginBtn)   ui.googleLoginBtn.disabled   = locked || !termsAccepted;
         if (ui.emailLoginBtn)    ui.emailLoginBtn.disabled    = locked;
-        if (ui.emailRegisterBtn) ui.emailRegisterBtn.disabled = locked;
+        if (ui.emailRegisterBtn) ui.emailRegisterBtn.disabled = locked || !termsAccepted;
     }
 
     function unlockExistingUserLogin() {
-        if (ui.googleLoginBtn)   ui.googleLoginBtn.disabled   = false;
+        if (ui.googleLoginBtn)   ui.googleLoginBtn.disabled   = !termsAccepted;
         if (ui.emailLoginBtn)    ui.emailLoginBtn.disabled    = false;
         if (ui.emailRegisterBtn) {
             ui.emailRegisterBtn.disabled = true;
@@ -497,7 +528,7 @@ document.addEventListener('DOMContentLoaded', function() {
             ui.emailLoginBtn.textContent = loading ? 'Entrando…' : 'Iniciar sesión';
         }
         if (ui.emailRegisterBtn) {
-            ui.emailRegisterBtn.disabled = loading || skipInvite || !validatedInviteCode;
+            ui.emailRegisterBtn.disabled = loading || skipInvite || !validatedInviteCode || !termsAccepted;
             ui.emailRegisterBtn.textContent = loading
                 ? 'Registrando…'
                 : (skipInvite ? 'Validar código para registrarse' : 'Registrarse con este correo');
