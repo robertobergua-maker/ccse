@@ -322,7 +322,12 @@ document.addEventListener('DOMContentLoaded', () => {
             saveCheckpoint = 'refrescar token';
             await currentUser.getIdToken(true);
 
-            if (auth.currentUser?.uid !== currentUser.uid) {
+            // Se lee el uid directamente de la sesión viva de Firebase Auth en
+            // este instante (no de la variable `currentUser` capturada al empezar
+            // el examen), porque es ese uid el que Firestore usará para evaluar
+            // request.auth.uid en las reglas de seguridad al escribir.
+            const uid = auth.currentUser?.uid;
+            if (!uid || uid !== currentUser.uid) {
                 const error = new Error(
                     'La sesión de esta pestaña ha cambiado de cuenta (probablemente iniciaste sesión con otra cuenta en otra pestaña de este navegador). ' +
                     'Cierra esta pestaña, vuelve a abrir el examen con la cuenta correcta y repítelo.'
@@ -332,7 +337,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             saveCheckpoint = 'comprobar usuario';
-            await assertUserCanSaveExam(currentUser.uid);
+            await assertUserCanSaveExam(uid);
 
             const examRef = db.collection('exams').doc();
             examId = examRef.id;
@@ -341,7 +346,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let hasStatsWrites = false;
 
             const examData = {
-                user_id: currentUser.uid,
+                user_id: uid,
                 finished_at: firebase.firestore.FieldValue.serverTimestamp(),
                 score_correct: result.correct,
                 score_incorrect: result.incorrect,
@@ -385,7 +390,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     .doc(`${examRef.id}_${question.id}`);
 
                 answerBatch.set(answerRef, {
-                    user_id: currentUser.uid,
+                    user_id: uid,
                     exam_id: examRef.id,
                     question_id: question.id,
                     question_text: String(question.question_text || ''),
@@ -407,9 +412,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (answered) {
                     const statRef = db.collection('user_question_stats')
-                        .doc(`${currentUser.uid}_${question.id}`);
+                        .doc(`${uid}_${question.id}`);
                     const statUpdate = {
-                        user_id: currentUser.uid,
+                        user_id: uid,
                         question_id: question.id,
                         question_text: String(question.question_text || ''),
                         task_number: Number(question.task_number || 0),

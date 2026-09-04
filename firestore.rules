@@ -7,8 +7,8 @@ service cloud.firestore {
 
     function isAdmin() {
       return signedIn()
-        && request.auth.token.email_verified == true
-        && request.auth.token.email == "roberto.bergua@gmail.com";
+        && request.auth.token.get('email_verified', false) == true
+        && request.auth.token.get('email', '') == "roberto.bergua@gmail.com";
     }
 
     function isCurrentUser(userId) {
@@ -18,7 +18,7 @@ service cloud.firestore {
     function isBlocked() {
       return signedIn()
         && exists(/databases/$(database)/documents/users/$(request.auth.uid))
-        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.blocked == true;
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('blocked', false) == true;
     }
 
     function ownsStoredRecord() {
