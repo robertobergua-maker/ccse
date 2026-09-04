@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const PASSING_SCORE = 15;
 
     const db = firebase.firestore();
+    const auth = firebase.auth();
     let currentUser = null;
     let isGuest = false;
     let examQuestions = [];
@@ -320,6 +321,16 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             saveCheckpoint = 'refrescar token';
             await currentUser.getIdToken(true);
+
+            if (auth.currentUser?.uid !== currentUser.uid) {
+                const error = new Error(
+                    'La sesión de esta pestaña ha cambiado de cuenta (probablemente iniciaste sesión con otra cuenta en otra pestaña de este navegador). ' +
+                    'Cierra esta pestaña, vuelve a abrir el examen con la cuenta correcta y repítelo.'
+                );
+                error.code = 'sesion-cambiada';
+                throw error;
+            }
+
             saveCheckpoint = 'comprobar usuario';
             await assertUserCanSaveExam(currentUser.uid);
 
@@ -345,7 +356,25 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             saveCheckpoint = 'crear examen';
-            await examRef.set(examData);
+            try {
+                await examRef.set(examData);
+            } catch (createError) {
+                let tokenClaims = null;
+                try {
+                    tokenClaims = (await currentUser.getIdTokenResult()).claims;
+                } catch (tokenErr) {
+                    tokenClaims = { error_al_leer_token: String(tokenErr) };
+                }
+                createError.debugInfo = {
+                    examData_user_id: examData.user_id,
+                    currentUser_uid: currentUser.uid,
+                    auth_currentUser_uid: auth.currentUser?.uid ?? null,
+                    token_uid: tokenClaims?.user_id ?? tokenClaims?.sub ?? null,
+                    token_email: tokenClaims?.email ?? null,
+                    token_email_verified: tokenClaims?.email_verified ?? null
+                };
+                throw createError;
+            }
 
             saveCheckpoint = 'preparar respuestas';
             examQuestions.forEach((question, index) => {
@@ -416,11 +445,27 @@ document.addEventListener('DOMContentLoaded', () => {
             const diagnostic = buildSaveDiagnostic(saveCheckpoint, error, examId);
             sessionStorage.setItem('lastExamSaveError', JSON.stringify(diagnostic));
             console.error('No se pudieron guardar los resultados:', diagnostic, error);
+
+            if (error?.code === 'sesion-cambiada') {
+                alert('El examen se ha corregido, pero no se pudo guardar en la nube.\n\n' + error.message);
+                return;
+            }
+
+            if (error?.code === 'permission-denied' && await isNowBlocked(currentUser.uid)) {
+                alert('Tu cuenta ha sido bloqueada por el administrador. El examen se ha corregido, pero no se pudo guardar en la nube.');
+                window.location.href = 'blocked.html';
+                return;
+            }
+
+            const debugLines = diagnostic.debug
+                ? '\n\n[debug]\n' + Object.entries(diagnostic.debug).map(([k, v]) => `${k}: ${v}`).join('\n')
+                : '';
             alert(
                 'El examen se ha corregido, pero no se pudo guardar en la nube.\n' +
                 `Punto de fallo: ${diagnostic.checkpoint}.\n` +
                 `Código: ${diagnostic.code}.\n` +
-                `Mensaje: ${diagnostic.message}`
+                `Mensaje: ${diagnostic.message}` +
+                debugLines
             );
         }
 
@@ -451,16 +496,31 @@ document.addEventListener('DOMContentLoaded', () => {
             exam_id: examId || '',
             user_id: currentUser?.uid || '',
             email: currentUser?.email || '',
+            debug: error?.debugInfo || null,
             timestamp: new Date().toISOString()
         };
     }
 
     async function assertUserCanSaveExam(userId) {
-        const profileDoc = await db.collection('users').doc(userId).get();
-        if (profileDoc.exists && profileDoc.data()?.blocked === true) {
+        const profileDoc = await db.collection('users').doc(userId).get({ source: 'server' });
+        if (!profileDoc.exists) {
+            const error = new Error('El perfil del usuario todavía no está disponible. Vuelve a intentarlo en unos segundos.');
+            error.code = 'perfil-no-disponible';
+            throw error;
+        }
+        if (profileDoc.data()?.blocked === true) {
             const error = new Error('Este usuario está bloqueado por el administrador. Desbloquéalo desde el panel admin para poder guardar exámenes.');
             error.code = 'usuario-bloqueado';
             throw error;
+        }
+    }
+
+    async function isNowBlocked(userId) {
+        try {
+            const profileDoc = await db.collection('users').doc(userId).get({ source: 'server' });
+            return profileDoc.exists && profileDoc.data()?.blocked === true;
+        } catch (err) {
+            return false;
         }
     }
 

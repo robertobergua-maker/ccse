@@ -146,7 +146,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (ui.emailRegisterBtn) {
-        ui.emailRegisterBtn.addEventListener('click', event => {
+        ui.emailRegisterBtn.addEventListener('click', async event => {
             event.preventDefault();
 
             const email    = ui.emailInput?.value.trim();
@@ -160,29 +160,15 @@ document.addEventListener('DOMContentLoaded', function() {
             setEmailButtonsLoading(true);
             clearEmailError();
 
-            createUserWithEmailAndPassword(auth, email, password)
-                .then(credential => {
-                    const user = credential.user;
-                    const codeRef = db.collection('invite_codes').doc(validatedInviteCode);
-                    const userRef = db.collection('users').doc(user.uid);
-                    const profile = buildNewUserProfile(user, validatedInviteCode);
-
-                    return codeRef.update({
-                        used:           true,
-                        used_by_uid:    user.uid,
-                        used_by_email:  user.email,
-                        used_at:        firebase.firestore.FieldValue.serverTimestamp()
-                    }).then(() => setDoc(userRef, profile));
-                })
-                .then(() => {
-                    forgetPendingInviteCode();
-                    window.location.href = 'dashboard.html';
-                })
-                .catch(err => {
-                    console.error('Error durante el registro con invitación:', err);
-                    showEmailError(friendlyAuthError(err));
-                    setEmailButtonsLoading(false);
-                });
+            try {
+                rememberPendingInviteCode(validatedInviteCode);
+                await createUserWithEmailAndPassword(auth, email, password);
+                // onAuthStateChanged completa el batch de Firestore.
+            } catch (err) {
+                console.error('Error durante la creación de la cuenta:', err);
+                showEmailError(friendlyAuthError(err));
+                setEmailButtonsLoading(false);
+            }
         });
     }
 
@@ -249,9 +235,18 @@ document.addEventListener('DOMContentLoaded', function() {
             registration.then(async ({ denied, newUser, profile: newProfile }) => {
                 if (denied) {
                     if (newUser && isRecentAuthUser(user)) {
-                        await deleteDeniedAuthUser(user);
+                        const deleted = await deleteDeniedAuthUser(user);
+                        if (!deleted) {
+                            showEmailError(
+                                'No se pudo eliminar la cuenta rechazada. Contacta con el administrador.'
+                            );
+                        }
                     }
-                    await auth.signOut().catch(console.error);
+                    try {
+                        await auth.signOut();
+                    } catch (error) {
+                        console.error('No se pudo cerrar la sesión rechazada:', error);
+                    }
                     setFeedback('El código ya fue usado o no es válido. Solicita uno nuevo.', 'error');
                     lockAuthButtons(true);
                     if (ui.inviteCodeInput) {
@@ -266,18 +261,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 const profilePromise = newProfile
                     ? Promise.resolve(newProfile)
                     : saveUserToFirestore(user);
+                const profile = await profilePromise;
 
-                profilePromise.then(profile => {
-                    if (isBlockedProfile(profile) && !isAdmin(user)) {
-                        if (!currentPage.endsWith('blocked.html')) {
-                            window.location.href = 'blocked.html';
-                        }
-                        return;
+                if (!profile) {
+                    throw new Error('No se pudo obtener el perfil del usuario.');
+                }
+
+                if (isBlockedProfile(profile) && !isAdmin(user)) {
+                    if (!currentPage.endsWith('blocked.html')) {
+                        window.location.href = 'blocked.html';
                     }
-                    if (currentPage.endsWith('blocked.html')) {
-                        window.location.href = 'dashboard.html';
-                    }
-                });
+                    return;
+                }
+
+                if (currentPage.endsWith('blocked.html')) {
+                    window.location.href = 'dashboard.html';
+                }
 
                 if (ui.userInfo) {
                     ui.userInfo.textContent = `Hola, ${user.displayName || user.email}`;
@@ -299,6 +298,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 window._currentUser = user;
                 window._isGuest     = false;
                 document.dispatchEvent(new CustomEvent('authReady', { detail: { user, isGuest: false } }));
+            }).catch(error => {
+                console.error('Error durante la resolución de autenticación:', error);
+                setEmailButtonsLoading(false);
+                showEmailError('No se pudo completar el acceso. Inténtalo de nuevo.');
             });
 
         } else {
@@ -373,8 +376,10 @@ document.addEventListener('DOMContentLoaded', function() {
     async function deleteDeniedAuthUser(user) {
         try {
             await user.delete();
+            return true;
         } catch (err) {
-            console.warn('No se pudo eliminar el usuario rechazado de Firebase Auth:', err);
+            console.error('No se pudo eliminar el usuario rechazado de Firebase Auth:', err);
+            return false;
         }
     }
 

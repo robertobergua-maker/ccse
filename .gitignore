@@ -8,3 +8,6 @@ gcp-creds.json
 __pycache__/
 *.pyc
 firebase-debug.log
+
+# Cloud Functions
+functions/node_modules/

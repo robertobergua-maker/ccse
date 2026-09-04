@@ -35,6 +35,10 @@ document.addEventListener('DOMContentLoaded', () => {
         alerts: document.getElementById('metric-alerts'),
         riskBody: document.getElementById('risk-body'),
         usersBody: document.getElementById('users-body'),
+        userSearchInput: document.getElementById('user-search-input'),
+        userSearchBtn: document.getElementById('user-search-btn'),
+        userShowAllBtn: document.getElementById('user-show-all-btn'),
+        userManagementStatus: document.getElementById('user-management-status'),
         activitySummary: document.getElementById('activity-summary'),
         activityBody: document.getElementById('activity-body'),
         databaseExportCollection: document.getElementById('database-export-collection'),
@@ -72,6 +76,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (action === 'review') reviewUserActivity(userId);
         if (action === 'block') setUserBlocked(userId, true);
         if (action === 'unblock') setUserBlocked(userId, false);
+        if (action === 'edit') editUser(userId);
+        if (action === 'delete') explainPermanentDeletion();
+    });
+
+    ui.userSearchBtn?.addEventListener('click', searchUser);
+    ui.userShowAllBtn?.addEventListener('click', showAllUsers);
+    ui.userSearchInput?.addEventListener('keydown', event => {
+        if (event.key === 'Enter') searchUser();
     });
 
     ui.manualCsvCheckBtn?.addEventListener('click', checkManualCsv);
@@ -120,7 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
             currentActivityUser = null;
             renderMetrics(users, exams, rows);
             renderRiskRows(rows);
-            renderUserRows(rows);
+            renderUserRows([]);
             updateAdminDownloadButtons();
             setStatus('Activo', 'online');
             setDatabaseExportStatus('Listo', 'online');
@@ -227,97 +239,347 @@ document.addEventListener('DOMContentLoaded', () => {
         updateAdminDownloadButtons();
     }
 
+    // ── GESTIÓN DE USUARIOS ──────────────────────────────────────────────────
+
+    // Estado del panel de detalle
+    let selectedUserId = null;
+
+    // Referencias UI ampliadas para el nuevo panel
+    const userDetail = {
+        panel:           document.getElementById('user-detail-panel'),
+        avatar:          document.getElementById('ud-avatar'),
+        name:            document.getElementById('ud-name'),
+        email:           document.getElementById('ud-email'),
+        statusBadge:     document.getElementById('ud-status-badge'),
+        created:         document.getElementById('ud-created'),
+        lastLogin:       document.getElementById('ud-last-login'),
+        inviteCode:      document.getElementById('ud-invite-code'),
+        institution:     document.getElementById('ud-institution'),
+        totalExams:      document.getElementById('ud-total-exams'),
+        passF:           document.getElementById('ud-pass-fail'),
+        exams24h:        document.getElementById('ud-exams-24h'),
+        risk:            document.getElementById('ud-risk'),
+        blockInfo:       document.getElementById('ud-block-info'),
+        blockedBy:       document.getElementById('ud-blocked-by'),
+        blockedAt:       document.getElementById('ud-blocked-at'),
+        blockedReason:   document.getElementById('ud-blocked-reason'),
+        reviewBtn:       document.getElementById('ud-review-btn'),
+        editBtn:         document.getElementById('ud-edit-btn'),
+        blockBtn:        document.getElementById('ud-block-btn'),
+        deleteBtn:       document.getElementById('ud-delete-btn'),
+        blockReasonRow:  document.getElementById('ud-block-reason-row'),
+        blockReasonInput:  document.getElementById('ud-block-reason-input'),
+        blockConfirmBtn:   document.getElementById('ud-block-confirm-btn'),
+        blockCancelBtn:    document.getElementById('ud-block-cancel-btn'),
+        activitySection:   document.getElementById('activity-section'),
+        activityUserName:  document.getElementById('activity-user-name')
+    };
+
+    // Delegación de clics en la lista de usuarios
+    ui.usersBody.addEventListener('click', event => {
+        const row = event.target.closest('tr[data-user-id]');
+        if (row) openUserDetail(row.dataset.userId);
+    });
+
+    // Acciones del panel de detalle
+    userDetail.reviewBtn?.addEventListener('click', () => {
+        if (selectedUserId) reviewUserActivity(selectedUserId);
+    });
+
+    userDetail.editBtn?.addEventListener('click', () => {
+        if (selectedUserId) editUser(selectedUserId);
+    });
+
+    userDetail.blockBtn?.addEventListener('click', () => {
+        const row = currentRows.find(r => r.user.id === selectedUserId);
+        if (!row) return;
+        if (row.user.blocked) {
+            unblockUser(selectedUserId);
+        } else {
+            // Mostrar campo de razón
+            userDetail.blockReasonRow.hidden = false;
+            userDetail.blockBtn.hidden = true;
+            userDetail.blockReasonInput.value = '';
+            userDetail.blockReasonInput.focus();
+        }
+    });
+
+    userDetail.blockConfirmBtn?.addEventListener('click', () => {
+        if (selectedUserId) blockUser(selectedUserId, userDetail.blockReasonInput.value.trim());
+    });
+
+    userDetail.blockCancelBtn?.addEventListener('click', () => {
+        userDetail.blockReasonRow.hidden = true;
+        userDetail.blockBtn.hidden = false;
+    });
+
+    userDetail.blockReasonInput?.addEventListener('keydown', e => {
+        if (e.key === 'Enter') userDetail.blockConfirmBtn?.click();
+        if (e.key === 'Escape') userDetail.blockCancelBtn?.click();
+    });
+
+    userDetail.deleteBtn?.addEventListener('click', () => {
+        if (selectedUserId) deleteUserPermanently(selectedUserId);
+    });
+    // ── Renderizado de la lista compacta ─────────────────────────────────────
+
     function renderUserRows(rows) {
         if (rows.length === 0) {
-            ui.usersBody.innerHTML = '<tr><td colspan="9" class="empty-state">No hay usuarios registrados.</td></tr>';
+            ui.usersBody.innerHTML = '<tr><td colspan="4" class="empty-state">Busca o muestra todos los usuarios.</td></tr>';
             updateAdminDownloadButtons();
             return;
         }
         ui.usersBody.innerHTML = rows.map(row => {
-            const codeCell = row.activationCode
-                ? `<code style="font-size:0.82rem;letter-spacing:.06em;font-weight:700">${escapeHtml(row.activationCode)}</code>`
-                : '<span class="muted">—</span>';
+            const isSelected = row.user.id === selectedUserId;
+            const blockedClass = row.user.blocked ? ' user-row-blocked' : '';
             return `
-            <tr>
-                <td><strong>${escapeHtml(displayName(row.user))}</strong></td>
-                <td>${escapeHtml(row.user.email || 'No disponible')}</td>
-                <td>${codeCell}</td>
-                <td>${escapeHtml(formatTimestamp(row.user.created_at))}</td>
-                <td>${escapeHtml(formatTimestamp(row.user.last_login))}</td>
-                <td>${userStatusBadge(row.user)}</td>
-                <td>${row.passed}</td>
-                <td>${row.failed}</td>
+            <tr data-user-id="${escapeHtml(row.user.id)}"
+                class="user-list-row${blockedClass}${isSelected ? ' user-row-selected' : ''}"
+                style="cursor:pointer" title="Ver ficha de ${escapeHtml(displayName(row.user))}">
                 <td>
-                    <div class="admin-actions">
-                        <button class="btn btn-secondary btn-compact" data-action="review" data-user-id="${escapeHtml(row.user.id)}" type="button">Revisar</button>
-                        ${blockButton(row.user)}
-                    </div>
+                    <strong>${escapeHtml(displayName(row.user))}</strong>
+                    <p class="admin-notes" style="margin:2px 0 0">${escapeHtml(row.user.email || '—')}</p>
                 </td>
-            </tr>
-        `}).join('');
+                <td>${userStatusBadge(row.user)}</td>
+                <td><strong>${row.total}</strong>
+                    ${row.exams24h > 0 ? `<span class="admin-notes"> (+${row.exams24h} hoy)</span>` : ''}
+                </td>
+                <td style="white-space:nowrap">${row.lastActivity ? escapeHtml(formatDate(row.lastActivity)) : '<span class="muted">—</span>'}</td>
+            </tr>`;
+        }).join('');
         updateAdminDownloadButtons();
     }
 
-    async function setUserBlocked(userId, blocked) {
-        const row = currentRows.find(item => item.user.id === userId);
-        if (!row) return;
-        const verb = blocked ? 'bloquear' : 'desbloquear';
-        if (!confirm(`¿Quieres ${verb} a ${displayName(row.user)}?`)) return;
+    // ── Ficha de detalle ──────────────────────────────────────────────────────
 
+    function openUserDetail(userId) {
+        selectedUserId = userId;
+        const row = currentRows.find(r => r.user.id === userId);
+        if (!row) return;
+
+        // Resaltar fila seleccionada
+        document.querySelectorAll('.user-list-row').forEach(tr => {
+            tr.classList.toggle('user-row-selected', tr.dataset.userId === userId);
+        });
+
+        const { user } = row;
+        const prefix = getInvitePrefix(row.activationCode);
+        const instName = prefix && institutionsMap?.has(prefix) ? institutionsMap.get(prefix) : null;
+
+        // Avatar: inicial del nombre
+        const initials = String(user.name || user.email || '?').trim().charAt(0).toUpperCase();
+        if (userDetail.avatar) {
+            userDetail.avatar.textContent = initials;
+            userDetail.avatar.style.background = user.blocked ? '#fee2e2' : '#dbeafe';
+            userDetail.avatar.style.color = user.blocked ? '#991b1b' : '#1e40af';
+        }
+
+        setText(userDetail.name,      displayName(user));
+        setText(userDetail.email,     user.email || '—');
+        setText(userDetail.created,   formatTimestamp(user.created_at));
+        setText(userDetail.lastLogin, formatTimestamp(user.last_login));
+        setText(userDetail.inviteCode, row.activationCode || '—');
+        setText(userDetail.institution, instName || (prefix ? `${prefix} (sin nombre)` : '—'));
+        setText(userDetail.totalExams,  String(row.total));
+        setText(userDetail.passF,       `${row.passed} / ${row.failed}`);
+        setText(userDetail.exams24h,    String(row.exams24h));
+
+        // Riesgo
+        if (userDetail.risk) {
+            userDetail.risk.innerHTML = riskBadge(row.risk);
+        }
+
+        // Estado
+        if (userDetail.statusBadge) {
+            userDetail.statusBadge.textContent = user.blocked ? 'Bloqueado' : 'Activo';
+            userDetail.statusBadge.className   = `risk-badge ${user.blocked ? 'risk-danger' : 'risk-ok'}`;
+        }
+
+        // Info de bloqueo
+        const showBlockInfo = user.blocked === true;
+        if (userDetail.blockInfo) userDetail.blockInfo.hidden = !showBlockInfo;
+        if (showBlockInfo) {
+            setText(userDetail.blockedBy,     user.blocked_by     || '—');
+            setText(userDetail.blockedAt,     user.blocked_at ? formatDate(timestampToMillis(user.blocked_at)) : '—');
+            setText(userDetail.blockedReason, user.blocked_reason || '—');
+        }
+
+        // Botón bloquear/desbloquear y botón eliminar: ocultos para el admin
+        const isAdminUser = String(user.email || '').toLowerCase() === ADMIN_EMAIL;
+        if (userDetail.blockBtn) {
+            userDetail.blockBtn.hidden = isAdminUser;
+            if (!isAdminUser) {
+                userDetail.blockBtn.textContent = user.blocked ? 'Desbloquear' : 'Bloquear';
+                userDetail.blockBtn.className   = user.blocked
+                    ? 'btn btn-primary btn-compact'
+                    : 'btn btn-danger btn-compact';
+            }
+        }
+        if (userDetail.deleteBtn) {
+            userDetail.deleteBtn.hidden = isAdminUser;
+        }
+
+        // Ocultar razón de bloqueo si quedó abierta
+        if (userDetail.blockReasonRow) userDetail.blockReasonRow.hidden = true;
+        if (userDetail.blockBtn && String(user.email || '').toLowerCase() === ADMIN_EMAIL) {
+            userDetail.blockBtn.hidden = true;
+        }
+
+        // Nombre del usuario en el heading de actividad
+        if (userDetail.activityUserName) userDetail.activityUserName.textContent = displayName(user);
+
+        // Mostrar panel
+        if (userDetail.panel) userDetail.panel.hidden = false;
+    }
+
+    function getInvitePrefix(code) {
+        if (!code) return null;
+        const m = String(code).match(/^([A-Z]{2,3})-/);
+        return m ? m[1] : null;
+    }
+
+    function setText(el, value) {
+        if (el) el.textContent = value;
+    }
+
+    // ── Acciones de usuario ───────────────────────────────────────────────────
+
+    async function blockUser(userId, reason) {
+        const row = currentRows.find(r => r.user.id === userId);
+        if (!row) return;
+        if (!confirm(`¿Bloquear a ${displayName(row.user)}?`)) return;
+
+        userDetail.blockConfirmBtn.disabled = true;
         try {
-            const update = blocked
-                ? {
-                    blocked: true,
-                    blocked_at: firebase.firestore.FieldValue.serverTimestamp(),
-                    blocked_by: adminUser.email,
-                    blocked_reason: 'Bloqueado desde panel administrador'
-                }
-                : {
-                    blocked: false,
-                    unblocked_at: firebase.firestore.FieldValue.serverTimestamp(),
-                    unblocked_by: adminUser.email
-                };
-            await db.collection('users').doc(userId).update(update);
+            await db.collection('users').doc(userId).update({
+                blocked:        true,
+                blocked_at:     firebase.firestore.FieldValue.serverTimestamp(),
+                blocked_by:     adminUser.email,
+                blocked_reason: reason || 'Bloqueado desde panel administrador'
+            });
             await loadAdminData();
-            reviewUserActivity(userId);
+            openUserDetail(userId); // refrescar ficha
+            // Ocultar fila de razón
+            if (userDetail.blockReasonRow) userDetail.blockReasonRow.hidden = true;
+            if (userDetail.blockBtn)       userDetail.blockBtn.hidden = false;
         } catch (error) {
-            console.error(`No se pudo ${verb} el usuario:`, error);
-            alert(`No se pudo ${verb} el usuario. Revisa permisos o conexión.`);
+            console.error('No se pudo bloquear el usuario:', error);
+            alert('No se pudo bloquear el usuario. Revisa permisos o conexión.');
+        } finally {
+            if (userDetail.blockConfirmBtn) userDetail.blockConfirmBtn.disabled = false;
         }
     }
 
+    async function unblockUser(userId) {
+        const row = currentRows.find(r => r.user.id === userId);
+        if (!row) return;
+        if (!confirm(`¿Desbloquear a ${displayName(row.user)}?`)) return;
+
+        try {
+            await db.collection('users').doc(userId).update({
+                blocked:        false,
+                blocked_reason: firebase.firestore.FieldValue.delete(), // limpiar razón anterior
+                unblocked_at:   firebase.firestore.FieldValue.serverTimestamp(),
+                unblocked_by:   adminUser.email
+            });
+            await loadAdminData();
+            openUserDetail(userId);
+        } catch (error) {
+            console.error('No se pudo desbloquear el usuario:', error);
+            alert('No se pudo desbloquear el usuario. Revisa permisos o conexión.');
+        }
+    }
+
+    async function editUser(userId) {
+        const row = currentRows.find(r => r.user.id === userId);
+        const current = row?.user;
+        if (!current) return;
+
+        const name = prompt('Nombre visible del usuario:', current.name || '');
+        if (name === null || !name.trim()) return;
+
+        try {
+            await db.collection('users').doc(userId).update({ name: name.trim() });
+            await loadAdminData();
+            openUserDetail(userId);
+            if (ui.userManagementStatus) ui.userManagementStatus.textContent = 'Nombre actualizado.';
+        } catch (error) {
+            console.error('No se pudo editar el usuario:', error);
+            alert('No se pudo editar el usuario. Revisa permisos o conexión.');
+        }
+    }
+
+    // ── Búsqueda ──────────────────────────────────────────────────────────────
+
+    async function searchUser() {
+        const term = ui.userSearchInput?.value.trim().toLowerCase();
+        if (!term) {
+            if (ui.userManagementStatus) ui.userManagementStatus.textContent = 'Introduce un nombre, email o UID.';
+            renderUserRows([]);
+            return;
+        }
+        const rows = currentRows.filter(row => {
+            const u = row.user || {};
+            return [u.id, u.email, u.name].some(v => String(v || '').toLowerCase().includes(term));
+        });
+        renderUserRows(rows);
+        if (ui.userManagementStatus) {
+            ui.userManagementStatus.textContent = rows.length
+                ? `${rows.length} usuario${rows.length !== 1 ? 's' : ''} encontrado${rows.length !== 1 ? 's' : ''}. Haz clic en una fila para ver la ficha.`
+                : 'Ningún usuario coincide con esa búsqueda.';
+        }
+    }
+
+    function showAllUsers() {
+        if (ui.userSearchInput) ui.userSearchInput.value = '';
+        renderUserRows(currentRows);
+        if (ui.userManagementStatus) {
+            ui.userManagementStatus.textContent =
+                `${currentRows.length} usuario${currentRows.length !== 1 ? 's' : ''} cargado${currentRows.length !== 1 ? 's' : ''}. Haz clic en una fila para ver la ficha.`;
+        }
+    }
+
+    // ── Actividad ─────────────────────────────────────────────────────────────
+
     async function reviewUserActivity(userId) {
-        const row = currentRows.find(item => item.user.id === userId);
+        const row = currentRows.find(r => r.user.id === userId);
         if (!row) return;
         currentActivityUser = row.user;
-        ui.activitySummary.textContent = `Cargando actividad de ${displayName(row.user)}...`;
-        ui.activityBody.innerHTML = '<tr><td colspan="7" class="empty-state">Cargando actividad...</td></tr>';
+
+        if (ui.activitySummary) ui.activitySummary.textContent = `Cargando actividad de ${displayName(row.user)}…`;
+        if (ui.activityBody)   ui.activityBody.innerHTML = '<tr><td colspan="7" class="empty-state">Cargando…</td></tr>';
+
+        // Scroll automático a la sección de actividad
+        userDetail.activitySection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
         try {
             const [answersSnapshot, questionBank] = await Promise.all([
                 db.collection('exam_answers').where('user_id', '==', userId).get(),
                 loadQuestionBank()
             ]);
-            const questionsById = new Map(questionBank.map(question => [question.id, question]));
+            const questionsById = new Map(questionBank.map(q => [q.id, q]));
             const answersByExam = new Map();
             let answerCount = 0;
 
             answersSnapshot.forEach(doc => {
                 const answer = doc.data();
-                answerCount += 1;
+                answerCount++;
                 const examId = answer.exam_id || 'sin_examen';
                 if (!answersByExam.has(examId)) answersByExam.set(examId, []);
                 answersByExam.get(examId).push({ id: doc.id, ...answer });
             });
 
             const exams = [...row.exams].sort(
-                (left, right) => timestampToMillis(right.finished_at) - timestampToMillis(left.finished_at)
+                (a, b) => timestampToMillis(b.finished_at) - timestampToMillis(a.finished_at)
             );
-            ui.activitySummary.textContent =
-                `${displayName(row.user)} · ${row.total} exámenes · ${answerCount} respuestas registradas · ${row.exams24h} exámenes en 24 h.`;
+
+            if (ui.activitySummary) {
+                ui.activitySummary.textContent =
+                    `${row.total} examen${row.total !== 1 ? 'es' : ''} · ${answerCount} respuestas guardadas · ${row.exams24h} en las últimas 24 h.`;
+            }
 
             if (exams.length === 0) {
-                ui.activityBody.innerHTML = '<tr><td colspan="7" class="empty-state">Este usuario no tiene exámenes guardados.</td></tr>';
+                if (ui.activityBody) ui.activityBody.innerHTML = '<tr><td colspan="7" class="empty-state">Este usuario no tiene exámenes guardados.</td></tr>';
                 currentActivityRows = [];
                 updateAdminDownloadButtons();
                 return;
@@ -325,40 +587,114 @@ document.addEventListener('DOMContentLoaded', () => {
 
             currentActivityRows = exams.map(exam => {
                 const answers = sortExamAnswers(exam, answersByExam.get(exam.id) || []);
-                const auditRows = buildExamAuditRows(exam, answers, questionsById);
-                return { exam, answers, auditRows };
+                return { exam, answers, auditRows: buildExamAuditRows(exam, answers, questionsById) };
             });
-            ui.activityBody.innerHTML = exams.map(exam => {
-                const activityRow = currentActivityRows.find(item => item.exam.id === exam.id);
-                const answers = activityRow?.answers || [];
-                const questionIds = answers.map(answer => answer.question_id).filter(Boolean);
-                return `
-                    <tr>
-                        <td>${escapeHtml(formatTimestamp(exam.finished_at))}</td>
-                        <td>${exam.passed ? '<span class="result-badge result-correct">Apto</span>' : '<span class="result-badge result-wrong">No apto</span>'}</td>
-                        <td>${exam.score_correct || 0}/${exam.total_questions || 25}</td>
-                        <td>${exam.score_incorrect || 0}</td>
-                        <td>${exam.score_unanswered || 0}</td>
-                        <td>
-                            <strong>${answers.length}</strong>
-                            <p class="admin-notes">${escapeHtml(questionIds.slice(0, 12).join(', ') || 'Sin detalle')}</p>
-                        </td>
-                        <td>
-                            <button class="btn btn-secondary btn-compact" data-action="download-audit" data-exam-id="${escapeHtml(exam.id)}" type="button" ${activityRow?.auditRows?.length ? '' : 'disabled'}>
-                                Auditoría CSV
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
+
+            if (ui.activityBody) {
+                ui.activityBody.innerHTML = exams.map(exam => {
+                    const actRow = currentActivityRows.find(r => r.exam.id === exam.id);
+                    const answers = actRow?.answers || [];
+                    const passRate = exam.total_questions
+                        ? Math.round((exam.score_correct / exam.total_questions) * 100)
+                        : 0;
+                    return `
+                        <tr>
+                            <td style="white-space:nowrap">${escapeHtml(formatTimestamp(exam.finished_at))}</td>
+                            <td>${exam.passed
+                                ? '<span class="result-badge result-correct">Apto</span>'
+                                : '<span class="result-badge result-wrong">No apto</span>'}
+                            </td>
+                            <td><strong>${exam.score_correct || 0}</strong>/${exam.total_questions || 25}
+                                <span class="admin-notes"> ${passRate}%</span>
+                            </td>
+                            <td>${exam.score_incorrect || 0}</td>
+                            <td>${exam.score_unanswered || 0}</td>
+                            <td><strong>${answers.length}</strong></td>
+                            <td>
+                                <button class="btn btn-secondary btn-compact"
+                                    data-action="download-audit"
+                                    data-exam-id="${escapeHtml(exam.id)}"
+                                    type="button"
+                                    ${actRow?.auditRows?.length ? '' : 'disabled'}>
+                                    CSV
+                                </button>
+                            </td>
+                        </tr>`;
+                }).join('');
+            }
             updateAdminDownloadButtons();
         } catch (error) {
-            console.error('No se pudo cargar la actividad del usuario:', error);
-            ui.activitySummary.textContent = `No se pudo cargar la actividad de ${displayName(row.user)}.`;
-            ui.activityBody.innerHTML = '<tr><td colspan="7" class="empty-state">Error al cargar actividad.</td></tr>';
+            console.error('No se pudo cargar la actividad:', error);
+            if (ui.activitySummary) ui.activitySummary.textContent = 'Error al cargar la actividad.';
+            if (ui.activityBody)   ui.activityBody.innerHTML = '<tr><td colspan="7" class="empty-state">Error al cargar datos.</td></tr>';
             currentActivityRows = [];
             currentActivityUser = null;
             updateAdminDownloadButtons();
+        }
+    }
+
+    // ── Borrado permanente (via Cloud Function) ───────────────────────────────
+
+    async function deleteUserPermanently(userId) {
+        if (!userId) {
+            alert('No hay usuario seleccionado.');
+            return;
+        }
+
+        const row = currentRows.find(r => r.user.id === userId);
+        const name  = row ? displayName(row.user) : userId;
+        const email = row?.user?.email || '(sin email)';
+
+        const confirmed = confirm(
+            `⚠️ BORRADO PERMANENTE\n\n` +
+            `Usuario: ${name}\n` +
+            `Email: ${email}\n\n` +
+            `Se eliminarán la cuenta de acceso, el perfil, todos sus exámenes, respuestas y estadísticas.\n\n` +
+            `Esta acción NO se puede deshacer. ¿Continuar?`
+        );
+        if (!confirmed) return;
+
+        if (userDetail.deleteBtn) {
+            userDetail.deleteBtn.disabled = true;
+            userDetail.deleteBtn.textContent = 'Eliminando…';
+        }
+
+        try {
+            const fns        = firebase.app().functions('europe-west1');
+            const deleteUser = fns.httpsCallable('deleteUser');
+            const result     = await deleteUser({ uid: userId });
+            const data       = result.data;
+
+            selectedUserId = null;
+            if (userDetail.panel) userDetail.panel.hidden = true;
+
+            await loadAdminData();
+
+            alert(
+                `✓ Usuario "${name}" eliminado.\n\n` +
+                `Auth eliminada: ${data.authDeleted ? 'Sí' : 'No (no tenía cuenta Auth)'}\n` +
+                `Exámenes borrados: ${data.examsDeleted}\n` +
+                `Respuestas borradas: ${data.answersDeleted}\n` +
+                `Estadísticas borradas: ${data.statsDeleted}`
+            );
+        } catch (err) {
+            console.error('Error al eliminar usuario:', err);
+            const msg = err?.details?.message || err?.message || String(err);
+            alert(`No se pudo eliminar el usuario.\n\nError: ${msg}`);
+        } finally {
+            if (userDetail.deleteBtn) {
+                userDetail.deleteBtn.disabled = false;
+                userDetail.deleteBtn.textContent = '🗑 Eliminar cuenta';
+            }
+        }
+    }
+
+    // Compatibilidad: setUserBlocked ya no se usa desde la tabla, pero lo mantienen los listeners de riesgo
+    async function setUserBlocked(userId, blocked) {
+        if (blocked) {
+            await blockUser(userId, '');
+        } else {
+            await unblockUser(userId);
         }
     }
 

@@ -772,3 +772,190 @@ footer {
 .locked-row td {
     opacity: 0.45;
 }
+
+/* ===================================================
+   Gestión de usuarios — layout de dos columnas
+   =================================================== */
+
+.user-mgmt-layout {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 20px;
+    align-items: start;
+}
+
+/* Lista compacta */
+.user-list-col .stats-table {
+    min-width: 0;
+}
+
+.user-list-row {
+    transition: background 0.1s;
+}
+
+.user-list-row:hover {
+    background: #f0f4ff !important;
+}
+
+.user-row-selected {
+    background: #eff6ff !important;
+    outline: 2px solid #3b82f6;
+    outline-offset: -2px;
+}
+
+.user-row-blocked td {
+    opacity: 0.65;
+}
+
+/* Ficha de detalle */
+.user-detail-col {
+    position: sticky;
+    top: 20px;
+}
+
+.user-detail-card {
+    background: #fff;
+    border: 1px solid #e4e7ec;
+    border-radius: 14px;
+    padding: 22px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+}
+
+.user-detail-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 18px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.user-detail-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #dbeafe;
+    color: #1e40af;
+    font-size: 1.3rem;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.user-detail-identity {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.user-detail-identity strong {
+    display: block;
+    font-size: 0.97rem;
+    color: #101828;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.user-detail-identity span {
+    display: block;
+    font-size: 0.8rem;
+    color: #667085;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Métricas en grid 2×4 */
+.user-detail-metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 16px;
+    margin-bottom: 16px;
+}
+
+.ud-metric {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.ud-metric span {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #9ca3af;
+}
+
+.ud-metric strong {
+    font-size: 0.88rem;
+    color: #111827;
+    font-weight: 700;
+}
+
+/* Info de bloqueo */
+.ud-block-info {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+    font-size: 0.85rem;
+    color: #7f1d1d;
+}
+
+.ud-block-info strong {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 800;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.ud-block-info dl {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 4px 10px;
+    margin: 0;
+}
+
+.ud-block-info dt {
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.ud-block-info dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+/* Acciones */
+.user-detail-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+/* Fila de razón de bloqueo */
+.ud-block-reason-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+
+/* Responsive: columna única en pantallas pequeñas */
+@media (max-width: 900px) {
+    .user-mgmt-layout {
+        grid-template-columns: 1fr;
+    }
+    .user-detail-col {
+        position: static;
+    }
+}

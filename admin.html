@@ -193,36 +193,139 @@
                     <h2 id="users-title">Control de usuarios</h2>
                     <button id="download-users-csv" class="btn btn-secondary btn-compact" type="button" disabled>Descargar CSV</button>
                 </div>
-                <div class="table-scroll">
-                    <table class="stats-table">
-                        <thead>
-                            <tr>
-                                <th>Usuario</th>
-                                <th>Email</th>
-                                <th>Código activación</th>
-                                <th>Alta</th>
-                                <th>Último login</th>
-                                <th>Estado</th>
-                                <th>Aptos</th>
-                                <th>No aptos</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="users-body">
-                            <tr><td colspan="9" class="empty-state">Cargando usuarios…</td></tr>
-                        </tbody>
-                    </table>
+
+                <!-- Barra de búsqueda -->
+                <div class="admin-upload" style="margin-bottom:16px">
+                    <input id="user-search-input" type="search" placeholder="Buscar por nombre, email o UID…"
+                        autocomplete="off"
+                        style="flex:1;min-width:240px;padding:10px;border:1px solid #d0d5dd;border-radius:8px;font-size:1rem"
+                        aria-label="Buscar usuario">
+                    <button id="user-search-btn" class="btn btn-primary" type="button">Buscar</button>
+                    <button id="user-show-all-btn" class="btn btn-secondary" type="button">Mostrar todos</button>
+                </div>
+                <p id="user-management-status" class="muted" style="margin-bottom:12px">Introduce un nombre, email o UID para encontrar un usuario.</p>
+
+                <!-- Layout de dos columnas: lista + ficha de detalle -->
+                <div class="user-mgmt-layout">
+
+                    <!-- Lista compacta de usuarios -->
+                    <div class="user-list-col">
+                        <div class="table-scroll">
+                            <table class="stats-table">
+                                <thead>
+                                    <tr>
+                                        <th>Usuario</th>
+                                        <th>Estado</th>
+                                        <th>Exámenes</th>
+                                        <th>Últ. acceso</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="users-body">
+                                    <tr><td colspan="4" class="empty-state">Busca o muestra todos los usuarios.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Ficha de detalle del usuario seleccionado -->
+                    <div id="user-detail-panel" class="user-detail-col" hidden>
+                        <div class="user-detail-card">
+
+                            <!-- Cabecera de la ficha -->
+                            <div class="user-detail-header">
+                                <div class="user-detail-avatar" id="ud-avatar">?</div>
+                                <div class="user-detail-identity">
+                                    <strong id="ud-name">—</strong>
+                                    <span id="ud-email" class="muted"></span>
+                                </div>
+                                <span id="ud-status-badge" class="risk-badge risk-ok">Activo</span>
+                            </div>
+
+                            <!-- Métricas rápidas -->
+                            <div class="user-detail-metrics">
+                                <div class="ud-metric">
+                                    <span>Alta</span>
+                                    <strong id="ud-created">—</strong>
+                                </div>
+                                <div class="ud-metric">
+                                    <span>Último login</span>
+                                    <strong id="ud-last-login">—</strong>
+                                </div>
+                                <div class="ud-metric">
+                                    <span>Cód. activación</span>
+                                    <strong id="ud-invite-code">—</strong>
+                                </div>
+                                <div class="ud-metric">
+                                    <span>Institución</span>
+                                    <strong id="ud-institution">—</strong>
+                                </div>
+                                <div class="ud-metric">
+                                    <span>Total exámenes</span>
+                                    <strong id="ud-total-exams">—</strong>
+                                </div>
+                                <div class="ud-metric">
+                                    <span>Aptos / No aptos</span>
+                                    <strong id="ud-pass-fail">—</strong>
+                                </div>
+                                <div class="ud-metric">
+                                    <span>Exámenes 24 h</span>
+                                    <strong id="ud-exams-24h">—</strong>
+                                </div>
+                                <div class="ud-metric">
+                                    <span>Alerta de uso</span>
+                                    <strong id="ud-risk">—</strong>
+                                </div>
+                            </div>
+
+                            <!-- Datos de bloqueo (solo si está bloqueado) -->
+                            <div id="ud-block-info" class="ud-block-info" hidden>
+                                <strong>Información de bloqueo</strong>
+                                <dl>
+                                    <dt>Bloqueado por</dt><dd id="ud-blocked-by">—</dd>
+                                    <dt>Fecha</dt><dd id="ud-blocked-at">—</dd>
+                                    <dt>Razón</dt><dd id="ud-blocked-reason">—</dd>
+                                </dl>
+                            </div>
+
+                            <!-- Acciones -->
+                            <div class="user-detail-actions">
+                                <button id="ud-review-btn" class="btn btn-secondary btn-compact" type="button">
+                                    Ver actividad ↓
+                                </button>
+                                <button id="ud-edit-btn" class="btn btn-secondary btn-compact" type="button">
+                                    Editar nombre
+                                </button>
+                                <button id="ud-block-btn" class="btn btn-danger btn-compact" type="button">
+                                    Bloquear
+                                </button>
+                                <button id="ud-delete-btn" class="btn btn-danger btn-compact" type="button"
+                                    style="margin-left:auto">
+                                    🗑 Eliminar cuenta
+                                </button>
+                            </div>
+
+                            <!-- Campo de razón de bloqueo (aparece al pulsar Bloquear) -->
+                            <div id="ud-block-reason-row" class="ud-block-reason-row" hidden>
+                                <input id="ud-block-reason-input" type="text" maxlength="200"
+                                    placeholder="Razón del bloqueo (opcional)"
+                                    style="flex:1;padding:9px 12px;border:1.5px solid #d0d5dd;border-radius:8px;font-size:0.92rem">
+                                <button id="ud-block-confirm-btn" class="btn btn-danger btn-compact" type="button">Confirmar bloqueo</button>
+                                <button id="ud-block-cancel-btn" class="btn btn-secondary btn-compact" type="button">Cancelar</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
 
-            <section class="admin-section" aria-labelledby="activity-title">
+            <!-- Actividad del usuario seleccionado (debajo del layout) -->
+            <section id="activity-section" class="admin-section" aria-labelledby="activity-title">
                 <div class="section-heading">
-                    <h2 id="activity-title">Revisión de actividad</h2>
-                    <div class="admin-actions">
-                        <button id="download-activity-csv" class="btn btn-secondary btn-compact" type="button" disabled>Descargar CSV</button>
+                    <div>
+                        <h2 id="activity-title">Actividad de <span id="activity-user-name" style="color:#2563eb">—</span></h2>
+                        <p id="activity-summary" class="muted">Selecciona un usuario y pulsa "Ver actividad".</p>
                     </div>
+                    <button id="download-activity-csv" class="btn btn-secondary btn-compact" type="button" disabled>Descargar CSV</button>
                 </div>
-                <p id="activity-summary" class="muted">Selecciona un usuario para revisar su actividad.</p>
                 <div class="table-scroll">
                     <table class="stats-table">
                         <thead>
@@ -231,9 +334,9 @@
                                 <th>Resultado</th>
                                 <th>Aciertos</th>
                                 <th>Fallos</th>
-                                <th>Sin responder</th>
-                                <th>Preguntas</th>
-                                <th>Auditoría</th>
+                                <th>Sin resp.</th>
+                                <th>Resp. guardadas</th>
+                                <th>Auditoría CSV</th>
                             </tr>
                         </thead>
                         <tbody id="activity-body">
@@ -248,9 +351,10 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-functions-compat.js"></script>
     <script src="js/firebase-config.js"></script>
-    <script src="js/auth.js?v=20260903-1"></script>
-    <script src="js/admin.js?v=20260903-1"></script>
+    <script src="js/auth.js?v=20260904-3"></script>
+    <script src="js/admin.js?v=20260904-3"></script>
     <script src="js/last-modified.js?v=20260903-1"></script>
 </body>
 </html>
