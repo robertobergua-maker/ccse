@@ -390,7 +390,7 @@
                 Iniciar sesión
             </a>
         </div>
-
+        <p class="hero-note" id="manual-version" hidden></p>
     </section>
 
     <!-- STATS STRIP -->
@@ -508,5 +508,17 @@
     </footer>
 
     <script src="js/last-modified.js?v=20260903-1"></script>
+    <script>
+        // Versión del Manual CCSE en la que se basa el banco (manual-version.json).
+        fetch('manual-version.json', { cache: 'no-cache' })
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (v) {
+                if (!v || !/^\d{4}$/.test(String(v.edition))) return;
+                var note = document.getElementById('manual-version');
+                note.textContent = 'Basado en el Manual CCSE ' + v.edition + ' del Instituto Cervantes · ' + (v.questions || 300) + ' preguntas';
+                note.hidden = false;
+            })
+            .catch(function () { /* sin versión, el hero queda como estaba */ });
+    </script>
 </body>
 </html>

@@ -59,6 +59,31 @@ def edition_from_url(url: str) -> int:
     return int(years[-1]) if years else 0
 
 
+def parse_pdf_date(value: str | None) -> str | None:
+    """«D:20260115134238+01'00'» → «2026-01-15». None si no tiene el formato PDF."""
+    match = re.match(r"D:(\d{4})(\d{2})(\d{2})", value or "")
+    return "-".join(match.groups()) if match else None
+
+
+def pdf_metadata(pdf_path: Path) -> dict:
+    """Título y fechas de creación/modificación que lleva el propio PDF."""
+    import pdfplumber
+
+    with pdfplumber.open(pdf_path) as pdf:
+        meta = pdf.metadata or {}
+    return {
+        "title": meta.get("Title") or None,
+        "created": parse_pdf_date(meta.get("CreationDate")),
+        "modified": parse_pdf_date(meta.get("ModDate")),
+    }
+
+
+def edition_from_metadata(meta: dict) -> str:
+    """Año de la edición según los metadatos (fecha de creación, si no la de modificación)."""
+    date = meta.get("created") or meta.get("modified") or ""
+    return date[:4]
+
+
 def discover_manual_url() -> str:
     candidates: set[str] = set()
     errors = []
@@ -197,7 +222,10 @@ def render_markdown(report: dict) -> str:
     lines += [
         "## Fuentes",
         f"- Manual oficial: edición **{manual.get('edition') or '?'}** — {manual.get('url') or 'no disponible'}",
-        f"  - Publicado/modificado: {manual.get('last_modified') or 'desconocido'}",
+        f"  - Servidor (Last-Modified): {manual.get('last_modified') or 'desconocido'}",
+        f"  - Metadatos del PDF: creado {manual.get('pdf_created') or '?'}, "
+        f"modificado {manual.get('pdf_modified') or '?'} "
+        f"(edición leída de: {manual.get('edition_source') or '?'})",
         f"  - SHA-256: `{(manual.get('sha256') or '—')[:16]}…`",
         f"- Banco de la app: **{bank['source']}** ({bank['count']} preguntas)",
     ]
@@ -304,11 +332,21 @@ def run(args: argparse.Namespace) -> dict:
             sha256 = hashlib.sha256(data).hexdigest()
             from extract_ccse_questions import extract_manual
 
-            questions, edition = extract_manual(pdf_path)
+            questions, text_edition = extract_manual(pdf_path)
+            meta = pdf_metadata(pdf_path)
 
+        # La edición se lee de la cabecera del PDF; si falla, de sus metadatos y,
+        # en último caso, del nombre del fichero.
+        edition = text_edition or edition_from_metadata(meta) or str(edition_from_url(url) or "")
         report["manual"] = {
             "url": url,
             "edition": edition,
+            "edition_source": (
+                "texto" if text_edition else "metadatos" if edition_from_metadata(meta) else "url"
+            ),
+            "pdf_title": meta["title"],
+            "pdf_created": meta["created"],
+            "pdf_modified": meta["modified"],
             "sha256": sha256,
             "last_modified": headers.get("last-modified"),
             "etag": headers.get("etag"),
@@ -332,6 +370,8 @@ def main() -> int:
     parser.add_argument("--url", help="URL concreta del PDF (omite el descubrimiento)")
     parser.add_argument("--bank", type=Path, default=root / "preguntas.json")
     parser.add_argument("--state", type=Path, default=root / "tools" / "manual_state.json")
+    parser.add_argument("--public-version", type=Path, default=root / "manual-version.json",
+                        help="fichero público con la versión activa que muestra la web")
     parser.add_argument("--report-dir", type=Path, default=root / "manual-report")
     parser.add_argument("--update-state", action="store_true",
                         help="marca el manual actual como revisado (hacerlo tras actualizar el banco)")
@@ -358,6 +398,15 @@ def main() -> int:
             "reviewed_at": report["checked_at"],
         }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         print(f"Estado guardado en {args.state}")
+        # Versión pública que muestra el hero de la web: solo cambia al adoptar un manual.
+        manual = report["manual"]
+        args.public_version.write_text(json.dumps({
+            "edition": manual["edition"],
+            "questions": report["bank"]["count"],
+            "pdf_created": manual.get("pdf_created"),
+            "reviewed_at": report["checked_at"][:10],
+        }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        print(f"Versión pública guardada en {args.public_version}")
 
     if args.fail_on_diff:
         return {"UP_TO_DATE": 0, "OUTDATED": 1}.get(report["status"], 2)
