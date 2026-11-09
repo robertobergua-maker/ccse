@@ -141,17 +141,7 @@ main {
 }
 
 #auth-container {
-    text-align: center;
-    margin-top: 40px;
-}
-
-#google-login-btn {
-    background-color: #db4437;
-    font-size: 1.2em;
-}
-
-#google-login-btn:hover {
-    background-color: #c23321;
+    margin-top: 24px;
 }
 
 #user-info {

@@ -244,11 +244,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const diagnostic = JSON.parse(rawDiagnostic);
-            const debugRows = diagnostic.debug
-                ? Object.entries(diagnostic.debug).map(([k, v]) =>
-                    `<dt>${escapeHtml(k)}</dt><dd>${escapeHtml(String(v))}</dd>`
-                ).join('')
-                : '';
             target.style.display = 'block';
             target.innerHTML = `
                 <strong>Diagnóstico de guardado en la nube</strong>
@@ -259,7 +254,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     <dt>Examen</dt><dd>${escapeHtml(diagnostic.exam_id || 'No disponible')}</dd>
                     <dt>Usuario</dt><dd>${escapeHtml(diagnostic.email || diagnostic.user_id || 'No disponible')}</dd>
                     <dt>Hora</dt><dd>${escapeHtml(diagnostic.timestamp || 'No disponible')}</dd>
-                    ${debugRows}
                 </dl>
             `;
         } catch (error) {

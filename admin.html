@@ -34,6 +34,50 @@
                     <div class="admin-card"><span>Exámenes</span><strong id="metric-exams">0</strong></div>
                     <div class="admin-card"><span>Últimas 24 h</span><strong id="metric-exams-24h">0</strong></div>
                     <div class="admin-card"><span>Alertas</span><strong id="metric-alerts">0</strong></div>
+                    <div class="admin-card"><span>Solicitudes pendientes</span><strong id="metric-requests">0</strong></div>
+                </div>
+            </section>
+
+            <!-- ── ESTADO DEL MANUAL CCSE ── -->
+            <section class="admin-section" aria-labelledby="manual-status-title">
+                <div class="section-heading">
+                    <div>
+                        <h2 id="manual-status-title">Estado del Manual CCSE</h2>
+                        <p id="manual-status-summary" class="muted">Comprobación semanal automática contra el manual oficial del Instituto Cervantes.</p>
+                    </div>
+                    <span id="manual-status-badge" class="status-badge">Cargando…</span>
+                </div>
+                <div id="manual-status-body" class="muted">Cargando…</div>
+            </section>
+
+            <!-- ── SOLICITUDES DE REGISTRO ── -->
+            <section class="admin-section" aria-labelledby="requests-title">
+                <div class="section-heading">
+                    <div>
+                        <h2 id="requests-title">Solicitudes de registro</h2>
+                        <p id="requests-summary" class="muted">Personas que han pedido acceso desde la pantalla de login.</p>
+                    </div>
+                    <span id="requests-status" class="status-badge">Cargando…</span>
+                </div>
+                <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+                    <button class="request-filter-btn btn btn-secondary btn-compact active" data-filter="pending" type="button">Pendientes</button>
+                    <button class="request-filter-btn btn btn-secondary btn-compact" data-filter="all" type="button">Todas</button>
+                </div>
+                <div class="table-scroll">
+                    <table class="stats-table">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Solicitante</th>
+                                <th>Mensaje</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="requests-body">
+                            <tr><td colspan="5" class="empty-state">Cargando solicitudes…</td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </section>
 
@@ -348,13 +392,13 @@
         </main>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-functions-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-functions-compat.js"></script>
     <script src="js/firebase-config.js"></script>
-    <script src="js/auth.js?v=20260904-5"></script>
-    <script src="js/admin.js?v=20260904-3"></script>
+    <script src="js/auth.js?v=20261109-1"></script>
+    <script src="js/admin.js?v=20261109-2"></script>
     <script src="js/last-modified.js?v=20260903-1"></script>
 </body>
 </html>

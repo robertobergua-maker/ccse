@@ -1,0 +1,13 @@
+Contenido del archivo .htaccess que hay que subir a Hostalia.
+Ubicación: carpeta raíz del subdominio ccse.samirarte.com en el servidor de Hostalia.
+Nombre del archivo: .htaccess (sin extensión, solo el punto inicial)
+
+---- INICIO DEL CONTENIDO ----
+
+RewriteEngine On
+
+# Forzar HTTPS
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+---- FIN DEL CONTENIDO ----

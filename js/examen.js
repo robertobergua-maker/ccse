@@ -51,15 +51,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function startGuestExam() {
         try {
-            const allQuestions = await loadQuestionBank();
+            const allQuestions = await loadQuestionBank({ staticOnly: true });
             validateQuestionBank(allQuestions);
             selectionContext = { strategy: 'uniform_random', stats_source: 'none' };
             // Sin stats personalizadas: sorteo uniforme
             examQuestions = buildOfficialExam(allQuestions, new Map());
             userAnswers = {};
             sessionStorage.removeItem('lastExamSaveError');
-            sessionStorage.removeItem('lastExamStatsSaveError');
-            renderExam(examQuestions);
+                renderExam(examQuestions);
             startTimer(EXAM_DURATION_SECONDS);
         } catch (error) {
             console.error('No se pudo iniciar el examen de invitado:', error);
@@ -94,8 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
             examQuestions = buildOfficialExam(allQuestions, selectionStats);
             userAnswers = {};
             sessionStorage.removeItem('lastExamSaveError');
-            sessionStorage.removeItem('lastExamStatsSaveError');
-            renderExam(examQuestions);
+                renderExam(examQuestions);
             startTimer(EXAM_DURATION_SECONDS);
         } catch (error) {
             console.error('No se pudo iniciar el examen:', error);
@@ -144,16 +142,20 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    async function loadQuestionBank() {
-        try {
-            const snapshot = await db.collection('questions').get();
-            const questions = [];
-            snapshot.forEach(doc => questions.push({ id: doc.id, ...doc.data() }));
-            if (questions.length > 0) {
-                return sortQuestions(questions.filter(question => question.active !== false));
+    // Los invitados leen el banco estático (preguntas.json) para no generar
+    // 300 lecturas de Firestore por cada examen anónimo.
+    async function loadQuestionBank({ staticOnly = false } = {}) {
+        if (!staticOnly) {
+            try {
+                const snapshot = await db.collection('questions').get();
+                const questions = [];
+                snapshot.forEach(doc => questions.push({ id: doc.id, ...doc.data() }));
+                if (questions.length > 0) {
+                    return sortQuestions(questions.filter(question => question.active !== false));
+                }
+            } catch (error) {
+                console.warn('No se pudo cargar questions desde Firestore. Se usará preguntas.json.', error);
             }
-        } catch (error) {
-            console.warn('No se pudo cargar questions desde Firestore. Se usará preguntas.json.', error);
         }
 
         const response = await fetch('preguntas.json', { cache: 'no-store' });
@@ -341,11 +343,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const examRef = db.collection('exams').doc();
             examId = examRef.id;
-            const answerBatch = db.batch();
-            const statsBatch = db.batch();
-            let hasStatsWrites = false;
+            // Examen, respuestas y estadísticas se guardan en UN solo lote atómico:
+            // o se guarda todo o no se guarda nada (nunca un examen a medias).
+            const saveBatch = db.batch();
 
-            const examData = {
+            saveBatch.set(examRef, {
                 user_id: uid,
                 finished_at: firebase.firestore.FieldValue.serverTimestamp(),
                 score_correct: result.correct,
@@ -358,38 +360,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 task_distribution: OFFICIAL_DISTRIBUTION,
                 selection_strategy: selectionContext,
                 question_ids: examQuestions.map(question => question.id)
-            };
-
-            saveCheckpoint = 'crear examen';
-            try {
-                await examRef.set(examData);
-            } catch (createError) {
-                let tokenClaims = null;
-                try {
-                    tokenClaims = (await currentUser.getIdTokenResult()).claims;
-                } catch (tokenErr) {
-                    tokenClaims = { error_al_leer_token: String(tokenErr) };
-                }
-                createError.debugInfo = {
-                    examData_user_id: examData.user_id,
-                    currentUser_uid: currentUser.uid,
-                    auth_currentUser_uid: auth.currentUser?.uid ?? null,
-                    token_uid: tokenClaims?.user_id ?? tokenClaims?.sub ?? null,
-                    token_email: tokenClaims?.email ?? null,
-                    token_email_verified: tokenClaims?.email_verified ?? null
-                };
-                throw createError;
-            }
+            });
 
             saveCheckpoint = 'preparar respuestas';
             examQuestions.forEach((question, index) => {
                 const selectedKey = userAnswers[index] ?? null;
                 const answered = selectedKey !== null;
                 const correct = answered && selectedKey === question.correct_answer;
-                const answerRef = db.collection('exam_answers')
-                    .doc(`${examRef.id}_${question.id}`);
 
-                answerBatch.set(answerRef, {
+                saveBatch.set(db.collection('exam_answers').doc(`${examRef.id}_${question.id}`), {
                     user_id: uid,
                     exam_id: examRef.id,
                     question_id: question.id,
@@ -411,10 +390,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 if (answered) {
-                    const statRef = db.collection('user_question_stats')
-                        .doc(`${uid}_${question.id}`);
                     const statUpdate = {
                         user_id: uid,
+                        exam_id: examRef.id,
                         question_id: question.id,
                         question_text: String(question.question_text || ''),
                         task_number: Number(question.task_number || 0),
@@ -428,24 +406,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (!correct) {
                         statUpdate.last_failed_at = firebase.firestore.FieldValue.serverTimestamp();
                     }
-                    statsBatch.set(statRef, statUpdate, { merge: true });
-                    hasStatsWrites = true;
+                    saveBatch.set(
+                        db.collection('user_question_stats').doc(`${uid}_${question.id}`),
+                        statUpdate,
+                        { merge: true }
+                    );
                 }
             });
 
-            saveCheckpoint = 'guardar respuestas';
-            await answerBatch.commit();
-
-            if (hasStatsWrites) {
-                try {
-                    saveCheckpoint = 'guardar estadísticas';
-                    await statsBatch.commit();
-                } catch (statsError) {
-                    const diagnostic = buildSaveDiagnostic(saveCheckpoint, statsError, examId);
-                    sessionStorage.setItem('lastExamStatsSaveError', JSON.stringify(diagnostic));
-                    console.warn('El examen se guardó, pero no se pudieron actualizar las estadísticas:', diagnostic, statsError);
-                }
-            }
+            saveCheckpoint = 'guardar examen';
+            await saveBatch.commit();
         } catch (error) {
             const diagnostic = buildSaveDiagnostic(saveCheckpoint, error, examId);
             sessionStorage.setItem('lastExamSaveError', JSON.stringify(diagnostic));
@@ -462,15 +432,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            const debugLines = diagnostic.debug
-                ? '\n\n[debug]\n' + Object.entries(diagnostic.debug).map(([k, v]) => `${k}: ${v}`).join('\n')
-                : '';
             alert(
                 'El examen se ha corregido, pero no se pudo guardar en la nube.\n' +
                 `Punto de fallo: ${diagnostic.checkpoint}.\n` +
-                `Código: ${diagnostic.code}.\n` +
-                `Mensaje: ${diagnostic.message}` +
-                debugLines
+                `Código: ${diagnostic.code}.`
             );
         }
 
@@ -501,7 +466,6 @@ document.addEventListener('DOMContentLoaded', () => {
             exam_id: examId || '',
             user_id: currentUser?.uid || '',
             email: currentUser?.email || '',
-            debug: error?.debugInfo || null,
             timestamp: new Date().toISOString()
         };
     }

@@ -1987,6 +1987,285 @@ document.addEventListener('DOMContentLoaded', () => {
         link.remove(); URL.revokeObjectURL(url);
     }
 
+    // ── ESTADO DEL MANUAL CCSE ───────────────────────────────────────────────
+
+    const MANUAL_STALE_DAYS = 10; // el vigilante corre cada 7 días
+    const manualUi = {
+        body:    document.getElementById('manual-status-body'),
+        badge:   document.getElementById('manual-status-badge'),
+        summary: document.getElementById('manual-status-summary')
+    };
+
+    if (manualUi.body) loadManualStatus();
+
+    async function loadManualStatus() {
+        try {
+            const doc = await db.collection('manual_status').doc('latest').get();
+            if (!doc.exists) {
+                setManualBadge('Sin datos', 'offline');
+                manualUi.body.textContent =
+                    'Todavía no hay ninguna comprobación publicada. Lanza el workflow «Vigilante del Manual CCSE» en GitHub Actions '
+                    + '(y configura el secreto FIREBASE_SERVICE_ACCOUNT para que publique aquí su estado).';
+                return;
+            }
+            renderManualStatus(doc.data());
+        } catch (err) {
+            console.error('Error al cargar el estado del manual:', err);
+            setManualBadge('Error', 'offline');
+            manualUi.body.textContent = 'No se pudo leer el estado del manual.';
+        }
+    }
+
+    function renderManualStatus(data) {
+        const checkedMs = Date.parse(data.checked_at || '') || 0;
+        const ageDays = checkedMs ? (Date.now() - checkedMs) / 86400000 : Infinity;
+        const stale = ageDays > MANUAL_STALE_DAYS;
+        const counts = data.counts || {};
+
+        const labels = {
+            UP_TO_DATE: ['Al día', 'online'],
+            OUTDATED:   ['Desactualizado', 'offline'],
+            ERROR:      ['Error', 'offline']
+        };
+        const [label, state] = labels[data.status] || ['Desconocido', 'offline'];
+        setManualBadge(stale ? 'Sin comprobar' : label, stale ? 'offline' : state);
+
+        const rows = [];
+        if (stale) {
+            rows.push(`<p class="error-message">⏰ La última comprobación fue hace ${Math.floor(ageDays)} días: el vigilante semanal ha dejado de ejecutarse. Revisa GitHub Actions.</p>`);
+        }
+        if (data.status === 'ERROR') {
+            rows.push(`<p class="error-message">${escapeHtml(data.error || 'Error desconocido')}</p>`);
+        }
+        if (data.new_manual) {
+            rows.push('<p><strong>🆕 Hay un manual nuevo</strong> respecto al último que revisaste.</p>');
+        }
+        rows.push(`
+            <p>Manual oficial: <strong>edición ${escapeHtml(data.manual_edition || '?')}</strong>
+               ${data.manual_url ? `· <a href="${escapeHtml(data.manual_url)}" target="_blank" rel="noopener">PDF</a>` : ''}
+               · Banco de la app: <strong>${escapeHtml(data.bank_source || '?')}</strong></p>
+            <p class="muted">Última comprobación: ${escapeHtml(formatDate(checkedMs))}</p>`);
+
+        if (data.status !== 'ERROR') {
+            rows.push(`
+                <div class="admin-grid" style="margin-top:12px">
+                    <div class="admin-card"><span>Respuestas cambiadas</span><strong style="color:${counts.answer_changed ? '#991b1b' : 'inherit'}">${counts.answer_changed || 0}</strong></div>
+                    <div class="admin-card"><span>Preguntas sustituidas</span><strong>${counts.replaced || 0}</strong></div>
+                    <div class="admin-card"><span>Enunciados retocados</span><strong>${counts.text_edited || 0}</strong></div>
+                    <div class="admin-card"><span>Sin cambios</span><strong>${counts.unchanged || 0}</strong></div>
+                </div>`);
+            if ((data.answer_changed_ids || []).length) {
+                rows.push(`<p style="margin-top:10px"><strong>Respuesta cambiada en:</strong> ${escapeHtml(data.answer_changed_ids.join(', '))}</p>`);
+            }
+        }
+        manualUi.body.innerHTML = rows.join('');
+    }
+
+    function setManualBadge(text, state) {
+        if (!manualUi.badge) return;
+        manualUi.badge.textContent = text;
+        manualUi.badge.className = `status-badge status-${state}`;
+    }
+
+    // ── SOLICITUDES DE REGISTRO ──────────────────────────────────────────────
+
+    const REQUEST_CODE_PREFIX = 'SOL';
+    let allRequests   = [];
+    let requestFilter = 'pending';
+
+    const requestsUi = {
+        body:    document.getElementById('requests-body'),
+        status:  document.getElementById('requests-status'),
+        summary: document.getElementById('requests-summary'),
+        metric:  document.getElementById('metric-requests')
+    };
+
+    if (requestsUi.body) {
+        document.querySelectorAll('.request-filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.request-filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                requestFilter = btn.dataset.filter;
+                renderRequests();
+            });
+        });
+
+        requestsUi.body.addEventListener('click', async event => {
+            const btn = event.target.closest('[data-action]');
+            if (!btn) return;
+            const { action, requestId } = btn.dataset;
+            if (action === 'copy-code') return copyText(btn.dataset.code, btn);
+            if (!requestId) return;
+            if (action === 'approve-request') await approveRequest(requestId);
+            if (action === 'reject-request')  await rejectRequest(requestId);
+            if (action === 'delete-request')  await deleteRequest(requestId);
+        });
+
+        loadRequests();
+    }
+
+    async function loadRequests() {
+        setRequestsStatus('Cargando…', 'online');
+        try {
+            const snap = await db.collection('registration_requests').orderBy('created_at', 'desc').get();
+            allRequests = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            renderRequests();
+        } catch (err) {
+            console.error('Error al cargar solicitudes:', err);
+            setRequestsStatus('Error', 'offline');
+            requestsUi.body.innerHTML = '<tr><td colspan="5" class="empty-state">No se pudieron cargar las solicitudes.</td></tr>';
+        }
+    }
+
+    function renderRequests() {
+        const pending = allRequests.filter(r => r.status === 'pending').length;
+        if (requestsUi.metric) requestsUi.metric.textContent = pending;
+        if (requestsUi.summary) {
+            requestsUi.summary.textContent =
+                `${pending} pendiente${pending !== 1 ? 's' : ''} · ${allRequests.length} en total.`;
+        }
+        setRequestsStatus(`${pending} pendientes`, pending > 0 ? 'offline' : 'online');
+
+        const rows = requestFilter === 'pending'
+            ? allRequests.filter(r => r.status === 'pending')
+            : allRequests;
+
+        if (rows.length === 0) {
+            requestsUi.body.innerHTML = `<tr><td colspan="5" class="empty-state">${
+                requestFilter === 'pending' ? 'No hay solicitudes pendientes.' : 'Todavía no hay solicitudes.'
+            }</td></tr>`;
+            return;
+        }
+
+        requestsUi.body.innerHTML = rows.map(r => {
+            const id = escapeHtml(r.id);
+            const badge = r.status === 'approved'
+                ? '<span class="risk-badge risk-ok">Aprobada</span>'
+                : r.status === 'rejected'
+                    ? '<span class="risk-badge risk-danger">Rechazada</span>'
+                    : '<span class="risk-badge risk-watch">Pendiente</span>';
+
+            let actions = '';
+            if (r.status === 'pending') {
+                actions = `
+                    <button class="btn btn-primary btn-compact" data-action="approve-request" data-request-id="${id}" type="button">Aprobar y generar código</button>
+                    <button class="btn btn-danger btn-compact" data-action="reject-request" data-request-id="${id}" type="button">Rechazar</button>`;
+            } else {
+                if (r.status === 'approved' && r.invite_code) {
+                    actions += `
+                        <code style="font-weight:700;letter-spacing:.08em">${escapeHtml(r.invite_code)}</code>
+                        <button class="btn btn-secondary btn-compact" data-action="copy-code" data-code="${escapeHtml(r.invite_code)}" type="button">Copiar</button>
+                        <a class="btn btn-primary btn-compact" href="${escapeHtml(buildMailtoLink(r))}">Enviar por correo</a>`;
+                }
+                actions += `
+                    <button class="btn btn-secondary btn-compact" data-action="delete-request" data-request-id="${id}" type="button">Eliminar</button>`;
+            }
+
+            return `
+                <tr>
+                    <td>${escapeHtml(formatTimestamp(r.created_at))}</td>
+                    <td><strong>${escapeHtml(r.name || '—')}</strong><p class="admin-notes">${escapeHtml(r.email || r.id)}</p></td>
+                    <td style="max-width:280px;white-space:pre-wrap">${escapeHtml(r.message || '—')}</td>
+                    <td>${badge}</td>
+                    <td><div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">${actions}</div></td>
+                </tr>`;
+        }).join('');
+    }
+
+    function buildMailtoLink(request) {
+        const url = new URL('login.html#register', window.location.href).href;
+        const subject = 'Tu acceso a la preparación CCSE';
+        const body = [
+            `Hola ${request.name || ''},`,
+            '',
+            'Hemos aprobado tu solicitud de acceso.',
+            `Tu código de invitación es: ${request.invite_code}`,
+            '',
+            `Entra en ${url}, pulsa «Crear cuenta», introduce el código y completa el registro.`,
+            'El código es de un solo uso.',
+            '',
+            '¡Mucho ánimo con el examen!'
+        ].join('\n');
+        return `mailto:${request.email || request.id}`
+            + `?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    }
+
+    async function approveRequest(requestId) {
+        const request = allRequests.find(r => r.id === requestId);
+        if (!request || request.status !== 'pending') return;
+        if (!confirm(`¿Aprobar la solicitud de ${request.name} (${request.email}) y generar un código de invitación?`)) return;
+
+        const code = `${REQUEST_CODE_PREFIX}-${generateRandomSuffix()}`;
+        try {
+            const batch = db.batch();
+            batch.set(db.collection('invite_codes').doc(code), {
+                code,
+                prefix:        REQUEST_CODE_PREFIX,
+                used:          false,
+                requested_for: request.email,
+                created_at:    firebase.firestore.FieldValue.serverTimestamp(),
+                created_by:    adminUser?.email || 'admin'
+            });
+            batch.update(db.collection('registration_requests').doc(requestId), {
+                status:      'approved',
+                invite_code: code,
+                reviewed_at: firebase.firestore.FieldValue.serverTimestamp(),
+                reviewed_by: adminUser?.email || 'admin'
+            });
+            await batch.commit();
+            await loadRequests();
+            loadCodesMgmt();
+        } catch (err) {
+            console.error('No se pudo aprobar la solicitud:', err);
+            alert('No se pudo aprobar la solicitud. Revisa permisos o conexión.');
+        }
+    }
+
+    async function rejectRequest(requestId) {
+        const request = allRequests.find(r => r.id === requestId);
+        if (!request) return;
+        if (!confirm(`¿Rechazar la solicitud de ${request.name} (${request.email})?`)) return;
+        try {
+            await db.collection('registration_requests').doc(requestId).update({
+                status:      'rejected',
+                reviewed_at: firebase.firestore.FieldValue.serverTimestamp(),
+                reviewed_by: adminUser?.email || 'admin'
+            });
+            await loadRequests();
+        } catch (err) {
+            console.error('No se pudo rechazar la solicitud:', err);
+            alert('No se pudo rechazar la solicitud.');
+        }
+    }
+
+    async function deleteRequest(requestId) {
+        if (!confirm('¿Eliminar esta solicitud? Si el correo vuelve a pedir acceso, se aceptará una solicitud nueva.')) return;
+        try {
+            await db.collection('registration_requests').doc(requestId).delete();
+            await loadRequests();
+        } catch (err) {
+            console.error('No se pudo eliminar la solicitud:', err);
+            alert('No se pudo eliminar la solicitud.');
+        }
+    }
+
+    async function copyText(text, button) {
+        try {
+            await navigator.clipboard.writeText(text);
+            const previous = button.textContent;
+            button.textContent = '¡Copiado!';
+            setTimeout(() => { button.textContent = previous; }, 1500);
+        } catch (err) {
+            prompt('Copia el código:', text);
+        }
+    }
+
+    function setRequestsStatus(text, state) {
+        if (!requestsUi.status) return;
+        requestsUi.status.textContent = text;
+        requestsUi.status.className = `status-badge status-${state}`;
+    }
+
     // ── HELPERS ──────────────────────────────────────────────────────────────
 
     function getCodePrefix(c) {

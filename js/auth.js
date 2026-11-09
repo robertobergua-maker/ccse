@@ -1,81 +1,150 @@
 document.addEventListener('DOMContentLoaded', function() {
     const ADMIN_EMAIL = 'roberto.bergua@gmail.com';
+    const TERMS_VERSION = '2026-09';
+    const MIN_PASSWORD_LENGTH = 8;
 
     const PUBLIC_PAGES = ['login.html', 'index.html'];
     const GUEST_PAGES  = ['dashboard.html', 'examen.html', 'results.html', 'preguntas.html'];
 
     const auth = firebase.auth();
     const db   = firebase.firestore();
+    const $    = id => document.getElementById(id);
 
     const ui = {
         // Comunes a todas las páginas
-        logoutBtn:        document.getElementById('logout-btn'),
-        userInfo:         document.getElementById('user-info'),
-        // Login con Google
-        googleLoginBtn:   document.getElementById('google-login-btn'),
-        // Login con email/password
-        emailInput:       document.getElementById('email-input'),
-        passwordInput:    document.getElementById('password-input'),
-        emailLoginBtn:    document.getElementById('email-login-btn'),
-        emailRegisterBtn: document.getElementById('email-register-btn'),
-        emailFormError:   document.getElementById('email-form-error'),
-        forgotPwBtn:      document.getElementById('forgot-pw-btn'),
-        // Código de invitación
-        inviteCodeInput:  document.getElementById('invite-code-input'),
-        validateCodeBtn:  document.getElementById('validate-code-btn'),
-        inviteFeedback:   document.getElementById('invite-feedback'),
-        skipCodeBtn:      document.getElementById('skip-code-btn'),
-        // Términos y condiciones
-        termsCheckbox:    document.getElementById('terms-checkbox')
+        logoutBtn:        $('logout-btn'),
+        userInfo:         $('user-info'),
+        // Entrar
+        loginGoogleBtn:   $('login-google-btn'),
+        loginEmail:       $('login-email'),
+        loginPassword:    $('login-password'),
+        loginBtn:         $('login-btn'),
+        loginError:       $('login-error'),
+        forgotPwBtn:      $('forgot-pw-btn'),
+        // Crear cuenta con código
+        inviteCodeInput:  $('invite-code-input'),
+        validateCodeBtn:  $('validate-code-btn'),
+        inviteFeedback:   $('invite-feedback'),
+        registerStep2:    $('register-step2'),
+        registerTerms:    $('register-terms'),
+        registerGoogleBtn: $('register-google-btn'),
+        registerEmail:    $('register-email'),
+        registerPassword: $('register-password'),
+        registerBtn:      $('register-btn'),
+        registerError:    $('register-error'),
+        // Solicitud de acceso
+        requestFormWrap:  $('request-form-wrap'),
+        requestName:      $('request-name'),
+        requestEmail:     $('request-email'),
+        requestMessage:   $('request-message'),
+        requestWebsite:   $('request-website'),
+        requestTerms:     $('request-terms'),
+        requestBtn:       $('request-btn'),
+        requestError:     $('request-error'),
+        requestDone:      $('request-done')
     };
 
     const googleProvider = new firebase.auth.GoogleAuthProvider();
-
     const PENDING_INVITE_KEY = 'ccse_pending_invite_code';
 
+    let currentMode = 'login';
     let validatedInviteCode = null;
-    let skipInvite = false;
-    let termsAccepted = false;
 
-    // ── TABS ─────────────────────────────────────────────────────────────────
+    // ── SELECTOR DE MODO (Entrar / Crear cuenta / Pedir acceso) ──────────────
 
-    document.querySelectorAll('.auth-tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-            document.querySelectorAll('.auth-tab').forEach(t => {
-                t.classList.remove('active');
-                t.setAttribute('aria-selected', 'false');
-            });
-            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-            tab.classList.add('active');
-            tab.setAttribute('aria-selected', 'true');
-            document.getElementById(`tab-${tab.dataset.tab}`)?.classList.add('active');
+    const MODES = ['login', 'register', 'request'];
+    const modeErrorEl = {
+        login: ui.loginError, register: ui.registerError, request: ui.requestError
+    };
+
+    function setMode(mode, { focus = true } = {}) {
+        if (!MODES.includes(mode)) mode = 'login';
+        currentMode = mode;
+        MODES.forEach(m => {
+            const panel = $(`mode-${m}`);
+            const btn = $(`mode-btn-${m}`);
+            if (panel) panel.hidden = m !== mode;
+            if (btn) {
+                btn.classList.toggle('active', m === mode);
+                btn.setAttribute('aria-selected', String(m === mode));
+            }
         });
+        MODES.forEach(m => clearError(modeErrorEl[m]));
+        if (!focus) return;
+        const first = { login: ui.loginEmail, register: ui.inviteCodeInput, request: ui.requestName }[mode];
+        first?.focus();
+    }
+
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.addEventListener('click', () => setMode(btn.dataset.mode));
+    });
+    document.querySelectorAll('[data-goto-mode]').forEach(btn => {
+        btn.addEventListener('click', () => setMode(btn.dataset.gotoMode));
     });
 
-    // ── TOGGLE CONTRASEÑA ────────────────────────────────────────────────────
+    if ($('mode-login')) {
+        const fromHash = window.location.hash.replace('#', '');
+        setMode(MODES.includes(fromHash) ? fromHash : 'login', { focus: false });
+    }
+
+    // ── MOSTRAR / OCULTAR CONTRASEÑA ─────────────────────────────────────────
 
     document.querySelectorAll('.toggle-pw').forEach(btn => {
         btn.addEventListener('click', () => {
-            const input = document.getElementById(btn.dataset.target);
+            const input = $(btn.dataset.target);
             if (!input) return;
             input.type = input.type === 'password' ? 'text' : 'password';
             btn.textContent = input.type === 'password' ? '👁' : '🙈';
         });
     });
 
-    // ── CÓDIGO DE INVITACIÓN ─────────────────────────────────────────────────
+    // ── ENTRAR ───────────────────────────────────────────────────────────────
+
+    ui.loginBtn?.addEventListener('click', async () => {
+        const email    = ui.loginEmail?.value.trim();
+        const password = ui.loginPassword?.value;
+        if (!email || !password) return showError(ui.loginError, 'Introduce tu correo y tu contraseña.');
+
+        setLoginLoading(true);
+        clearError(ui.loginError);
+        try {
+            await auth.signInWithEmailAndPassword(email, password);
+            // onAuthStateChanged se encarga del resto
+        } catch (err) {
+            showError(ui.loginError, friendlyAuthError(err));
+            setLoginLoading(false);
+        }
+    });
+
+    [ui.loginEmail, ui.loginPassword].forEach(input => {
+        input?.addEventListener('keydown', e => {
+            if (e.key === 'Enter') ui.loginBtn?.click();
+        });
+    });
+
+    ui.forgotPwBtn?.addEventListener('click', async () => {
+        const email = ui.loginEmail?.value.trim();
+        if (!email) return showError(ui.loginError, 'Escribe tu correo arriba y vuelve a pulsar «¿Olvidaste la contraseña?».');
+        clearError(ui.loginError);
+        try {
+            await auth.sendPasswordResetEmail(email);
+            showError(ui.loginError, '📧 Si existe una cuenta con ese correo, recibirás un mensaje para restablecer la contraseña.', true);
+        } catch (err) {
+            showError(ui.loginError, friendlyAuthError(err));
+        }
+    });
+
+    ui.loginGoogleBtn?.addEventListener('click', () => {
+        clearError(ui.loginError);
+        signInWithGoogle(ui.loginError);
+    });
+
+    // ── CREAR CUENTA CON CÓDIGO ──────────────────────────────────────────────
 
     if (ui.inviteCodeInput && ui.validateCodeBtn) {
         ui.inviteCodeInput.addEventListener('input', () => {
-            const code = ui.inviteCodeInput.value.trim();
-            ui.validateCodeBtn.disabled = code.length === 0;
-            if (validatedInviteCode) {
-                validatedInviteCode = null;
-                skipInvite = false;
-                ui.inviteCodeInput.classList.remove('valid', 'invalid');
-                setFeedback('', '');
-                lockAuthButtons(true);
-            }
+            ui.validateCodeBtn.disabled = ui.inviteCodeInput.value.trim().length === 0;
+            if (validatedInviteCode) resetValidatedCode();
         });
 
         ui.inviteCodeInput.addEventListener('keydown', e => {
@@ -87,7 +156,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!raw) return;
 
             ui.validateCodeBtn.disabled = true;
-            ui.validateCodeBtn.textContent = 'Verificando…';
+            ui.validateCodeBtn.textContent = 'Comprobando…';
             setFeedback('', '');
             ui.inviteCodeInput.classList.remove('valid', 'invalid');
 
@@ -97,158 +166,137 @@ document.addEventListener('DOMContentLoaded', function() {
                     validatedInviteCode = raw;
                     rememberPendingInviteCode(raw);
                     ui.inviteCodeInput.classList.add('valid');
-                    setFeedback('✓ Código válido. Ahora elige cómo acceder.', 'ok');
-                    lockAuthButtons(false);
+                    setFeedback('✓ Código válido.', 'ok');
+                    if (ui.registerStep2) ui.registerStep2.hidden = false;
+                    ui.registerEmail?.focus();
                 } else {
                     ui.inviteCodeInput.classList.add('invalid');
                     setFeedback(result.reason, 'error');
-                    lockAuthButtons(true);
                 }
             } catch (err) {
-                setFeedback('No se pudo verificar el código. Revisa la conexión.', 'error');
+                setFeedback('No se pudo comprobar el código. Revisa la conexión.', 'error');
             }
 
             ui.validateCodeBtn.disabled = false;
-            ui.validateCodeBtn.textContent = 'Validar';
+            ui.validateCodeBtn.textContent = 'Comprobar';
         });
     }
 
-    // ── TÉRMINOS Y CONDICIONES ──────────────────────────────────────────────
-
-    if (ui.termsCheckbox) {
-        ui.termsCheckbox.addEventListener('change', () => {
-            termsAccepted = ui.termsCheckbox.checked;
-            // Recalcula qué botones deben quedar habilitados según el flujo actual.
-            if (skipInvite) {
-                unlockExistingUserLogin();
-            } else if (validatedInviteCode) {
-                lockAuthButtons(false);
-            } else {
-                lockAuthButtons(true);
-            }
-        });
+    function resetValidatedCode() {
+        validatedInviteCode = null;
+        forgetPendingInviteCode();
+        ui.inviteCodeInput?.classList.remove('valid', 'invalid');
+        setFeedback('', '');
+        if (ui.registerStep2) ui.registerStep2.hidden = true;
     }
 
-    if (ui.skipCodeBtn) {
-        ui.skipCodeBtn.addEventListener('click', () => {
-            skipInvite = true;
-            validatedInviteCode = null;
-            forgetPendingInviteCode();
-            unlockExistingUserLogin();
-            setFeedback('Puedes iniciar sesión directamente si ya tienes cuenta.', 'ok');
-            if (ui.inviteCodeInput) {
-                ui.inviteCodeInput.disabled = true;
-                ui.inviteCodeInput.classList.remove('valid', 'invalid');
-            }
-            if (ui.validateCodeBtn) ui.validateCodeBtn.disabled = true;
-        });
-    }
+    ui.registerBtn?.addEventListener('click', async event => {
+        event.preventDefault();
+        clearError(ui.registerError);
 
-    // ── LOGIN / REGISTRO CON EMAIL ────────────────────────────────────────────
+        if (!validatedInviteCode) {
+            return showError(ui.registerError, 'Primero comprueba tu código de invitación.');
+        }
+        if (!ui.registerTerms?.checked) {
+            return showError(ui.registerError, 'Debes aceptar los Términos y Condiciones y la Política de Privacidad.');
+        }
+        const email    = ui.registerEmail?.value.trim();
+        const password = ui.registerPassword?.value;
+        if (!email || !password) return showError(ui.registerError, 'Introduce correo y contraseña.');
+        if (password.length < MIN_PASSWORD_LENGTH) {
+            return showError(ui.registerError, `La contraseña debe tener al menos ${MIN_PASSWORD_LENGTH} caracteres.`);
+        }
 
-    if (ui.emailLoginBtn) {
-        ui.emailLoginBtn.addEventListener('click', async () => {
-            const email    = ui.emailInput?.value.trim();
-            const password = ui.passwordInput?.value;
-            if (!email || !password) return showEmailError('Introduce correo y contraseña.');
+        setRegisterLoading(true);
+        try {
+            rememberPendingInviteCode(validatedInviteCode);
+            await auth.createUserWithEmailAndPassword(email, password);
+            // onAuthStateChanged completa el alta en Firestore.
+        } catch (err) {
+            console.error('Error durante la creación de la cuenta:', err);
+            showError(ui.registerError, friendlyAuthError(err));
+            setRegisterLoading(false);
+        }
+    });
 
-            setEmailButtonsLoading(true);
-            clearEmailError();
-            try {
-                await auth.signInWithEmailAndPassword(email, password);
-                // onAuthStateChanged se encarga del resto
-            } catch (err) {
-                showEmailError(friendlyAuthError(err));
-                setEmailButtonsLoading(false);
-            }
-        });
-    }
-
-    if (ui.emailRegisterBtn) {
-        ui.emailRegisterBtn.addEventListener('click', async event => {
-            event.preventDefault();
-
-            if (!termsAccepted) {
-                return showEmailError('Debes aceptar los Términos y Condiciones y la Política de Privacidad para registrarte.');
-            }
-
-            const email    = ui.emailInput?.value.trim();
-            const password = ui.passwordInput?.value;
-            if (!validatedInviteCode) {
-                return showEmailError('Para registrarte necesitas validar primero un código de invitación.');
-            }
-            if (!email || !password) return showEmailError('Introduce correo y contraseña.');
-            if (password.length < 6) return showEmailError('La contraseña debe tener al menos 6 caracteres.');
-
-            setEmailButtonsLoading(true);
-            clearEmailError();
-
-            try {
-                rememberPendingInviteCode(validatedInviteCode);
-                await createUserWithEmailAndPassword(auth, email, password);
-                // onAuthStateChanged completa el batch de Firestore.
-            } catch (err) {
-                console.error('Error durante la creación de la cuenta:', err);
-                showEmailError(friendlyAuthError(err));
-                setEmailButtonsLoading(false);
-            }
-        });
-    }
-
-    // Enviar con Enter en los campos de email/password
-    [ui.emailInput, ui.passwordInput].forEach(input => {
+    [ui.registerEmail, ui.registerPassword].forEach(input => {
         input?.addEventListener('keydown', e => {
-            if (e.key === 'Enter') {
-                if (validatedInviteCode && ui.emailRegisterBtn && !ui.emailRegisterBtn.disabled) {
-                    ui.emailRegisterBtn.click();
-                    return;
-                }
-                ui.emailLoginBtn?.click();
-            }
+            if (e.key === 'Enter') ui.registerBtn?.click();
         });
     });
 
-    if (ui.forgotPwBtn) {
-        ui.forgotPwBtn.addEventListener('click', async () => {
-            const email = ui.emailInput?.value.trim();
-            if (!email) return showEmailError('Introduce tu correo para recuperar la contraseña.');
-            clearEmailError();
-            try {
-                await auth.sendPasswordResetEmail(email);
-                showEmailError('📧 Correo de recuperación enviado. Revisa tu bandeja de entrada.', true);
-            } catch (err) {
-                showEmailError(friendlyAuthError(err));
+    ui.registerGoogleBtn?.addEventListener('click', () => {
+        clearError(ui.registerError);
+        if (!validatedInviteCode) {
+            return showError(ui.registerError, 'Primero comprueba tu código de invitación.');
+        }
+        if (!ui.registerTerms?.checked) {
+            return showError(ui.registerError, 'Debes aceptar los Términos y Condiciones y la Política de Privacidad.');
+        }
+        rememberPendingInviteCode(validatedInviteCode);
+        signInWithGoogle(ui.registerError);
+    });
+
+    // ── SOLICITUD DE ACCESO ──────────────────────────────────────────────────
+
+    ui.requestBtn?.addEventListener('click', async () => {
+        clearError(ui.requestError);
+
+        const name    = (ui.requestName?.value || '').trim().replace(/\s+/g, ' ');
+        const email   = (ui.requestEmail?.value || '').trim().toLowerCase();
+        const message = (ui.requestMessage?.value || '').trim();
+
+        if (name.length < 2) return showError(ui.requestError, 'Escribe tu nombre.');
+        if (!isValidEmail(email)) return showError(ui.requestError, 'Escribe un correo electrónico válido.');
+        if (!ui.requestTerms?.checked) {
+            return showError(ui.requestError, 'Debes aceptar los Términos y Condiciones y la Política de Privacidad.');
+        }
+
+        ui.requestBtn.disabled = true;
+        ui.requestBtn.textContent = 'Enviando…';
+
+        try {
+            // Campo trampa para bots: si está relleno, se simula el éxito sin enviar nada.
+            if (!ui.requestWebsite?.value) {
+                await db.collection('registration_requests').doc(email).set({
+                    name,
+                    email,
+                    message,
+                    status: 'pending',
+                    created_at: firebase.firestore.FieldValue.serverTimestamp(),
+                    terms_accepted: true,
+                    terms_version: TERMS_VERSION
+                });
             }
-        });
-    }
+            if (ui.requestFormWrap) ui.requestFormWrap.hidden = true;
+            if (ui.requestDone) ui.requestDone.hidden = false;
+        } catch (err) {
+            console.error('No se pudo enviar la solicitud:', err);
+            if (err?.code === 'permission-denied') {
+                showError(ui.requestError,
+                    'No se pudo enviar. Si ya habías solicitado acceso con este correo, espera la respuesta del administrador.');
+            } else {
+                showError(ui.requestError, 'No se pudo enviar la solicitud. Revisa la conexión e inténtalo de nuevo.');
+            }
+            ui.requestBtn.disabled = false;
+            ui.requestBtn.textContent = 'Enviar solicitud';
+        }
+    });
 
     // ── LOGIN CON GOOGLE ─────────────────────────────────────────────────────
 
-    if (ui.googleLoginBtn) {
-        ui.googleLoginBtn.addEventListener('click', () => {
-            if (!termsAccepted) {
-                const message = 'Debes aceptar los Términos y Condiciones y la Política de Privacidad para continuar.';
-                setFeedback(message, 'error');
-                showEmailError(message);
-                return;
-            }
-            auth.signInWithPopup(googleProvider)
-                .catch(error => {
-                    console.error('Error durante el inicio de sesión con Google:', error);
-                    const message = friendlyAuthError(error, 'google');
-                    setFeedback(message, 'error');
-                    showEmailError(message);
-                });
+    function signInWithGoogle(errorEl) {
+        auth.signInWithPopup(googleProvider).catch(error => {
+            console.error('Error durante el inicio de sesión con Google:', error);
+            showError(errorEl, friendlyAuthError(error, 'google'));
         });
     }
 
-    if (ui.logoutBtn) {
-        ui.logoutBtn.addEventListener('click', () => {
-            auth.signOut().then(() => {
-                window.location.href = 'index.html';
-            }).catch(console.error);
-        });
-    }
+    ui.logoutBtn?.addEventListener('click', () => {
+        auth.signOut().then(() => {
+            window.location.href = 'index.html';
+        }).catch(console.error);
+    });
 
     // ── OBSERVADOR DE AUTENTICACIÓN ──────────────────────────────────────────
 
@@ -261,14 +309,13 @@ document.addEventListener('DOMContentLoaded', function() {
             authResolved = true;
             const registration = handleNewUserRegistration(user);
 
-            registration.then(async ({ denied, newUser, profile: newProfile }) => {
+            registration.then(async ({ denied, reason, newUser, profile: newProfile }) => {
                 if (denied) {
                     if (newUser && isRecentAuthUser(user)) {
                         const deleted = await deleteDeniedAuthUser(user);
                         if (!deleted) {
-                            showEmailError(
-                                'No se pudo eliminar la cuenta rechazada. Contacta con el administrador.'
-                            );
+                            showError(activeErrorEl(),
+                                'No se pudo eliminar la cuenta rechazada. Contacta con el administrador.');
                         }
                     }
                     try {
@@ -276,21 +323,24 @@ document.addEventListener('DOMContentLoaded', function() {
                     } catch (error) {
                         console.error('No se pudo cerrar la sesión rechazada:', error);
                     }
-                    setFeedback('El código ya fue usado o no es válido. Solicita uno nuevo.', 'error');
-                    lockAuthButtons(true);
-                    if (ui.inviteCodeInput) {
-                        ui.inviteCodeInput.disabled = false;
-                        ui.inviteCodeInput.classList.remove('valid');
-                        ui.inviteCodeInput.classList.add('invalid');
+                    setLoginLoading(false);
+                    setRegisterLoading(false);
+
+                    if (reason === 'bad_code') {
+                        ui.inviteCodeInput?.classList.remove('valid');
+                        ui.inviteCodeInput?.classList.add('invalid');
+                        resetValidatedCode();
+                        setFeedback('El código ya fue usado o no es válido. Solicita uno nuevo.', 'error');
+                    } else if (reason === 'no_terms') {
+                        showError(activeErrorEl(), 'Debes aceptar los Términos y Condiciones para crear la cuenta.');
+                    } else {
+                        showError(activeErrorEl(),
+                            'No existe una cuenta con ese correo. Si es tu primera vez, usa tu código en «Crear cuenta» o solicita acceso en «Pedir acceso».');
                     }
-                    setEmailButtonsLoading(false);
                     return;
                 }
 
-                const profilePromise = newProfile
-                    ? Promise.resolve(newProfile)
-                    : saveUserToFirestore(user);
-                const profile = await profilePromise;
+                const profile = newProfile || await saveUserToFirestore(user);
 
                 if (!profile) {
                     throw new Error('No se pudo obtener el perfil del usuario.');
@@ -312,12 +362,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 // Limpiar rastro de modo invitado
-                const guestBanner = document.getElementById('guest-banner');
+                const guestBanner = $('guest-banner');
                 if (guestBanner) guestBanner.hidden = true;
-                const loginLink = document.getElementById('login-link');
+                const loginLink = $('login-link');
                 if (loginLink) loginLink.hidden = true;
-                const logoutBtn = document.getElementById('logout-btn');
-                if (logoutBtn) logoutBtn.hidden = false;
+                if (ui.logoutBtn) ui.logoutBtn.hidden = false;
 
                 if (PUBLIC_PAGES.some(p => currentPage.endsWith(p))) {
                     window.location.href = 'dashboard.html';
@@ -329,24 +378,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.dispatchEvent(new CustomEvent('authReady', { detail: { user, isGuest: false } }));
             }).catch(error => {
                 console.error('Error durante la resolución de autenticación:', error);
-                setEmailButtonsLoading(false);
-                showEmailError('No se pudo completar el acceso. Inténtalo de nuevo.');
+                setLoginLoading(false);
+                setRegisterLoading(false);
+                showError(activeErrorEl(), 'No se pudo completar el acceso. Inténtalo de nuevo.');
             });
 
         } else {
             // Firebase llama con null primero mientras carga la sesión de IndexedDB.
-            // Solo despachamos invitado si no llega un usuario real en el siguiente tick
-            // de microtareas (que es cuando Firebase resuelve la sesión en caché).
+            // Solo despachamos invitado si no llega un usuario real en el siguiente ciclo.
             if (authResolved) {
                 // Ya resolvimos antes con un usuario, esto es un signOut real
                 dispatchGuestReady(currentPage);
                 return;
             }
 
-            // Primera llamada con null: esperar al siguiente ciclo de eventos completo
-            // Firebase resuelve la sesión en caché en la misma cola de microtareas,
-            // pero el callback de onAuthStateChanged llega como macrotarea.
-            // Usamos requestAnimationFrame (después de render) para dar tiempo suficiente.
             const capturedPage = currentPage;
             const check = () => {
                 if (authResolved) return; // llegó usuario real, no hacer nada
@@ -354,7 +399,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 dispatchGuestReady(capturedPage);
             };
 
-            // Doble seguridad: rAF + setTimeout 0 encadenados
             requestAnimationFrame(() => requestAnimationFrame(check));
         }
     });
@@ -364,11 +408,7 @@ document.addEventListener('DOMContentLoaded', function() {
         window._currentUser = null;
         window._isGuest     = true;
 
-        if (PUBLIC_PAGES.some(p => currentPage.endsWith(p))) {
-            document.dispatchEvent(new CustomEvent('authReady', { detail: { user: null, isGuest: true } }));
-            return;
-        }
-        if (GUEST_PAGES.some(p => currentPage.endsWith(p))) {
+        if (PUBLIC_PAGES.some(p => currentPage.endsWith(p)) || GUEST_PAGES.some(p => currentPage.endsWith(p))) {
             document.dispatchEvent(new CustomEvent('authReady', { detail: { user: null, isGuest: true } }));
             return;
         }
@@ -384,21 +424,26 @@ document.addEventListener('DOMContentLoaded', function() {
             const userDoc = await db.collection('users').doc(user.uid).get();
             if (userDoc.exists) return { denied: false, newUser: false, profile: null }; // ya registrado
 
-            if (skipInvite) return { denied: true, newUser: true, profile: null };
             const inviteCode = validatedInviteCode || recallPendingInviteCode();
-            if (!inviteCode) return { denied: true, newUser: true, profile: null };
+            if (currentMode !== 'register' || !inviteCode) {
+                return { denied: true, reason: 'no_account', newUser: true, profile: null };
+            }
+            if (!ui.registerTerms?.checked) {
+                return { denied: true, reason: 'no_terms', newUser: true, profile: null };
+            }
 
             const profile = buildNewUserProfile(user, inviteCode);
             const created = await claimInviteAndCreateUser(inviteCode, user, profile);
             if (created) forgetPendingInviteCode();
             return {
                 denied: !created,
+                reason: created ? null : 'bad_code',
                 newUser: true,
                 profile: created ? { ...profile, blocked: false } : null
             };
         } catch (err) {
             console.error('Error al comprobar registro nuevo:', err);
-            return { denied: true, newUser: true, profile: null };
+            return { denied: true, reason: 'bad_code', newUser: true, profile: null };
         }
     }
 
@@ -485,12 +530,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function buildNewUserProfile(user, inviteCode) {
         return {
-            id:              user.uid,
-            name:            user.displayName || user.email,
-            email:           user.email,
-            invite_code:     inviteCode || null,
-            created_at:      firebase.firestore.FieldValue.serverTimestamp(),
-            last_login:      firebase.firestore.FieldValue.serverTimestamp()
+            id:                user.uid,
+            name:              user.displayName || user.email,
+            email:             user.email,
+            invite_code:       inviteCode || null,
+            created_at:        firebase.firestore.FieldValue.serverTimestamp(),
+            last_login:        firebase.firestore.FieldValue.serverTimestamp(),
+            terms_accepted_at: firebase.firestore.FieldValue.serverTimestamp(),
+            terms_version:     TERMS_VERSION
         };
     }
 
@@ -504,56 +551,37 @@ document.addEventListener('DOMContentLoaded', function() {
         return profile && profile.blocked === true;
     }
 
-    /** Bloquea/desbloquea todos los botones de acceso */
-    function lockAuthButtons(locked) {
-        // Registrarse y Google pueden crear una cuenta nueva, así que además exigen
-        // haber aceptado los Términos y Condiciones (checkbox `terms-checkbox`).
-        if (ui.googleLoginBtn)   ui.googleLoginBtn.disabled   = locked || !termsAccepted;
-        if (ui.emailLoginBtn)    ui.emailLoginBtn.disabled    = locked;
-        if (ui.emailRegisterBtn) ui.emailRegisterBtn.disabled = locked || !termsAccepted;
+    function isValidEmail(value) {
+        return value.length <= 120 && /^[^@\s/]+@[^@\s/]+\.[^@\s/]+$/.test(value);
     }
 
-    function unlockExistingUserLogin() {
-        if (ui.googleLoginBtn)   ui.googleLoginBtn.disabled   = !termsAccepted;
-        if (ui.emailLoginBtn)    ui.emailLoginBtn.disabled    = false;
-        if (ui.emailRegisterBtn) {
-            ui.emailRegisterBtn.disabled = true;
-            ui.emailRegisterBtn.textContent = 'Validar código para registrarse';
-        }
+    function setLoginLoading(loading) {
+        if (!ui.loginBtn) return;
+        ui.loginBtn.disabled = loading;
+        ui.loginBtn.textContent = loading ? 'Entrando…' : 'Entrar';
     }
 
-    function setEmailButtonsLoading(loading) {
-        if (ui.emailLoginBtn) {
-            ui.emailLoginBtn.disabled    = loading;
-            ui.emailLoginBtn.textContent = loading ? 'Entrando…' : 'Iniciar sesión';
-        }
-        if (ui.emailRegisterBtn) {
-            ui.emailRegisterBtn.disabled = loading || skipInvite || !validatedInviteCode || !termsAccepted;
-            ui.emailRegisterBtn.textContent = loading
-                ? 'Registrando…'
-                : (skipInvite ? 'Validar código para registrarse' : 'Registrarse con este correo');
-        }
+    function setRegisterLoading(loading) {
+        if (!ui.registerBtn) return;
+        ui.registerBtn.disabled = loading;
+        ui.registerBtn.textContent = loading ? 'Creando cuenta…' : 'Crear cuenta';
     }
 
-    function showEmailError(msg, isInfo = false) {
-        if (!ui.emailFormError) return;
-        ui.emailFormError.textContent = msg;
-        ui.emailFormError.classList.add('visible');
-        if (isInfo) {
-            ui.emailFormError.style.background = '#f0fdf4';
-            ui.emailFormError.style.borderColor = '#bbf7d0';
-            ui.emailFormError.style.color = '#15803d';
-        } else {
-            ui.emailFormError.style.background = '';
-            ui.emailFormError.style.borderColor = '';
-            ui.emailFormError.style.color = '';
-        }
+    function activeErrorEl() {
+        return modeErrorEl[currentMode] || ui.loginError;
     }
 
-    function clearEmailError() {
-        if (!ui.emailFormError) return;
-        ui.emailFormError.textContent = '';
-        ui.emailFormError.classList.remove('visible');
+    function showError(el, msg, isInfo = false) {
+        if (!el) return;
+        el.textContent = msg;
+        el.classList.add('visible');
+        el.classList.toggle('info', isInfo);
+    }
+
+    function clearError(el) {
+        if (!el) return;
+        el.textContent = '';
+        el.classList.remove('visible', 'info');
     }
 
     function setFeedback(msg, type) {
@@ -599,14 +627,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return Date.now() - createdAt < 5 * 60 * 1000;
     }
 
-    function createUserWithEmailAndPassword(authInstance, email, password) {
-        return authInstance.createUserWithEmailAndPassword(email, password);
-    }
-
-    function setDoc(docRef, data) {
-        return docRef.set(data);
-    }
-
     /** Convierte códigos de error de Firebase Auth en mensajes legibles */
     function friendlyAuthError(err, provider = 'email') {
         const map = {
@@ -614,12 +634,13 @@ document.addEventListener('DOMContentLoaded', function() {
             'auth/user-not-found':           'No existe una cuenta con ese correo.',
             'auth/wrong-password':           'Contraseña incorrecta.',
             'auth/invalid-credential':       'Correo o contraseña incorrectos.',
-            'auth/email-already-in-use':     'Ya existe una cuenta con ese correo. Prueba a iniciar sesión.',
-            'auth/weak-password':            'La contraseña debe tener al menos 6 caracteres.',
+            'auth/email-already-in-use':     'Ya existe una cuenta con ese correo. Prueba a entrar en la pestaña «Entrar».',
+            'auth/weak-password':            `La contraseña debe tener al menos ${MIN_PASSWORD_LENGTH} caracteres.`,
             'auth/too-many-requests':        'Demasiados intentos fallidos. Espera unos minutos.',
             'auth/network-request-failed':   'Sin conexión. Revisa tu red.',
             'auth/popup-closed-by-user':     'Se cerró la ventana de acceso.',
             'auth/cancelled-popup-request':  'Se canceló la solicitud de acceso.',
+            'auth/popup-blocked':            'El navegador bloqueó la ventana de Google. Permite las ventanas emergentes e inténtalo de nuevo.',
             'auth/unauthorized-domain':      'Este dominio no está autorizado en Firebase Auth. Añade el dominio actual en Authentication > Settings > Authorized domains.',
             'auth/operation-not-allowed':    provider === 'google'
                 ? 'Google no está activado en Firebase Auth. Actívalo en Authentication > Sign-in method > Google.'

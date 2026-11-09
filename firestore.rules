@@ -75,6 +75,66 @@ service cloud.firestore {
         && getAfter(/databases/$(database)/documents/invite_codes/$(request.resource.data.invite_code)).data.used_by_email == request.auth.token.email;
     }
 
+    // Lectura de datos propios: un usuario bloqueado ya no puede consultarlos.
+    function canReadOwnRecord() {
+      return ownsStoredRecord() && !isBlocked();
+    }
+
+    // Una estadística solo puede crearse/incrementarse junto a un examen nuevo
+    // creado en el mismo lote de escritura (exam_id) y que incluya esa pregunta.
+    function statLinkedToNewExam() {
+      return request.resource.data.exam_id is string
+        && request.resource.data.question_id is string
+        && !exists(/databases/$(database)/documents/exams/$(request.resource.data.exam_id))
+        && existsAfter(/databases/$(database)/documents/exams/$(request.resource.data.exam_id))
+        && getAfter(/databases/$(database)/documents/exams/$(request.resource.data.exam_id)).data.user_id == request.auth.uid
+        && request.resource.data.question_id in getAfter(/databases/$(database)/documents/exams/$(request.resource.data.exam_id)).data.question_ids;
+    }
+
+    function validNewStat() {
+      return request.resource.data.total_attempts == 1
+        && request.resource.data.total_correct is int
+        && request.resource.data.total_incorrect is int
+        && request.resource.data.total_correct + request.resource.data.total_incorrect == 1
+        && request.resource.data.total_correct >= 0
+        && request.resource.data.total_incorrect >= 0
+        && request.resource.data.last_correct == (request.resource.data.total_correct == 1);
+    }
+
+    function validStatIncrement() {
+      return request.resource.data.total_attempts == resource.data.get('total_attempts', 0) + 1
+        && (
+          (
+            request.resource.data.total_correct == resource.data.get('total_correct', 0) + 1
+            && request.resource.data.total_incorrect == resource.data.get('total_incorrect', 0)
+            && request.resource.data.last_correct == true
+          )
+          || (
+            request.resource.data.total_incorrect == resource.data.get('total_incorrect', 0) + 1
+            && request.resource.data.total_correct == resource.data.get('total_correct', 0)
+            && request.resource.data.last_correct == false
+          )
+        );
+    }
+
+    function validRegistrationRequest(requestId) {
+      return request.resource.data.keys().hasOnly(
+          ["name", "email", "message", "status", "created_at", "terms_accepted", "terms_version"])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 2 && request.resource.data.name.size() <= 80
+        && request.resource.data.email is string
+        && request.resource.data.email.size() <= 120
+        && request.resource.data.email == request.resource.data.email.lower()
+        && request.resource.data.email.matches('^[^@\\s/]+@[^@\\s/]+\\.[^@\\s/]+$')
+        && requestId == request.resource.data.email
+        && request.resource.data.message is string
+        && request.resource.data.message.size() <= 500
+        && request.resource.data.status == "pending"
+        && request.resource.data.created_at == request.time
+        && request.resource.data.terms_accepted == true
+        && request.resource.data.terms_version is string;
+    }
+
     match /users/{userId} {
       // Cada perfil solamente es visible y editable por su propio usuario.
       allow read: if isCurrentUser(userId) || isAdmin();
@@ -84,7 +144,9 @@ service cloud.firestore {
           && request.resource.data.id == userId
           && request.resource.data.email == request.auth.token.email
           && hasClaimedInviteCodeForNewUser(userId)
-          && request.resource.data.keys().hasOnly(["id", "name", "email", "invite_code", "created_at", "last_login"])
+          && request.resource.data.keys().hasOnly(["id", "name", "email", "invite_code", "created_at", "last_login", "terms_accepted_at", "terms_version"])
+          && request.resource.data.terms_accepted_at == request.time
+          && request.resource.data.terms_version is string
           && !request.resource.data.keys().hasAny(["blocked", "blocked_at", "blocked_by", "blocked_reason"])
         );
       allow update: if isAdmin()
@@ -105,7 +167,7 @@ service cloud.firestore {
     }
 
     match /exams/{examId} {
-      allow read: if ownsStoredRecord() || isAdmin();
+      allow read: if canReadOwnRecord() || isAdmin();
       allow delete: if isAdmin() || (ownsStoredRecord() && !isBlocked());
       allow create: if canWriteOwnRecord();
       // Un simulacro entregado es inmutable: nadie, ni el propio autor, puede alterarlo.
@@ -113,7 +175,7 @@ service cloud.firestore {
     }
 
     match /exam_answers/{answerId} {
-      allow read: if ownsStoredRecord() || isAdmin();
+      allow read: if canReadOwnRecord() || isAdmin();
       allow delete: if isAdmin() || (ownsStoredRecord() && !isBlocked());
       allow create: if canWriteOwnRecord();
       // Las respuestas de un examen ya entregado son inmutables.
@@ -121,13 +183,18 @@ service cloud.firestore {
     }
 
     match /user_question_stats/{statId} {
-      allow read: if ownsStoredRecord() || isAdmin();
+      allow read: if canReadOwnRecord() || isAdmin();
       allow delete: if isAdmin() || (ownsStoredRecord() && !isBlocked());
+      // Los contadores solo pueden avanzar +1 por examen entregado.
       allow create: if canWriteOwnRecord()
-        && statId == request.auth.uid + "_" + request.resource.data.question_id;
+        && statId == request.auth.uid + "_" + request.resource.data.question_id
+        && validNewStat()
+        && statLinkedToNewExam();
       allow update: if canUpdateOwnRecord()
         && request.resource.data.question_id == resource.data.question_id
-        && statId == request.auth.uid + "_" + resource.data.question_id;
+        && statId == request.auth.uid + "_" + resource.data.question_id
+        && validStatIncrement()
+        && statLinkedToNewExam();
     }
 
     match /institutions/{institutionId} {
@@ -142,6 +209,18 @@ service cloud.firestore {
       allow list: if isAdmin();
       allow create, delete: if isAdmin();
       allow update: if isAdmin() || canClaimInviteCode(codeId);
+    }
+
+    match /manual_status/{statusId} {
+      // Lo escribe el vigilante semanal (Admin SDK, que ignora las reglas); solo el admin lo lee.
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    match /registration_requests/{requestId} {
+      // Cualquiera puede enviar una solicitud (una por correo); solo el admin la gestiona.
+      allow create: if validRegistrationRequest(requestId);
+      allow read, update, delete: if isAdmin();
     }
 
     match /{document=**} {

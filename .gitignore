@@ -11,3 +11,7 @@ firebase-debug.log
 
 # Cloud Functions
 functions/node_modules/
+
+# Herramientas locales
+.kilo/
+manual-report/

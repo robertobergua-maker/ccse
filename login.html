@@ -3,244 +3,302 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Acceso de Usuario - CCSE</title>
+    <title>Acceso - CCSE</title>
     <link rel="stylesheet" href="css/style.css?v=20260903-1">
     <style>
-        /* ── Código de invitación ── */
-        .invite-form { margin: 0 0 20px; }
-        .invite-form label {
-            display: block; font-weight: 700; font-size: 0.92rem;
-            color: #374151; margin-bottom: 8px;
-        }
-        .invite-input-row { display: flex; gap: 8px; }
-        .invite-input {
-            flex: 1; padding: 11px 14px; border: 1.5px solid #d1d5db;
-            border-radius: 8px; font-size: 1.05rem;
-            font-family: 'Courier New', monospace; letter-spacing: 0.12em;
-            text-transform: uppercase; color: #1a202c; outline: none;
-            transition: border-color 0.15s;
-        }
-        .invite-input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.12); }
-        .invite-input.valid   { border-color: #16a34a; background: #f0fdf4; }
-        .invite-input.invalid { border-color: #dc2626; background: #fef2f2; }
-        #validate-code-btn {
-            padding: 11px 18px; background: #f3f4f6; color: #374151;
-            border: 1.5px solid #d1d5db; border-radius: 8px;
-            font-size: 0.9rem; font-weight: 700; cursor: pointer;
-            white-space: nowrap; transition: background 0.15s;
-        }
-        #validate-code-btn:hover:not(:disabled) { background: #e5e7eb; }
-        #validate-code-btn:disabled { opacity: 0.5; cursor: default; }
-        .invite-feedback {
-            margin-top: 8px; font-size: 0.85rem; font-weight: 600; min-height: 1.2em;
-        }
-        .invite-feedback.ok    { color: #15803d; }
-        .invite-feedback.error { color: #dc2626; }
+        .auth-card { max-width: 460px; margin: 0 auto; text-align: left; }
+        .auth-lead { text-align: center; color: #4b5563; margin: 0 0 20px; }
 
-        /* ── Tabs ── */
-        .auth-tabs {
-            display: flex; gap: 0; margin-bottom: 24px;
-            border-bottom: 2px solid #e5e7eb;
+        /* ── Selector de modo ── */
+        .mode-switch {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;
+            padding: 4px; margin-bottom: 24px;
+            background: #f3f4f6; border-radius: 10px;
         }
-        .auth-tab {
-            flex: 1; padding: 10px 0; background: none; border: none;
-            font-size: 0.95rem; font-weight: 700; color: #6b7280;
-            cursor: pointer; border-bottom: 3px solid transparent;
-            margin-bottom: -2px; transition: color 0.15s, border-color 0.15s;
+        .mode-btn {
+            padding: 10px 6px; background: none; border: none; border-radius: 8px;
+            font-size: 0.88rem; font-weight: 700; color: #6b7280; cursor: pointer;
+            line-height: 1.25; transition: background 0.15s, color 0.15s;
         }
-        .auth-tab.active { color: #2563eb; border-bottom-color: #2563eb; }
-        .auth-tab:hover:not(.active) { color: #374151; }
-        .tab-panel { display: none; }
-        .tab-panel.active { display: block; }
+        .mode-btn small { display: block; font-weight: 500; font-size: 0.72rem; margin-top: 2px; }
+        .mode-btn:hover:not(.active) { color: #111827; }
+        .mode-btn.active { background: #fff; color: #2563eb; box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
+        .mode-btn:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
 
-        /* ── Campos de formulario ── */
+        .mode-panel[hidden] { display: none; }
+        .mode-help { font-size: 0.9rem; color: #4b5563; margin: 0 0 18px; }
+
+        /* ── Campos ── */
         .field { margin-bottom: 16px; }
         .field label {
             display: block; font-weight: 700; font-size: 0.88rem;
             color: #374151; margin-bottom: 6px;
         }
-        .field input {
+        .field .optional { font-weight: 500; color: #9ca3af; }
+        .field input, .field textarea {
             width: 100%; padding: 11px 14px; border: 1.5px solid #d1d5db;
-            border-radius: 8px; font-size: 0.97rem; color: #1a202c;
+            border-radius: 8px; font-size: 1rem; color: #1a202c; font-family: inherit;
             outline: none; box-sizing: border-box; transition: border-color 0.15s;
         }
-        .field input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.12); }
+        .field textarea { resize: vertical; min-height: 80px; }
+        .field input:focus, .field textarea:focus {
+            border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+        }
+        .field-hint { margin: 5px 0 0; font-size: 0.78rem; color: #6b7280; }
+        .field-pw { position: relative; }
+        .field-pw input { padding-right: 46px; }
+        .toggle-pw {
+            position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+            background: none; border: none; cursor: pointer; font-size: 1.05rem;
+            color: #6b7280; padding: 6px 8px; line-height: 1;
+        }
+        .toggle-pw:hover { color: #111827; }
 
+        /* ── Código de invitación ── */
+        .invite-input-row { display: flex; gap: 8px; }
+        .invite-input {
+            flex: 1; min-width: 0; padding: 11px 14px; border: 1.5px solid #d1d5db;
+            border-radius: 8px; font-size: 1.05rem; font-family: 'Courier New', monospace;
+            letter-spacing: 0.12em; text-transform: uppercase; color: #1a202c; outline: none;
+        }
+        .invite-input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.12); }
+        .invite-input.valid   { border-color: #16a34a; background: #f0fdf4; }
+        .invite-input.invalid { border-color: #dc2626; background: #fef2f2; }
+        #validate-code-btn {
+            padding: 11px 18px; background: #2563eb; color: #fff; border: none;
+            border-radius: 8px; font-size: 0.92rem; font-weight: 700; cursor: pointer;
+            white-space: nowrap;
+        }
+        #validate-code-btn:disabled { background: #cbd5e1; cursor: default; }
+        .invite-feedback { margin: 8px 0 0; font-size: 0.85rem; font-weight: 600; min-height: 1.2em; }
+        .invite-feedback.ok    { color: #15803d; }
+        .invite-feedback.error { color: #dc2626; }
+
+        /* ── Mensajes ── */
         .form-error {
-            margin: 0 0 14px; padding: 10px 14px;
-            background: #fef2f2; border: 1px solid #fecaca;
-            border-radius: 8px; font-size: 0.88rem; color: #dc2626;
-            font-weight: 600; display: none;
+            margin: 0 0 14px; padding: 10px 14px; background: #fef2f2;
+            border: 1px solid #fecaca; border-radius: 8px; font-size: 0.88rem;
+            color: #b91c1c; font-weight: 600; display: none;
         }
         .form-error.visible { display: block; }
+        .form-error.info { background: #f0fdf4; border-color: #bbf7d0; color: #15803d; }
 
         .btn-full { width: 100%; margin-top: 4px; }
-
-        /* ── Separador ── */
         .divider {
-            display: flex; align-items: center; gap: 12px;
-            margin: 22px 0; color: #9ca3af;
-            font-size: 0.82rem; font-weight: 600;
+            display: flex; align-items: center; gap: 12px; margin: 20px 0;
+            color: #9ca3af; font-size: 0.82rem; font-weight: 600;
         }
-        .divider::before, .divider::after {
-            content: ''; flex: 1; height: 1px; background: #e5e7eb;
-        }
+        .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #e5e7eb; }
 
-        /* ── Google btn ── */
         .btn-google {
-            width: 100%; display: flex; align-items: center;
-            justify-content: center; gap: 10px;
-            background: #fff; color: #374151;
-            border: 1.5px solid #d1d5db; border-radius: 8px;
-            padding: 11px 18px; font-size: 0.97rem; font-weight: 700;
-            cursor: pointer; transition: background 0.15s, border-color 0.15s;
+            width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;
+            background: #fff; color: #374151; border: 1.5px solid #d1d5db; border-radius: 8px;
+            padding: 11px 18px; font-size: 0.97rem; font-weight: 700; cursor: pointer;
+            transition: background 0.15s, border-color 0.15s;
         }
         .btn-google:hover:not(:disabled) { background: #f9fafb; border-color: #9ca3af; }
-        .btn-google:disabled { opacity: 0.45; cursor: not-allowed; }
-        .btn-google svg { flex-shrink: 0; }
+        .btn-google:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        /* ── Nota usuarios existentes ── */
-        .existing-user-note {
-            margin-top: 16px; text-align: center;
-            font-size: 0.82rem; color: #6b7280;
-        }
-        .existing-user-note button {
-            background: none; border: none; color: #2563eb;
-            font-size: 0.82rem; font-weight: 700;
-            cursor: pointer; text-decoration: underline; padding: 0;
+        .link-btn {
+            background: none; border: none; color: #2563eb; font-size: 0.85rem;
+            font-weight: 700; cursor: pointer; text-decoration: underline; padding: 0;
         }
 
-        /* ── Toggle contraseña ── */
-        .field-pw { position: relative; }
-        .field-pw input { padding-right: 42px; }
-        .toggle-pw {
-            position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
-            background: none; border: none; cursor: pointer;
-            color: #9ca3af; padding: 0; line-height: 1;
-        }
-        .toggle-pw:hover { color: #374151; }
-
-        /* ── Términos y condiciones ── */
+        /* ── Términos ── */
         .terms-row {
-            display: flex; align-items: flex-start; gap: 10px;
-            margin: 18px 0; padding: 12px 14px;
-            background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px;
+            display: flex; align-items: flex-start; gap: 10px; margin: 0 0 16px;
+            padding: 12px 14px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px;
         }
-        .terms-row input[type="checkbox"] {
-            margin-top: 3px; width: 17px; height: 17px; flex-shrink: 0; cursor: pointer;
-        }
-        .terms-row label { font-size: 0.86rem; color: #374151; line-height: 1.4; cursor: pointer; }
+        .terms-row input[type="checkbox"] { margin-top: 3px; width: 17px; height: 17px; flex-shrink: 0; cursor: pointer; }
+        .terms-row label { font-size: 0.84rem; color: #374151; line-height: 1.4; cursor: pointer; }
         .terms-row a { color: #2563eb; font-weight: 700; text-decoration: underline; }
+
+        /* ── Solicitud enviada ── */
+        .request-done {
+            text-align: center; padding: 22px 16px; background: #f0fdf4;
+            border: 1px solid #bbf7d0; border-radius: 10px; color: #166534;
+        }
+        .request-done h2 { margin: 0 0 8px; font-size: 1.15rem; }
+        .request-done p { margin: 0 0 6px; font-size: 0.92rem; }
+        .trap { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+
+        .guest-note { margin-top: 26px; text-align: center; font-size: 0.86rem; color: #6b7280; }
+        .guest-note a { color: #2563eb; font-weight: 700; }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Acceso a tu Panel de Estudio</h1>
+            <h1>Accede a tu panel de estudio</h1>
         </header>
         <main>
-            <p>Si es tu primera vez, introduce el código de invitación antes de registrarte.</p>
+            <div id="auth-container" class="auth-card">
 
-            <div id="auth-container">
-
-                <!-- Código de invitación (paso previo siempre visible) -->
-                <div id="invite-step" class="invite-form">
-                    <label for="invite-code-input">Código de invitación</label>
-                    <div class="invite-input-row">
-                        <input
-                            id="invite-code-input"
-                            class="invite-input"
-                            type="text"
-                            placeholder="SAM-XXXXXXXX"
-                            maxlength="12"
-                            autocomplete="off"
-                            spellcheck="false"
-                        >
-                        <button id="validate-code-btn" type="button" disabled>Validar</button>
-                    </div>
-                    <p id="invite-feedback" class="invite-feedback"></p>
-                </div>
-
-                <!-- Términos y condiciones -->
-                <div class="terms-row">
-                    <input id="terms-checkbox" type="checkbox">
-                    <label for="terms-checkbox">
-                        He leído y acepto los
-                        <a href="legal.html" target="_blank" rel="noopener">Términos y Condiciones</a>
-                        y la Política de Privacidad, entendiendo que esta es una herramienta no oficial y sin
-                        garantías.
-                    </label>
-                </div>
-
-                <!-- Tabs: Correo / Google -->
-                <div class="auth-tabs" role="tablist">
-                    <button class="auth-tab active" role="tab" data-tab="email" aria-selected="true">
-                        Correo y contraseña
+                <div class="mode-switch" role="tablist" aria-label="Cómo quieres acceder">
+                    <button class="mode-btn active" type="button" role="tab" data-mode="login"
+                        id="mode-btn-login" aria-selected="true" aria-controls="mode-login">
+                        Entrar<small>Ya tengo cuenta</small>
                     </button>
-                    <button class="auth-tab" role="tab" data-tab="google" aria-selected="false">
-                        Acceder con Google
+                    <button class="mode-btn" type="button" role="tab" data-mode="register"
+                        id="mode-btn-register" aria-selected="false" aria-controls="mode-register">
+                        Crear cuenta<small>Tengo un código</small>
+                    </button>
+                    <button class="mode-btn" type="button" role="tab" data-mode="request"
+                        id="mode-btn-request" aria-selected="false" aria-controls="mode-request">
+                        Pedir acceso<small>No tengo código</small>
                     </button>
                 </div>
 
-                <!-- Panel: correo/contraseña -->
-                <div id="tab-email" class="tab-panel active" role="tabpanel">
-                    <p id="email-form-error" class="form-error" role="alert"></p>
+                <!-- ═══ ENTRAR ═══ -->
+                <section id="mode-login" class="mode-panel" role="tabpanel" aria-labelledby="mode-btn-login">
+                    <p id="login-error" class="form-error" role="alert"></p>
 
-                    <div class="field">
-                        <label for="email-input">Correo electrónico</label>
-                        <input id="email-input" type="email" autocomplete="email" placeholder="tu@correo.com">
-                    </div>
-
-                    <div class="field">
-                        <label for="password-input">Contraseña</label>
-                        <div class="field-pw">
-                            <input id="password-input" type="password" autocomplete="current-password" placeholder="Mínimo 6 caracteres">
-                            <button class="toggle-pw" type="button" aria-label="Mostrar/ocultar contraseña" data-target="password-input">
-                                👁
-                            </button>
-                        </div>
-                    </div>
-
-                    <button id="email-register-btn" class="btn btn-primary btn-full" type="button" disabled>
-                        Registrarse con este correo
-                    </button>
-                    <button id="email-login-btn" class="btn btn-secondary btn-full" type="button" style="margin-top:10px" disabled>
-                        Iniciar sesión
-                    </button>
-
-                    <div style="margin-top:12px; text-align:center">
-                        <button id="forgot-pw-btn" type="button" style="background:none;border:none;color:#2563eb;font-size:0.82rem;font-weight:700;cursor:pointer;text-decoration:underline;padding:0">
-                            ¿Olvidaste la contraseña?
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Panel: Google -->
-                <div id="tab-google" class="tab-panel" role="tabpanel">
-                    <button id="google-login-btn" class="btn-google" type="button" disabled>
+                    <button id="login-google-btn" class="btn-google" type="button">
                         <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
                             <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
                             <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
                             <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
                             <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
                         </svg>
-                        Acceder con Google
+                        Entrar con Google
                     </button>
-                </div>
 
-                <p class="existing-user-note" style="margin-top:20px">
-                    ¿Ya tienes cuenta?
-                    <button id="skip-code-btn" type="button">Entrar sin código</button>
+                    <div class="divider">o con tu correo</div>
+
+                    <div class="field">
+                        <label for="login-email">Correo electrónico</label>
+                        <input id="login-email" type="email" autocomplete="email" placeholder="tu@correo.com">
+                    </div>
+                    <div class="field">
+                        <label for="login-password">Contraseña</label>
+                        <div class="field-pw">
+                            <input id="login-password" type="password" autocomplete="current-password">
+                            <button class="toggle-pw" type="button" aria-label="Mostrar u ocultar contraseña" data-target="login-password">👁</button>
+                        </div>
+                    </div>
+                    <button id="login-btn" class="btn btn-primary btn-full" type="button">Entrar</button>
+                    <p style="margin:14px 0 0;text-align:center">
+                        <button id="forgot-pw-btn" class="link-btn" type="button">¿Olvidaste la contraseña?</button>
+                    </p>
+                </section>
+
+                <!-- ═══ CREAR CUENTA CON CÓDIGO ═══ -->
+                <section id="mode-register" class="mode-panel" role="tabpanel" aria-labelledby="mode-btn-register" hidden>
+                    <p class="mode-help"><strong>Paso 1.</strong> Introduce el código de invitación que te han dado.</p>
+                    <div class="field" style="margin-bottom:6px">
+                        <label for="invite-code-input">Código de invitación</label>
+                        <div class="invite-input-row">
+                            <input id="invite-code-input" class="invite-input" type="text"
+                                placeholder="SAM-XXXXXXXX" maxlength="12" autocomplete="off" spellcheck="false">
+                            <button id="validate-code-btn" type="button" disabled>Comprobar</button>
+                        </div>
+                        <p id="invite-feedback" class="invite-feedback" role="status"></p>
+                    </div>
+
+                    <div id="register-step2" hidden>
+                        <p class="mode-help" style="margin-top:14px"><strong>Paso 2.</strong> Crea tu cuenta.</p>
+                        <p id="register-error" class="form-error" role="alert"></p>
+
+                        <div class="terms-row">
+                            <input id="register-terms" type="checkbox">
+                            <label for="register-terms">
+                                He leído y acepto los
+                                <a href="legal.html" target="_blank" rel="noopener">Términos y Condiciones</a>
+                                y la Política de Privacidad. Entiendo que es una herramienta no oficial y sin garantías.
+                            </label>
+                        </div>
+
+                        <button id="register-google-btn" class="btn-google" type="button">
+                            <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
+                                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                            </svg>
+                            Crear cuenta con Google
+                        </button>
+
+                        <div class="divider">o con tu correo</div>
+
+                        <div class="field">
+                            <label for="register-email">Correo electrónico</label>
+                            <input id="register-email" type="email" autocomplete="email" placeholder="tu@correo.com">
+                        </div>
+                        <div class="field">
+                            <label for="register-password">Contraseña</label>
+                            <div class="field-pw">
+                                <input id="register-password" type="password" autocomplete="new-password">
+                                <button class="toggle-pw" type="button" aria-label="Mostrar u ocultar contraseña" data-target="register-password">👁</button>
+                            </div>
+                            <p class="field-hint">Mínimo 8 caracteres.</p>
+                        </div>
+                        <button id="register-btn" class="btn btn-primary btn-full" type="button">Crear cuenta</button>
+                    </div>
+
+                    <p class="guest-note" style="margin-top:20px">
+                        ¿No tienes código?
+                        <button class="link-btn" type="button" data-goto-mode="request">Solicítalo aquí</button>
+                    </p>
+                </section>
+
+                <!-- ═══ PEDIR ACCESO ═══ -->
+                <section id="mode-request" class="mode-panel" role="tabpanel" aria-labelledby="mode-btn-request" hidden>
+                    <div id="request-form-wrap">
+                        <p class="mode-help">
+                            Rellena el formulario y el administrador revisará tu solicitud. Si la aprueba,
+                            recibirás un código de invitación en tu correo para crear tu cuenta.
+                        </p>
+                        <p id="request-error" class="form-error" role="alert"></p>
+
+                        <div class="field">
+                            <label for="request-name">Nombre</label>
+                            <input id="request-name" type="text" maxlength="80" autocomplete="name" placeholder="Tu nombre y apellidos">
+                        </div>
+                        <div class="field">
+                            <label for="request-email">Correo electrónico</label>
+                            <input id="request-email" type="email" maxlength="120" autocomplete="email" placeholder="tu@correo.com">
+                            <p class="field-hint">Te responderemos a esta dirección.</p>
+                        </div>
+                        <div class="field">
+                            <label for="request-message">Mensaje <span class="optional">(opcional)</span></label>
+                            <textarea id="request-message" maxlength="500"
+                                placeholder="Cuéntanos quién eres o quién te ha recomendado la aplicación"></textarea>
+                        </div>
+                        <div class="trap" aria-hidden="true">
+                            <label>No rellenar <input id="request-website" type="text" tabindex="-1" autocomplete="off"></label>
+                        </div>
+
+                        <div class="terms-row">
+                            <input id="request-terms" type="checkbox">
+                            <label for="request-terms">
+                                Acepto los
+                                <a href="legal.html" target="_blank" rel="noopener">Términos y Condiciones</a>
+                                y la Política de Privacidad, y que se traten estos datos para gestionar mi solicitud.
+                            </label>
+                        </div>
+                        <button id="request-btn" class="btn btn-primary btn-full" type="button">Enviar solicitud</button>
+                    </div>
+
+                    <div id="request-done" class="request-done" hidden>
+                        <h2>✓ Solicitud enviada</h2>
+                        <p>El administrador la revisará pronto.</p>
+                        <p>Cuando la apruebe recibirás tu código en el correo que has indicado.
+                            Entonces vuelve aquí y usa «Crear cuenta».</p>
+                    </div>
+                </section>
+
+                <p class="guest-note">
+                    ¿Solo quieres probar? <a href="dashboard.html">Continuar como invitado</a>
                 </p>
             </div>
         </main>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="js/firebase-config.js"></script>
-    <script src="js/auth.js?v=20260904-5"></script>
+    <script src="js/auth.js?v=20261109-1"></script>
     <script src="js/last-modified.js?v=20260903-3"></script>
 </body>
 </html>
